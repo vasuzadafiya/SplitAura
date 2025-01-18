@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="dark_blue">#0D47A1</color>
+    <color name="orange">#FF5722</color>
+    <color name="background">#123977</color>
+    <!-- Blue Color Palette -->
+    <color name="primary_blue">#3498db</color> <!-- Vibrant blue for buttons, action items -->
+    <color name="secondary_blue">#2980b9</color> <!-- Darker blue for headers, footers -->
+    <color name="light_blue">#5DADE2</color> <!-- Accents or less important elements -->
+    <color name="background_blue">#f0f8ff</color> <!-- Soft background blue -->
+
+    <!-- Contrast and Neutral Colors -->
+    <color name="contrast_orange">#ff914d</color> <!-- For notifications, important action items -->
+    <color name="neutral_white">#ffffff</color> <!-- Text, backgrounds -->
+</resources>

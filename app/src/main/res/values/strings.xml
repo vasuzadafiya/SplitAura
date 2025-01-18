@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">SplitAura</string>
+    <string name="title1">Seamless Payements,\n Effortless Splits</string>
+    <string name="title2">Share Bills,\n Share Moments</string>
+    <string name="title3">Stay Connected,\n Split Confidently</string>
+    <string name="desc12">With SplitAura, managing your Expenses is as easy as a tap. Your wallet is your gateway to hassle-free payments and smooth bill splits.</string>
+    <string name="desc1">Our easy-to-use app helps you track and split your personal and group expenses effortlessly. Whether you\'re sharing meals with friends or managing household bills, SplitMate ensures that all payments are organized and fair for everyone involved</string>
+    <string name="desc22">Create a bill-sharing group with your frieds, and we will handle the rest. Stay organized and enjoy moment together!</string>
+    <string name="desc2">track your expenses in real time, categorize them for better organization, and visualize your spending patterns. From calculating payment shares to monitoring overall spending, SplitMate simplifies managing your finances without the hassle of paper or complex calculations.</string>
+    <string name="desc33">Easily manage your Splits Friend, Add, Remove, and stay in the loop with who you\'re splitting with.</string>
+    <string name="desc3">SplitAura gives you the flexibility to manage both personal and group expenses in one place. Create expense groups, add members, and SplitMate will automatically distribute and track payments—ensuring you never miss a detail when splitting costs with friends, family, or colleagues</string>
+</resources>

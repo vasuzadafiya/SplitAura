@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_blue"
+    tools:context=".Splash">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="20dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
+
+    <ImageView
+        android:id="@+id/main_circle"
+        android:layout_width="349dp"
+        android:layout_height="648dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/ob_back"
+        android:contentDescription="Main Circle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/center_image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:contentDescription="Center Image"
+        android:scaleType="centerCrop"
+        android:src="@drawable/obwomenmain"
+        app:layout_constraintBottom_toBottomOf="@+id/main_circle"
+        app:layout_constraintEnd_toEndOf="@+id/main_circle"
+        app:layout_constraintHorizontal_bias="0.239"
+        app:layout_constraintStart_toStartOf="@+id/main_circle"
+        app:layout_constraintTop_toTopOf="@+id/main_circle"
+        app:layout_constraintVertical_bias="0.318" />
+
+    <ImageView
+        android:id="@+id/roundborder"
+        android:layout_width="126dp"
+        android:layout_height="218dp"
+        android:layout_marginStart="-60dp"
+        android:layout_marginBottom="88dp"
+        android:contentDescription="Center Image"
+        android:scaleType="centerCrop"
+        android:src="@drawable/roundborder"
+        app:layout_constraintBottom_toBottomOf="@+id/main_circle"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/circle_1"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="76dp"
+        android:background="@drawable/small_circle_background"
+        android:contentDescription="Small Circle 1"
+        android:src="@drawable/image"
+        app:layout_constraintEnd_toEndOf="@+id/main_circle"
+        app:layout_constraintHorizontal_bias="0.818"
+        app:layout_constraintStart_toEndOf="@+id/center_image"
+        app:layout_constraintTop_toTopOf="@+id/main_circle" />
+
+    <ImageView
+        android:id="@+id/circle_2"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/small_circle_background"
+        android:contentDescription="Small Circle 2"
+        android:src="@drawable/obwomensmall"
+        app:layout_constraintStart_toEndOf="@+id/center_image"
+        app:layout_constraintTop_toBottomOf="@+id/circle_3" />
+
+    <ImageView
+        android:id="@+id/circle_3"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="56dp"
+        android:background="@drawable/small_circle_background"
+        android:contentDescription="Small Circle 3"
+        android:src="@drawable/obwomens"
+        app:layout_constraintStart_toEndOf="@+id/center_image"
+        app:layout_constraintTop_toBottomOf="@+id/circle_1" />
+
+    <ImageView
+        android:id="@+id/circle_4"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="Small Circle 3"
+        android:src="@drawable/obmensmall"
+        app:layout_constraintEnd_toEndOf="@+id/circle_3"
+        app:layout_constraintHorizontal_bias="0.627"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/circle_2" />
+
+    <TextView
+        android:id="@+id/main_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="240dp"
+        android:fontFamily="@font/poppins_bold"
+        android:text="Just 1 Click Split Your Bills"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.206"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/center_image" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="255dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/poppins"
+        android:gravity="center"
+        android:text="Easy way to share bill with your\nfriends, colleagues and anyone."
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.23"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_title" />
+
+    <ImageView
+        android:id="@+id/small_cirle"
+        android:layout_width="212dp"
+        android:layout_height="191dp"
+        android:background="@drawable/buttonbg"
+        android:contentDescription="background Circle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_circle"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <ImageButton
+        android:id="@+id/next_button"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="74dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/button_shape"
+        android:contentDescription="Next Button"
+        android:src="@drawable/ic_arrow_right"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.482"
+        app:layout_constraintStart_toStartOf="@+id/small_cirle" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

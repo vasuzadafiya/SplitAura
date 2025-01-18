@@ -9,4 +9,5 @@
     <string name="desc2">track your expenses in real time, categorize them for better organization, and visualize your spending patterns. From calculating payment shares to monitoring overall spending, SplitMate simplifies managing your finances without the hassle of paper or complex calculations.</string>
     <string name="desc33">Easily manage your Splits Friend, Add, Remove, and stay in the loop with who you\'re splitting with.</string>
     <string name="desc3">SplitAura gives you the flexibility to manage both personal and group expenses in one place. Create expense groups, add members, and SplitMate will automatically distribute and track payments—ensuring you never miss a detail when splitting costs with friends, family, or colleagues</string>
+    <string name="or_divide">---------------Or---------------</string>
 </resources>

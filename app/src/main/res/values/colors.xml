@@ -14,4 +14,7 @@
     <!-- Contrast and Neutral Colors -->
     <color name="contrast_orange">#ff914d</color> <!-- For notifications, important action items -->
     <color name="neutral_white">#ffffff</color> <!-- Text, backgrounds -->
+    <color name="colorPrimary">#B7D8F2</color>
+    <color name="f_pass_color">#123977</color>
+
 </resources>

@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.splitaura" />
+                  <option name="mobileSdkAppId" value="1:689551742039:android:33972ddee541587ecfbf12" />
+                  <option name="projectId" value="splitaura1" />
+                  <option name="projectNumber" value="689551742039" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

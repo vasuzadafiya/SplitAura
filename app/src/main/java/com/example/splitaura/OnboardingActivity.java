@@ -1,5 +1,6 @@
 package com.example.splitaura;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,7 +42,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
             @Override
             public void onSkipClicker(int position) {
-                viewPager.setCurrentItem(3);
+                startActivity(new Intent(OnboardingActivity.this,LoginActivity.class));
             }
         });
 

@@ -40,6 +40,8 @@ dependencies {
     implementation libs.viewpager2
     implementation libs.dotsindicator
     implementation libs.material.v170
+    implementation libs.lottie
+
 
 
 }

@@ -34,6 +34,10 @@ public class OnboardingActivity extends AppCompatActivity {
         adapter.setOnboardingListener(new OnboardingAdapter.OnboardingListener() {
             @Override
             public void onNextClicked(int position) {
+                if (position <= 3) {
+                    startActivity(new Intent(OnboardingActivity.this, LoginActivity.class));
+                }
+
                 if (position < onboardingItems.size() - 1) {
                     // Go to next page when "Next" is clicked
                     viewPager.setCurrentItem(position + 1);
@@ -42,7 +46,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
             @Override
             public void onSkipClicker(int position) {
-                startActivity(new Intent(OnboardingActivity.this,LoginActivity.class));
+                startActivity(new Intent(OnboardingActivity.this, LoginActivity.class));
             }
         });
 

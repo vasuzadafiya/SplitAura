@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -30,6 +31,7 @@ android {
 
 dependencies {
 
+//    in-built Dependency
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
@@ -39,8 +41,15 @@ dependencies {
     androidTestImplementation libs.espresso.core
     implementation libs.viewpager2
     implementation libs.dotsindicator
+
+//    Animation and UI Dependency
     implementation libs.material.v170
     implementation libs.lottie
 
+//    Firebase Database Dependency
+    implementation libs.firebase.storage
+    implementation libs.firebase.auth
+    implementation libs.firebase.firestore
+    implementation libs.firebase.database
 
 }

@@ -11,6 +11,11 @@ constraintlayout = "2.2.0"
 lottie = "6.6.2"
 materialVersion = "1.7.0"
 viewpager2 = "1.0.0"
+googleGmsGoogleServices = "4.4.2"
+firebaseStorage = "21.0.1"
+firebaseAuth = "23.1.0"
+firebaseFirestore = "25.1.1"
+firebaseDatabase = "21.0.0"
 
 [libraries]
 dotsindicator = { module = "com.tbuonomo:dotsindicator", version.ref = "dotsindicator" }
@@ -24,8 +29,13 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 material-v170 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 

@@ -10,4 +10,8 @@
     <string name="desc33">Easily manage your Splits Friend, Add, Remove, and stay in the loop with who you\'re splitting with.</string>
     <string name="desc3">SplitAura gives you the flexibility to manage both personal and group expenses in one place. Create expense groups, add members, and SplitMate will automatically distribute and track payments—ensuring you never miss a detail when splitting costs with friends, family, or colleagues</string>
     <string name="or_divide">---------------Or---------------</string>
+    <string name="loginsuccesstitle">Login Success</string>
+    <string name="regestrationtitle">Regestration Success</string>
+    <string name="loginsuccessdesc">You have successfully login in our app. \n you can start working in it</string>
+    <string name="regsuccessdesc">You have successfully registered in our app. \n you can start working in it</string>
 </resources>

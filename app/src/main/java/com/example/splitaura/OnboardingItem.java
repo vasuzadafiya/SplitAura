@@ -1,18 +1,18 @@
 package com.example.splitaura;
 
 public class OnboardingItem {
-    private final int image;
+    private final int imageResId;
     private final String title;
     private final String description;
 
-    public OnboardingItem(int image, String title, String description) {
-        this.image = image;
+    public OnboardingItem(int imageResId, String title, String description) {
+        this.imageResId = imageResId;
         this.title = title;
         this.description = description;
     }
 
-    public int getImage() {
-        return image;
+    public int getImageResId() {
+        return imageResId;
     }
 
     public String getTitle() {

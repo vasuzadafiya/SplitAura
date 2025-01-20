@@ -1,7 +1,6 @@
 package com.example.splitaura;
 
 import android.app.Dialog;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,8 +19,8 @@ import com.airbnb.lottie.LottieAnimationView;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private TextView tvlogin,tvsignin;
-    private ConstraintLayout cs_login,cs_signin;
+    private TextView tvlogin, tvsignin;
+    private ConstraintLayout cs_login, cs_signin;
     private Button login_button;
 
     @Override
@@ -40,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         tvsignin = findViewById(R.id.sign_up);
         cs_login = findViewById(R.id.login_constarint);
         cs_signin = findViewById(R.id.signin_constarint);
-        login_button=findViewById(R.id.login_button);
+        login_button = findViewById(R.id.login_button);
 
         tvlogin.setOnClickListener(new View.OnClickListener() {
             @Override

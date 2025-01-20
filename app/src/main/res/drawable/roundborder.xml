@@ -8,14 +8,12 @@
         android:width="0.5dp"
         android:color="@android:color/white" />
     <corners
-        android:topRightRadius="75dp"
         android:bottomRightRadius="75dp"
-        />
+        android:topRightRadius="75dp" />
     <padding
-        android:right="30dp"
-        android:top="30dp"
         android:bottom="30dp"
-        />
+        android:right="30dp"
+        android:top="30dp" />
 
 
 </shape>

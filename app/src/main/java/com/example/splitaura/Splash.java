@@ -27,13 +27,12 @@ public class Splash extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), OnboardingActivity.class);
+                Intent intent = new Intent(getApplicationContext(), OnboardingScreen.class);
                 startActivity(intent);
 
 
             }
         });
-
 
 
 //        ImageButton nextButton = findViewById(R.id.next_button);

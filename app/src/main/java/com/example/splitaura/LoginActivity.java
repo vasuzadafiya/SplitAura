@@ -17,7 +17,6 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -32,13 +31,19 @@ public class LoginActivity extends AppCompatActivity {
     EditText fname, lname, email, password, confirmpassword;
     Button createac;
     private FirebaseAuth mAuth;
-    TextView signup, login;
+    TextView signup;
+    TextView login;
 
     //    for Login Credential
-    EditText lemail, lpassword;
-    Button login_btn;
+    EditText lemail;
+    EditText lpassword;
+    Button loginBtn;
 
-    ConstraintLayout signup_constraint, login_constraint;
+    //    for custom LoginDialogue
+    private LoadingDialog loadingDialog;
+
+    ConstraintLayout signupConstraint;
+    ConstraintLayout loginConstraint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,30 +63,26 @@ public class LoginActivity extends AppCompatActivity {
 //        intialize Login variables
         lemail = findViewById(R.id.email_edit_text);
         lpassword = findViewById(R.id.password_edit_text);
-        login_btn = findViewById(R.id.login_button);
-        signup_constraint = findViewById(R.id.signin_constarint);
-        login_constraint = findViewById(R.id.login_constarint);
+        loginBtn = findViewById(R.id.login_button);
+        signupConstraint = findViewById(R.id.signin_constarint);
+        loginConstraint = findViewById(R.id.login_constarint);
+        loadingDialog = new LoadingDialog(this);
 
 
         createac.setOnClickListener(view -> signupuser(fname, lname, email, password, confirmpassword));
-        login_btn.setOnClickListener(view -> loginuser(lemail, lpassword));
+
+        loginBtn.setOnClickListener(view -> loginuser(lemail, lpassword));
 
         signup = findViewById(R.id.sign_up);
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                signup_constraint.setVisibility(View.VISIBLE);
-                login_constraint.setVisibility(View.GONE);
-            }
+        signup.setOnClickListener(view -> {
+            signupConstraint.setVisibility(View.VISIBLE);
+            loginConstraint.setVisibility(View.GONE);
         });
 
         login = findViewById(R.id.log_in);
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                signup_constraint.setVisibility(View.GONE);
-                login_constraint.setVisibility(View.VISIBLE);
-            }
+        login.setOnClickListener(view -> {
+            signupConstraint.setVisibility(View.GONE);
+            loginConstraint.setVisibility(View.VISIBLE);
         });
 
 
@@ -101,6 +102,7 @@ public class LoginActivity extends AppCompatActivity {
             lpassword.requestFocus();
             return;
         }
+        loadingDialog.show();
 
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
@@ -109,6 +111,7 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 Utill.showToast(this, "Login Failed : " + task.getException());
             }
+            loadingDialog.hide();
         });
     }
 
@@ -122,11 +125,9 @@ public class LoginActivity extends AppCompatActivity {
         String conpass = confirmpassword.getText().toString();
 
         if (validateinput(firstname, lastname, email, password, conpass)) {
-
+            loadingDialog.show();
             signUpUser(firstname, lastname, email, password);
-
         }
-
 
     }
 
@@ -182,16 +183,18 @@ public class LoginActivity extends AppCompatActivity {
                         Log.e("Signup", "User Profile Update Failed");
                         Utill.showToast(this, "User Profile Update Failed");
                     }
+                    loadingDialog.hide();
                 });
 
             } else {
                 Log.e("Signup", "Signup Failed : " + task.getException());
                 Utill.showToast(this, "Signup Failed : " + task.getException());
+                loadingDialog.hide();
             }
         });
     }
 
-    //    for save new user to firebase database;
+    //    for save new user to firebase database
     private void saveUserToFirestore(String uid, String fname, String lname, String email, String password) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -218,11 +221,13 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> Utill.showToast(this, "Error: " + e.getMessage()));
+        loadingDialog.hide();
     }
 
     private void navigateToHomepage(Activity activity, Boolean isLogin) {
+        loadingDialog.hide();
         // Use the Activity context
-        View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess, null);
+        View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess,null);
 
         // Create a dialog
         Dialog dialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -233,12 +238,10 @@ public class LoginActivity extends AppCompatActivity {
             dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
 
-        // Find and initialize views in the dialog layout
-        LottieAnimationView animationView = dialogView.findViewById(R.id.done_animation);
         TextView titleText = dialogView.findViewById(R.id.textView1);
         TextView description = dialogView.findViewById(R.id.textView2);
 
-        if (isLogin) {
+        if (Boolean.TRUE.equals(isLogin)) {
             titleText.setText(R.string.loginsuccesstitle);
             description.setText(R.string.loginsuccessdesc);
         } else {
@@ -253,7 +256,7 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
         new Handler().postDelayed(() -> {
             // Transition to HomeActivity after 4 seconds
-            Intent intent = new Intent(activity, homepage.class);
+            Intent intent = new Intent(activity, Homepage.class);
             startActivity(intent);
             // Finish the DialogActivity so it’s no longer on the back stack
             finish();

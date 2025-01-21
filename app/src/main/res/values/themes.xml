@@ -5,6 +5,8 @@
         <item name="colorPrimary">@color/background</item>
         <item name="colorPrimaryVariant">#002244</item>
         <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowFullscreen">true</item>
 
         <!-- Button colors and accents -->
         <item name="colorSecondary">#1A73E8</item>
@@ -24,5 +26,13 @@
         <!-- Icon and accent styling -->
         <item name="android:navigationBarColor">#003366</item>
         <item name="android:statusBarColor">#002244</item>
+    </style>
+
+<!--    Custom Loading Dialog Style-->
+    <style name="CustomLoadingDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
 </resources>

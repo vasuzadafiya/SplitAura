@@ -2,7 +2,6 @@ package com.example.splitaura;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -60,6 +59,6 @@ public class OnboardingScreen extends AppCompatActivity {
     private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
-        finish();
+        finishAffinity();
     }
 }

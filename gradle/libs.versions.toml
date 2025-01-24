@@ -1,6 +1,10 @@
 [versions]
 agp = "8.6.1"
+credentialsPlayServicesAuth = "1.3.0"
 dotsindicator = "4.3"
+firebaseBom = "33.8.0"
+firebaseCore = "21.1.1"
+googleid = "1.1.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -9,8 +13,9 @@ material = "1.12.0"
 activity = "1.10.0"
 constraintlayout = "2.2.0"
 lottie = "6.6.2"
-materialVersion = "1.7.0"
-viewpager2 = "1.0.0"
+materialVersion = "1.12.0"
+playServicesAuth = "21.3.0"
+viewpager2 = "1.1.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseStorage = "21.0.1"
 firebaseAuth = "23.1.0"
@@ -18,7 +23,13 @@ firebaseFirestore = "25.1.1"
 firebaseDatabase = "21.0.0"
 
 [libraries]
+credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsPlayServicesAuth" }
+credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
 dotsindicator = { module = "com.tbuonomo:dotsindicator", version.ref = "dotsindicator" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-core = { module = "com.google.firebase:firebase-core", version.ref = "firebaseCore" }
+google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -27,6 +38,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v170 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }

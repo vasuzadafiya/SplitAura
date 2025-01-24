@@ -26,9 +26,9 @@
         android:layout_marginTop="64dp"
         android:fontFamily="@font/inter_bold"
         android:gravity="center"
-        android:text="Success!"
+        android:text="@string/dash"
         android:textColor="@color/black"
-        android:textSize="28dp"
+        android:textSize="28sp"
         app:layout_constraintTop_toBottomOf="@+id/done_animation"
         tools:layout_editor_absoluteX="0dp" />
 
@@ -38,10 +38,11 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/inter"
         android:gravity="center"
-        android:text="You have successfully registered in our app \n and can start working in it"
+        android:text="@string/dash"
         android:textColor="@color/black"
-        android:textSize="18dp"
-        app:layout_constraintTop_toBottomOf="@+id/textView1" />
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@+id/textView1"
+        tools:ignore="TextSizeCheck" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,12 +15,13 @@
         android:id="@+id/login_constarint"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <ImageView
             android:id="@+id/imageView2"
-            android:layout_width="263dp"
+            android:layout_width="250dp"
             android:layout_height="250dp"
+            android:contentDescription="TODO"
             android:elevation="4dp"
             android:src="@drawable/img"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -47,7 +48,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
-                android:text="Log In"
+                android:text="@string/log_in"
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_large"
                 android:textStyle="bold" />
@@ -59,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
-                android:hint="EMAIL ID"
+                android:hint="@string/email_id"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color">
 
@@ -76,7 +77,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
-                android:hint="PASSWORD"
+                android:hint="@string/password"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color"
                 app:endIconMode="password_toggle">
@@ -99,7 +100,7 @@
                 android:layout_marginTop="@dimen/default_margin"
                 android:gravity="end"
                 android:padding="4dp"
-                android:text="Forgot Password?"
+                android:text="@string/forgot_password"
                 android:textColor="@color/f_pass_color"
                 android:textSize="@dimen/text_size_small" />
         </LinearLayout>
@@ -111,7 +112,7 @@
             android:layout_marginHorizontal="@dimen/default_margin"
             android:layout_marginTop="20dp"
             android:padding="@dimen/default_padding"
-            android:text="Login"
+            android:text="@string/login"
             android:textColor="@color/white"
             android:textSize="@dimen/text_size_medium"
             app:backgroundTint="@color/f_pass_color"
@@ -145,13 +146,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/or_divider">
 
-            <ImageButton
+<!--            <ImageButton-->
+<!--                android:id="@+id/google_login1"-->
+<!--                android:layout_width="@dimen/social_icon_size"-->
+<!--                android:layout_height="@dimen/social_icon_size"-->
+<!--                android:background="@null"-->
+<!--                android:src="@drawable/ic_google"-->
+<!--                tools:ignore="SpeakableTextPresentCheck" />-->
+
+            <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/google_login"
-                android:layout_width="@dimen/social_icon_size"
-                android:layout_height="@dimen/social_icon_size"
-                android:background="@null"
-                android:src="@drawable/ic_google"
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:lottie_loop="false"
+                app:lottie_autoPlay="true"
+                app:lottie_rawRes="@raw/google_logo" />
         </LinearLayout>
 
 
@@ -169,9 +178,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Don't have an Account?"
-                android:textColor="@color/f_pass_color"
-                android:textSize="@dimen/text_size_medium" />
+                android:text="@string/no_ac"
+                android:textColor="@color/background"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/sign_up"
@@ -180,8 +189,8 @@
                 android:layout_marginStart="@dimen/default_margin"
                 android:backgroundTint="@color/white"
                 android:text="Sign Up"
-                android:textColor="@color/f_pass_color"
-                android:textSize="@dimen/text_size_medium"
+                android:textColor="@color/background"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
@@ -194,12 +203,13 @@
         android:id="@+id/signin_constarint"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <ImageView
             android:id="@+id/imageView3"
             android:layout_width="200dp"
             android:layout_height="200dp"
+            android:contentDescription="TODO"
             android:elevation="4dp"
             android:src="@drawable/img_1"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -358,7 +368,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
-                android:text="Don't have an Account?"
+                android:text="@string/no_ac"
                 android:textColor="@color/f_pass_color"
                 android:textSize="@dimen/text_size_medium" />
 

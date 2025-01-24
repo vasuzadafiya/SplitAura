@@ -17,17 +17,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import android.widget.ImageButton;
-import android.widget.Toast;
-
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -35,19 +25,31 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
     //    for sign-in reference variables
-    EditText fname, lname, email, password, confirmpassword;
+    EditText fname;
+    EditText lname;
+    EditText email;
+    EditText password;
+    EditText confirmpassword;
     Button createac;
     private FirebaseAuth mAuth;
     TextView signup;
     TextView login;
+    private static final String TAG = "MainActivity";
+    private static final int RC_SIGN_IN = 9001;
+    LottieAnimationView glogin;
 
-    private GoogleSignInClient mGoogleSignInClient;
-    private static final int RC_SIGN_IN = 9001; // Request code for Google Sign-In
     //    for Login Credential
     EditText lemail;
     EditText lpassword;
@@ -55,7 +57,9 @@ public class LoginActivity extends AppCompatActivity {
 
     //    for custom LoginDialogue
     private LoadingDialog loadingDialog;
+    private GoogleSignInClient mGoogleSignInClient;
 
+    //    Dynamic Layout Credential
     ConstraintLayout signupConstraint;
     ConstraintLayout loginConstraint;
 
@@ -65,103 +69,112 @@ public class LoginActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-//        intialize signup variable
+
+        //        initialize signup variable
+        mAuth = FirebaseAuth.getInstance();
         fname = findViewById(R.id.fname_edit_text);
         lname = findViewById(R.id.lanme_edit_text);
         email = findViewById(R.id.email1_edit_text);
         password = findViewById(R.id.password1_edit_text);
         createac = findViewById(R.id.create_acc_button);
+        signup = findViewById(R.id.sign_up); //textView
         confirmpassword = findViewById(R.id.confirm_password1_edit_text);
-        mAuth = FirebaseAuth.getInstance();
 
-//        intialize Login variables
+
+        //        initialize Login variables
         lemail = findViewById(R.id.email_edit_text);
         lpassword = findViewById(R.id.password_edit_text);
         loginBtn = findViewById(R.id.login_button);
         signupConstraint = findViewById(R.id.signin_constarint);
         loginConstraint = findViewById(R.id.login_constarint);
         loadingDialog = new LoadingDialog(this);
-        ImageButton googleSignInButton = findViewById(R.id.google_login); // Replace with your button ID
-        googleSignInButton.setOnClickListener(view -> signInWithGoogle());
+        login = findViewById(R.id.log_in);
 
+//    google login variable
+        glogin = findViewById(R.id.google_login);
+//          Configure Google Sign-In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestIdToken(getString(R.string.default_web_client_id)).requestEmail().build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         createac.setOnClickListener(view -> signupuser(fname, lname, email, password, confirmpassword));
 
         loginBtn.setOnClickListener(view -> loginuser(lemail, lpassword));
 
-        signup = findViewById(R.id.sign_up);
+
+//        Dynamic Views changes
         signup.setOnClickListener(view -> {
             signupConstraint.setVisibility(View.VISIBLE);
             loginConstraint.setVisibility(View.GONE);
         });
-
-        login = findViewById(R.id.log_in);
         login.setOnClickListener(view -> {
             signupConstraint.setVisibility(View.GONE);
             loginConstraint.setVisibility(View.VISIBLE);
         });
 
-        // Configure Google Sign-In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.web_client_id)) // Replace with your web client ID
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        glogin.setOnClickListener(view -> signIn());
 
     }
 
-    private void signInWithGoogle() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+    private void signIn() {
+        mGoogleSignInClient.revokeAccess().addOnCompleteListener(task -> {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        });
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // If the requestCode matches, handle the result
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                // Google Sign In was successful, authenticate with Firebase
+                // Handle Google Sign-In Success
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d("GoogleSignIn", "firebaseAuthWithGoogle:" + account.getId());
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
-                Log.w("GoogleSignIn", "Google sign in failed", e);
-                Toast.makeText(this, "Google Sign-In failed.", Toast.LENGTH_SHORT).show();
+                // If Google Sign-In fails, log the exception
+                Log.w(TAG, "Google sign in failed", e);
+                Utill.showToast(LoginActivity.this, "Google sign-in failed");
             }
         }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        loadingDialog.show();
+        // Step 1: Get Firebase credentials from Google
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d("GoogleSignIn", "signInWithCredential:success");
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        updateUI(user);
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w("GoogleSignIn", "signInWithCredential:failure", task.getException());
-                        Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show();
-                        updateUI(null);
-                    }
-                });
-    }
 
-    private void updateUI(FirebaseUser user) {
-        if (user != null) {
-            // User is signed in, navigate to the next activity or update UI
-            navigateToHomepage(LoginActivity.this, true); // Assuming you want to navigate to Homepage
-        } else {
-            // User is signed out, show a sign-in button or update UI
-            // ...
-        }
+        // Step 2: Sign in with Firebase using credentials
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                // Step 3: If successful, get current user and details
+                FirebaseUser user = mAuth.getCurrentUser();
+                String uid = user.getUid();
+                String googleId = user.getEmail();
+                String displayName = user.getDisplayName();
+
+                // Split display name into first and last names if necessary
+                String firstName = (displayName != null && displayName.contains(" ")) ? displayName.split(" ")[0] : displayName;
+                String lastName = (displayName != null && displayName.contains(" ")) ? displayName.split(" ")[1] : "";
+
+                Log.d(TAG, "First Name: " + firstName);
+                Log.d(TAG, "Last Name: " + lastName);
+                Log.d(TAG, "Google ID: " + googleId);
+
+
+                saveUserToFirestore(uid, firstName, lastName, googleId, null);
+                createDialoge(LoginActivity.this, true); // Show new user dialog
+                Log.d(TAG, "New user registration process completed.");
+
+            } else {
+                // Handle sign-in failure
+                Log.w(TAG, "signInWithCredential:failure", task.getException());
+                Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
+            }
+            loadingDialog.hide();
+        });
     }
 
     private void loginuser(EditText lemail, EditText lpassword) {
@@ -183,9 +196,9 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
                 Utill.showToast(this, "Login Successful");
-                navigateToHomepage(LoginActivity.this, true);
+                createDialoge(LoginActivity.this, true);
             } else {
-                Utill.showToast(this, "Login Failed : " + task.getException());
+                Utill.showToast(this, "User Not Found : " + task.getException());
             }
             loadingDialog.hide();
         });
@@ -202,8 +215,9 @@ public class LoginActivity extends AppCompatActivity {
 
         if (validateinput(firstname, lastname, email, password, conpass)) {
             loadingDialog.show();
-            signUpUser(firstname, lastname, email, password);
+            signupUserWithFirebase(firstname, lastname, email, password);
         }
+
 
     }
 
@@ -240,7 +254,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void signUpUser(String fname, String lname, String email, String password) {
+    private void signupUserWithFirebase(String fname, String lname, String email, String password) {
 
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
 
@@ -252,23 +266,22 @@ public class LoginActivity extends AppCompatActivity {
 
                 user.updateProfile(profileUpdates).addOnCompleteListener(task1 -> {
                     if (task1.isSuccessful()) {
-                        Log.d("Signup", "User Profile Updated");
                         Utill.showToast(this, "User Profile Updated");
                         saveUserToFirestore(user.getUid(), fname, lname, email, password);
+                        createDialoge(LoginActivity.this, false);
                     } else {
-                        Log.e("Signup", "User Profile Update Failed");
                         Utill.showToast(this, "User Profile Update Failed");
                     }
                     loadingDialog.hide();
                 });
 
             } else {
-                Log.e("Signup", "Signup Failed : " + task.getException());
                 Utill.showToast(this, "Signup Failed : " + task.getException());
                 loadingDialog.hide();
             }
         });
     }
+
 
     //    for save new user to firebase database
     private void saveUserToFirestore(String uid, String fname, String lname, String email, String password) {
@@ -290,8 +303,6 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Utill.showToast(this, "User saved to Firestore");
-//
-                        navigateToHomepage(LoginActivity.this, false);
                     } else {
                         Utill.showToast(this, "Failed to save user to Firestore");
                     }
@@ -300,10 +311,11 @@ public class LoginActivity extends AppCompatActivity {
         loadingDialog.hide();
     }
 
-    private void navigateToHomepage(Activity activity, Boolean isLogin) {
+
+    private void createDialoge(Activity activity, Boolean islogin) {
         loadingDialog.hide();
         // Use the Activity context
-        View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess,null);
+        View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess, null);
 
         // Create a dialog
         Dialog dialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -317,7 +329,7 @@ public class LoginActivity extends AppCompatActivity {
         TextView titleText = dialogView.findViewById(R.id.textView1);
         TextView description = dialogView.findViewById(R.id.textView2);
 
-        if (Boolean.TRUE.equals(isLogin)) {
+        if (Boolean.TRUE.equals(islogin)) {
             titleText.setText(R.string.loginsuccesstitle);
             description.setText(R.string.loginsuccessdesc);
         } else {
@@ -330,13 +342,17 @@ public class LoginActivity extends AppCompatActivity {
 
         // Show the dialog
         dialog.show();
-        new Handler().postDelayed(() -> {
-            // Transition to HomeActivity after 4 seconds
-            Intent intent = new Intent(activity, Homepage.class);
-            startActivity(intent);
-            // Finish the DialogActivity so it’s no longer on the back stack
-            finish();
-        }, 3500);
+
+        new Handler().postDelayed(() -> navigateToHomepage(activity), 3500);
+
+    }
+
+    private void navigateToHomepage(Activity activity) {
+        // Transition to HomeActivity after 4 seconds
+        Intent intent = new Intent(activity, Homepage.class);
+        startActivity(intent);
+        // Finish the DialogActivity so it’s no longer on the back stack
+        finish();
     }
 
 }

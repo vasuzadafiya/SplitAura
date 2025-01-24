@@ -15,7 +15,7 @@ public class LoadingDialog {
         dialog = new Dialog(context, R.style.CustomLoadingDialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
-        dialog.setContentView(R.layout.activity_loadingbar);
+        dialog.setContentView(R.layout.loadingbar_layout);
 
 
         LottieAnimationView animationView = dialog.findViewById(R.id.animation_view);

@@ -1,5 +1,6 @@
 package com.example.splitaura;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
@@ -14,7 +15,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.airbnb.lottie.LottieAnimationView;
@@ -34,7 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     //    for sign-in reference variables
     EditText fname;
@@ -151,13 +151,16 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 // Step 3: If successful, get current user and details
                 FirebaseUser user = mAuth.getCurrentUser();
+                assert user != null;
                 String uid = user.getUid();
                 String googleId = user.getEmail();
                 String displayName = user.getDisplayName();
 
                 // Split display name into first and last names if necessary
-                String firstName = (displayName != null && displayName.contains(" ")) ? displayName.split(" ")[0] : displayName;
-                String lastName = (displayName != null && displayName.contains(" ")) ? displayName.split(" ")[1] : "";
+                String firstName = (displayName != null && displayName.contains(" "))
+                        ? displayName.split(" ")[0] : displayName;
+                String lastName = (displayName != null && displayName.contains(" "))
+                        ? displayName.split(" ")[1] : "";
 
                 Log.d(TAG, "First Name: " + firstName);
                 Log.d(TAG, "Last Name: " + lastName);
@@ -215,9 +218,8 @@ public class LoginActivity extends AppCompatActivity {
 
         if (validateinput(firstname, lastname, email, password, conpass)) {
             loadingDialog.show();
-            signupUserWithFirebase(firstname, lastname, email, password);
+            signUpUserwithFirebase(firstname, lastname, email, password);
         }
-
 
     }
 
@@ -254,7 +256,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void signupUserWithFirebase(String fname, String lname, String email, String password) {
+    private void signUpUserwithFirebase(String fname, String lname, String email, String password) {
 
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
 
@@ -300,13 +302,7 @@ public class LoginActivity extends AppCompatActivity {
         db.collection("users")
                 .document(uid)
                 .set(user)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Utill.showToast(this, "User saved to Firestore");
-                    } else {
-                        Utill.showToast(this, "Failed to save user to Firestore");
-                    }
-                })
+                .addOnCompleteListener(task -> Log.d(TAG, "User saved to Firestore"))
                 .addOnFailureListener(e -> Utill.showToast(this, "Error: " + e.getMessage()));
         loadingDialog.hide();
     }
@@ -315,7 +311,7 @@ public class LoginActivity extends AppCompatActivity {
     private void createDialoge(Activity activity, Boolean islogin) {
         loadingDialog.hide();
         // Use the Activity context
-        View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess, null);
+        @SuppressLint("InflateParams") View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess, null);
 
         // Create a dialog
         Dialog dialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);

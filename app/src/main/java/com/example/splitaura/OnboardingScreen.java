@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator;
@@ -12,7 +11,7 @@ import com.tbuonomo.viewpagerdotsindicator.DotsIndicator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OnboardingScreen extends AppCompatActivity {
+public class OnboardingScreen extends BaseActivity {
 
     private ViewPager2 viewPager;
     private List<OnboardingItem> onboardingItems;

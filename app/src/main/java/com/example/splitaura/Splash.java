@@ -6,12 +6,11 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class Splash extends AppCompatActivity {
+public class Splash extends BaseActivity {
     FirebaseAuth mAuth;
     FirebaseUser currentUser;
 
@@ -31,7 +30,7 @@ public class Splash extends AppCompatActivity {
         }
 
 //        for portrait orientation
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
 
 //        for next activity

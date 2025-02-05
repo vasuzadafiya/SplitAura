@@ -4,7 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="dark_blue">#0D47A1</color>
     <color name="orange">#FF5722</color>
-    <color name="background">#123977</color>
+    <color name="background">@color/white</color>
     <!-- Blue Color Palette -->
     <color name="primary_blue">#3498db</color> <!-- Vibrant blue for buttons, action items -->
     <color name="secondary_blue">#2980b9</color> <!-- Darker blue for headers, footers -->

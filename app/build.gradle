@@ -45,6 +45,7 @@ dependencies {
 //    Animation and UI Dependency
     implementation libs.material.v170
     implementation libs.lottie
+    implementation("com.google.android.material:material:1.10.0")
 
 //    Firebase Database Dependency
     implementation libs.firebase.storage

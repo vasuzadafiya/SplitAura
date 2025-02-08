@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".Homepage">
 
-
     <FrameLayout
         android:id="@+id/frame_layout"
         android:layout_width="match_parent"
@@ -28,13 +27,4 @@
             android:background="@color/white"
             app:menu="@menu/bottom_nav_menu" />
     </com.google.android.material.bottomappbar.BottomAppBar>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/white"
-                android:src="@drawable/ic_spotlight"
-                app:layout_anchor="@id/bottomAppBar"
-                app:maxImageSize="50dp" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

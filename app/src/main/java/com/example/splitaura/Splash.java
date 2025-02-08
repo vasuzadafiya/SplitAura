@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 
+import com.example.splitaura.admin.BaseActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 

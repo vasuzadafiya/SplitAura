@@ -25,4 +25,15 @@
     <string name="no_internet">Oops!</string>
     <string name="no_internet_desc">There is no Internet connection\n Please check your Internet connection</string>
     <string name="retry">Retry</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Home Fragment</string>
+    <string name="group_fragment">Group Fragment</string>
+    <string name="payment_fragment">Payment Fragment</string>
+    <string name="spotlight_fragment">Spotlight Fragment</string>
+    <string name="profile_fragment">Profile Fragment</string>
+    <string name="home">Home</string>
+    <string name="groups">Groups</string>
+    <string name="payment">Payment</string>
+    <string name="profile">Profile</string>
+    <string name="spotlight">spotlight</string>
 </resources>

@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.splitaura.admin.BaseActivity;
+import com.example.splitaura.adapters.OnboardingAdapter;
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator;
 
 import java.util.ArrayList;

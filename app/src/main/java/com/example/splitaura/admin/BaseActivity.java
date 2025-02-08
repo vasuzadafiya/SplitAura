@@ -1,8 +1,11 @@
-package com.example.splitaura;
+package com.example.splitaura.admin;
 
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.splitaura.dialogues.NoInternetDialog;
 
 public abstract class BaseActivity extends AppCompatActivity {
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- When selected, use custom primary color -->
+    <item android:color="@color/f_pass_color" android:state_checked="true" />
+    <!-- When not selected, use a darker on-surface color -->
+    <item android:color="@color/gray" android:state_checked="false" />
+</selector>

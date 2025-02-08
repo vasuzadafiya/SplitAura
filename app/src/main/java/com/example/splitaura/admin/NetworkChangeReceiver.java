@@ -1,4 +1,4 @@
-package com.example.splitaura;
+package com.example.splitaura.admin;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;

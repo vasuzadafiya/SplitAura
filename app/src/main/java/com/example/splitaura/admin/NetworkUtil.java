@@ -1,4 +1,4 @@
-package com.example.splitaura;
+package com.example.splitaura.admin;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

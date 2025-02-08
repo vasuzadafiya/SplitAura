@@ -1,4 +1,4 @@
-package com.example.splitaura;
+package com.example.splitaura.dialogues;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.example.splitaura.R;
 
 public class LoadingDialog {
     private final Dialog dialog;

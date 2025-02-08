@@ -1,4 +1,4 @@
-package com.example.splitaura;
+package com.example.splitaura.dialogues;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.example.splitaura.admin.NetworkUtil;
+import com.example.splitaura.R;
 
 public class NoInternetDialog {
     private static Dialog dialog;

@@ -61,6 +61,8 @@ dependencies {
     implementation libs.credentials
     implementation libs.firebase.core
     implementation libs.firebase.database
+    implementation 'androidx.cardview:cardview:1.0.0'
+
 
     platform(libs.firebase.bom)
     implementation(libs.google.firebase.auth)

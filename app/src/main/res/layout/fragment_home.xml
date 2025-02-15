@@ -234,7 +234,8 @@
         android:id="@+id/groups"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="18dp"
         app:layout_constraintTop_toBottomOf="@id/upperlinear"
         android:orientation="horizontal">
 
@@ -242,31 +243,80 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/groups"
-            android:textSize="16sp"
+            android:textSize="20sp"
+            android:textStyle="bold"
             android:textColor="@color/black"
             android:gravity="start"/>
 
         <TextView
+            android:id="@+id/groups_view_all"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/view_all"
+            android:layout_marginStart="280dp"
             android:textSize="16sp"
             android:textColor="@color/black"
-            android:gravity="end"
-            />
+            android:gravity="end" />
     </LinearLayout>
 
     <!-- 3) RecyclerView (or any list) for recent items, groups, or transactions -->
+
+
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvHomeList"
+        android:id="@+id/rvGroupList"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/groups"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="220dp"
         android:paddingHorizontal="16dp"
-        android:clipToPadding="false" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/rvFriendsList"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/groups"
+        app:layout_constraintVertical_bias="0.03"
+        tools:listitem="@layout/item_group" />
+
+    <LinearLayout
+        android:id="@+id/friends"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="18dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rvGroupList">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="@string/friends"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/frd_view_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:text="@string/view_all"
+            android:layout_marginStart="280dp"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvFriendsList"
+        android:layout_width="0dp"
+        android:layout_height="220dp"
+        android:paddingHorizontal="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/friends"
+        app:layout_constraintVertical_bias="0.173"
+        tools:listitem="@layout/item_group" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

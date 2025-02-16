@@ -1,6 +1,7 @@
 package com.example.splitaura;
 
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import androidx.activity.EdgeToEdge;
@@ -17,11 +18,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class Homepage extends BaseActivity {
     FrameLayout frameLayout;
     BottomNavigationView bottomNavigationView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_homepage);
 
         frameLayout = findViewById(R.id.frame_layout);

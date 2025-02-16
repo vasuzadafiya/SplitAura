@@ -3,27 +3,27 @@
     <item
         android:id="@+id/nav_home"
         android:enabled="true"
-        android:icon="@drawable/ic_home"
+        android:icon="@drawable/baseline_home_24"
         android:title="@string/home" />
     <item
         android:id="@+id/nav_groups"
         android:enabled="true"
-        android:icon="@drawable/ic_group"
+        android:icon="@drawable/baseline_group_24"
         android:title="@string/groups" />
     <item
         android:id="@+id/nav_spotlight"
         android:enabled="true"
-        android:icon="@drawable/ic_spotlight"
+        android:icon="@drawable/spotlight"
         android:title="@string/spotlight" />
 
     <item
         android:id="@+id/nav_payments"
         android:enabled="true"
-        android:icon="@drawable/ic_payment"
+        android:icon="@drawable/baseline_payment_24"
         android:title="@string/payment" />
     <item
         android:id="@+id/nav_profile"
         android:enabled="true"
-        android:icon="@drawable/ic_profile"
+        android:icon="@drawable/baseline_profile_24"
         android:title="@string/profile" />
 </menu>

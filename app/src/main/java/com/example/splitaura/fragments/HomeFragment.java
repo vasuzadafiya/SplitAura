@@ -1,38 +1,71 @@
 package com.example.splitaura.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.splitaura.LoginActivity;
 import com.example.splitaura.R;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.splitaura.adapters.FriendBalanceAdapter;
+import com.example.splitaura.adapters.GroupAdapter;
+import com.example.splitaura.model.FriendBalance;
+import com.example.splitaura.model.GroupItem;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class HomeFragment extends Fragment {
-    FirebaseAuth auth = FirebaseAuth.getInstance();
 
     public HomeFragment() {
         // Required empty public constructor
     }
 
     @Override
+    @Nullable
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        Button button = view.findViewById(R.id.btn_logout);
-        button.setOnClickListener(v -> {
-            auth.signOut();
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear back stack
-            startActivity(intent);
-        });
+
+        RecyclerView groupRecyclerView = view.findViewById(R.id.group_recyclerView);
+        groupRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        RecyclerView friendRecycleView = view.findViewById(R.id.friend_recyclerView);
+        friendRecycleView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+
+        // Sample Data
+        List<GroupItem> groupList = new ArrayList<>();
+        groupList.add(new GroupItem(
+                "Office Trip", "May 23, 2024", 9235.34,
+                R.drawable.ic_group,
+                Arrays.asList(R.drawable.image, R.drawable.obwomens, R.drawable.obmensmall),
+                12));
+
+        groupList.add(new GroupItem(
+                "Weekend Party", "Feb 10, 2024", 4850.50,
+                R.drawable.ic_group,
+                Arrays.asList(R.drawable.obmensmall, R.drawable.image, R.drawable.obwomensmall),
+                8));
+
+        GroupAdapter adapter = new GroupAdapter(getContext(), groupList);
+        groupRecyclerView.setAdapter(adapter);
+
+
+        List<FriendBalance> friendBalanceList = new ArrayList<>();
+        friendBalanceList.add(new FriendBalance("Vasu Z.", -45.69, R.drawable.image));
+        friendBalanceList.add(new FriendBalance("Sahil H.", 120.50, R.drawable.obwomens));
+        friendBalanceList.add(new FriendBalance("Tushar C.", -230.75, R.drawable.obmensmall));
+        friendBalanceList.add(new FriendBalance("Bhargav Z.", 90.00, R.drawable.obwomensmall));
+
+        FriendBalanceAdapter friendBalanceAdapter = new FriendBalanceAdapter(getContext(), friendBalanceList);
+        friendRecycleView.setAdapter(friendBalanceAdapter);
 
         return view;
     }

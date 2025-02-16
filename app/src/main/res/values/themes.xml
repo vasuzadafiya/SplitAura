@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base Application Theme using Material Components -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand colors -->
         <item name="colorPrimary">@color/background</item>
         <item name="colorPrimaryVariant">@color/primary_blue</item>
@@ -43,5 +43,32 @@
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowFullscreen">true</item>
     </style>
+
+    <style name="IconTrayItemLayout">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <!-- ImageButton style (size, background, margin) -->
+    <style name="IconTrayImageButton">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
+    <!-- TextView style (color, size) -->
+    <style name="IconTrayText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+
 
 </resources>

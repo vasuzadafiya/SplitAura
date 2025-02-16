@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="@color/light_blue"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Row: Group Image, Name+Date, and Amount on the Right -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <!-- Group Image -->
+            <ImageView
+                android:id="@+id/group_image"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/circle_shape"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_group" />
+
+            <!-- Group Name + Date -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/group_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Office Trip"
+                    android:textColor="#1B1C1E"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/group_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="May 23, 2024"
+                    android:textColor="#606C74"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Amount -->
+            <TextView
+                android:id="@+id/group_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₹ 9,235.34"
+                android:textColor="#007AFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Dashed Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginVertical="12dp"
+            android:background="@drawable/dashed_line" />
+
+        <!-- Bottom Row: Member Avatars, +12 more, and 'View Details' Button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
+
+            <!-- Member Avatars & +12 more -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/member1"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/circle_shape"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/obmensmall" />
+
+                <ImageView
+                    android:id="@+id/member2"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="-8dp"
+                    android:background="@drawable/circle_shape"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/obwomensmall" />
+
+                <ImageView
+                    android:id="@+id/member3"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="-8dp"
+                    android:background="@drawable/circle_shape"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/obwomenmain" />
+
+                <TextView
+                    android:id="@+id/more_members"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:text="+12 more"
+                    android:textColor="#606C74"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- View Details Button -->
+            <Button
+                android:id="@+id/view_details_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#007AFF"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="6dp"
+                android:text="View Details"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

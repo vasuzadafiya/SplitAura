@@ -10,4 +10,8 @@
     <dimen name="social_icon_size">60dp</dimen>
     <dimen name="image_margin_top">40dp</dimen>
     <dimen name="credentials_margin_top">24dp</dimen>
+    <dimen name="icon_size">40dp</dimen>
+    <dimen name="icon_margin">12dp</dimen>
+    <dimen name="curved_container_width">260dp</dimen>
+    <dimen name="curved_container_height">100dp</dimen>
 </resources>

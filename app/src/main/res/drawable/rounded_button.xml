@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/white"/> <!-- Icon button background -->
+    <corners android:radius="24dp"/> <!-- Circle shape -->
+</shape>

@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:orientation="vertical"
     tools:context=".LoginActivity">
 
-    <!--Login Credentials-->
+    <!-- Login Screen -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/login_constarint"
         android:layout_width="match_parent"
@@ -41,7 +39,7 @@
             android:paddingHorizontal="@dimen/default_padding"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView2">
+            app:layout_constraintTop_toBottomOf="@id/imageView2">
 
             <TextView
                 android:id="@+id/textView"
@@ -54,7 +52,6 @@
                 android:textStyle="bold" />
 
             <!-- Email Field -->
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/email_input_layout"
                 android:layout_width="match_parent"
@@ -72,6 +69,7 @@
                     android:inputType="textEmailAddress"
                     android:textColor="@color/f_pass_color" />
             </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Password Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/password_input_layout"
@@ -93,7 +91,7 @@
                     tools:ignore="TextContrastCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Forgot Password TextView -->
+            <!-- Forgot Password -->
             <TextView
                 android:id="@+id/forgot_password"
                 android:layout_width="wrap_content"
@@ -137,70 +135,51 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/login_button" />
 
-        <LinearLayout
-            android:id="@+id/social_login_container"
+        <!-- Social Login (flattened; removed extra LinearLayout) -->
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/google_login"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="@dimen/default_margin"
+            app:lottie_loop="false"
+            app:lottie_autoPlay="true"
+            app:lottie_rawRes="@raw/google_logo"
+            app:layout_constraintTop_toBottomOf="@id/or_divider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- "Don't have an account?" text (flattened using a horizontal chain) -->
+        <TextView
+            android:id="@+id/no_ac_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/no_ac"
+            android:textColor="@color/background"
+            android:textSize="@dimen/text_size_medium"
             android:layout_marginTop="@dimen/default_margin"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/google_login"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/or_divider">
+            app:layout_constraintEnd_toStartOf="@id/sign_up"
+            app:layout_constraintHorizontal_chainStyle="packed" />
 
-<!--            <ImageButton-->
-<!--                android:id="@+id/google_login1"-->
-<!--                android:layout_width="@dimen/social_icon_size"-->
-<!--                android:layout_height="@dimen/social_icon_size"-->
-<!--                android:background="@null"-->
-<!--                android:src="@drawable/ic_google"-->
-<!--                tools:ignore="SpeakableTextPresentCheck" />-->
-
-            <com.airbnb.lottie.LottieAnimationView
-                android:id="@+id/google_login"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                app:lottie_loop="false"
-                app:lottie_autoPlay="true"
-                app:lottie_rawRes="@raw/google_logo" />
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/dont_have_an_acc"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/sign_up"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/default_margin"
+            android:backgroundTint="@color/white"
+            android:text="Sign Up"
+            android:textColor="@color/background"
+            android:textSize="@dimen/text_size_medium"
+            android:textStyle="bold"
             android:layout_marginTop="@dimen/default_margin"
-            android:gravity="center"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/social_login_container">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/no_ac"
-                android:textColor="@color/background"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/sign_up"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/default_margin"
-                android:backgroundTint="@color/white"
-                android:text="Sign Up"
-                android:textColor="@color/background"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
+            app:layout_constraintTop_toBottomOf="@id/google_login"
+            app:layout_constraintStart_toEndOf="@id/no_ac_text"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+    <!-- Sign Up Screen -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/signin_constarint"
         android:layout_width="match_parent"
@@ -244,7 +223,7 @@
                 android:textSize="@dimen/text_size_large"
                 android:textStyle="bold" />
 
-            <!-- Email Field -->
+            <!-- First Name Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/fname_input_layout"
                 android:layout_width="match_parent"
@@ -262,7 +241,7 @@
                     android:textColor="@color/f_pass_color" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Password Field -->
+            <!-- Last Name Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/lname_input_layout"
                 android:layout_width="match_parent"
@@ -280,6 +259,7 @@
                     android:textColor="@color/f_pass_color" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Email Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/email1_input_layout"
                 android:layout_width="match_parent"
@@ -337,7 +317,6 @@
 
         </LinearLayout>
 
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/create_acc_button"
             android:layout_width="0dp"
@@ -354,38 +333,34 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/credentials_container_reg" />
 
-
-        <LinearLayout
-            android:id="@+id/already_have_an_acc"
-            android:layout_width="0dp"
+        <!-- "Already have an account?" (flattened into a vertical group) -->
+        <TextView
+            android:id="@+id/no_ac_signin"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/default_margin"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@string/no_ac"
+            android:textColor="@color/f_pass_color"
+            android:textSize="@dimen/text_size_medium"
+            app:layout_constraintTop_toBottomOf="@id/create_acc_button"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/create_acc_button">
+            app:layout_constraintEnd_toEndOf="parent" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/default_margin"
-                android:text="@string/no_ac"
-                android:textColor="@color/f_pass_color"
-                android:textSize="@dimen/text_size_medium" />
-
-            <TextView
-                android:id="@+id/log_in"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/white"
-                android:padding="8dp"
-                android:text="Log In"
-                android:textColor="@color/f_pass_color"
-                android:textSize="@dimen/text_size_medium"
-                android:textStyle="bold" />
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/log_in"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:padding="8dp"
+            android:text="Log In"
+            android:textColor="@color/f_pass_color"
+            android:textSize="@dimen/text_size_medium"
+            android:textStyle="bold"
+            android:layout_marginTop="@dimen/default_margin"
+            app:layout_constraintTop_toBottomOf="@id/no_ac_signin"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+
+</FrameLayout>

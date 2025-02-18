@@ -37,7 +37,7 @@
     <string name="profile">Profile</string>
     <string name="spotlight">spotlight</string>
     <string name="home_title">Home</string>
-    <string name="welcome_message">Hello User\nMake Your Groups and Split Easily</string>
+    <string name="welcome_message">Hello \nManage your finance easily</string>
     <string name="balance_amount">₹9235.35</string>
     <string name="available_bal">Available Balance</string>
     <string name="view_all"><![CDATA[View All ->]]></string>

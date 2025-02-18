@@ -60,9 +60,9 @@ public class FriendBalanceAdapter extends RecyclerView.Adapter<FriendBalanceAdap
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            friendName = itemView.findViewById(R.id.friend_name);
-            friendBalance = itemView.findViewById(R.id.friend_balance);
-            profileImage = itemView.findViewById(R.id.profile_image);
+            friendName = itemView.findViewById(R.id.userNameTextView);
+            friendBalance = itemView.findViewById(R.id.sendRequestButton);
+            profileImage = itemView.findViewById(R.id.userProfileImageView);
         }
     }
 }

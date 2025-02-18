@@ -16,6 +16,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".FriendsActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddGroupActivity"
             android:exported="false" />
         <activity

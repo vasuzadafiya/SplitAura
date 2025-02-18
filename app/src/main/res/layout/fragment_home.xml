@@ -41,19 +41,21 @@
                     android:orientation="horizontal">
 
                     <!-- Main Image -->
-                    <ImageView
-                        android:id="@+id/mainImage"
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/profile_picture"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_marginRight="16dp"
                         android:contentDescription="Main image"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/obmensmall" />
+                        android:src="@drawable/obmensmall"
+                        app:shapeAppearanceOverlay="@style/CircleImageViewStyle" />
+
 
                     <!-- Title -->
 
                     <TextView
-                        android:id="@+id/titleText"
+                        android:id="@+id/username_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"

@@ -69,11 +69,7 @@ public class AddGroupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_group);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.activity_add_group), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this);

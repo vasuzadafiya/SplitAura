@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -34,7 +35,9 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LoginActivity extends BaseActivity {
@@ -49,7 +52,7 @@ public class LoginActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     TextView signup;
     TextView login;
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 9001;
     LottieAnimationView glogin;
 
@@ -57,6 +60,7 @@ public class LoginActivity extends BaseActivity {
     EditText lemail;
     EditText lpassword;
     Button loginBtn;
+    String defaultImageURL = "https://www.w3schools.com/howto/img_avatar.png";
 
     //    for custom LoginDialogue
     private LoadingDialog loadingDialog;
@@ -118,7 +122,75 @@ public class LoginActivity extends BaseActivity {
 
     }
 
+//    private void signIn() {
+//        mGoogleSignInClient.revokeAccess().addOnCompleteListener(task -> {
+//            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+//            startActivityForResult(signInIntent, RC_SIGN_IN);
+//        });
+//    }
+//
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        // If the requestCode matches, handle the result
+//        if (requestCode == RC_SIGN_IN) {
+//            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+//            try {
+//                // Handle Google Sign-In Success
+//                GoogleSignInAccount account = task.getResult(ApiException.class);
+//                firebaseAuthWithGoogle(account.getIdToken());
+//            } catch (ApiException e) {
+//                // If Google Sign-In fails, log the exception
+//                Log.w(TAG, "Google sign in failed", e);
+//                Utill.showToast(LoginActivity.this, "Google sign-in failed");
+//            }
+//        }
+//    }
+//
+//    private void firebaseAuthWithGoogle(String idToken) {
+//        loadingDialog.show();
+//        // Step 1: Get Firebase credentials from Google
+//        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+//
+//        // Step 2: Sign in with Firebase using credentials
+//        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+//            if (task.isSuccessful()) {
+//                // Step 3: If successful, get current user and details
+//                FirebaseUser user = mAuth.getCurrentUser();
+//                assert user != null;
+//                String uid = user.getUid();
+//                String googleId = user.getEmail();
+//                String displayName = user.getDisplayName();
+//
+//                // Split display name into first and last names if necessary
+//                String firstName = (displayName != null && displayName.contains(" "))
+//                        ? displayName.split(" ")[0] : displayName;
+//                String lastName = (displayName != null && displayName.contains(" "))
+//                        ? displayName.split(" ")[1] : "";
+//
+//                Log.d(TAG, "First Name: " + firstName);
+//                Log.d(TAG, "Last Name: " + lastName);
+//                Log.d(TAG, "Google ID: " + googleId);
+//
+//
+//                saveUserToFirestore(uid, firstName, lastName, googleId, null);
+//                createDialoge(LoginActivity.this, true); // Show new user dialog
+//                Log.d(TAG, "New user registration process completed.");
+//
+//            } else {
+//                // Handle sign-in failure
+//                Log.w(TAG, "signInWithCredential:failure", task.getException());
+//                Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
+//            }
+//            loadingDialog.hide();
+//        });
+//    }
+
+    // Initiate Google Sign-In
     private void signIn() {
+        // Optional: Revoke previous access if needed
+        loadingDialog.show();
         mGoogleSignInClient.revokeAccess().addOnCompleteListener(task -> {
             Intent signInIntent = mGoogleSignInClient.getSignInIntent();
             startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -126,54 +198,99 @@ public class LoginActivity extends BaseActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // If the requestCode matches, handle the result
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                // Handle Google Sign-In Success
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account.getIdToken());
+                if (account != null) {
+                    firebaseAuthWithGoogle(account.getIdToken());
+                }
             } catch (ApiException e) {
-                // If Google Sign-In fails, log the exception
                 Log.w(TAG, "Google sign in failed", e);
                 Utill.showToast(LoginActivity.this, "Google sign-in failed");
+                loadingDialog.hide();
             }
         }
     }
 
+//    private void firebaseAuthWithGoogle(String idToken) {
+//        loadingDialog.show();
+//        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+//        mAuth.signInWithCredential(credential)
+//                .addOnCompleteListener(this, task -> {
+//                    try {
+//                        if (task.isSuccessful()) {
+//                            FirebaseUser user = mAuth.getCurrentUser();
+//                            if (user != null) {
+//                                String uid = user.getUid();
+//                                String email = user.getEmail();
+//                                String displayName = user.getDisplayName();
+//
+//                                // Robust splitting: first word is firstName, rest is lastName
+//                                String firstName = displayName;
+//                                String lastName = "";
+//                                if (displayName != null && displayName.contains(" ")) {
+//                                    String[] nameParts = displayName.split(" ");
+//                                    firstName = nameParts[0];
+//                                    if (nameParts.length > 1) {
+//                                        lastName = TextUtils.join(" ", Arrays.copyOfRange(nameParts, 1, nameParts.length));
+//                                    }
+//                                }
+//
+//                                Log.d(TAG, "First Name: " + firstName);
+//                                Log.d(TAG, "Last Name: " + lastName);
+//                                Log.d(TAG, "Google Email: " + email);
+//
+//                                saveUserToFirestore(uid, firstName, lastName, email, null);
+//                                createDialoge(LoginActivity.this, true); // Show new user dialog
+//                                Log.d(TAG, "New user registration process completed.");
+//                            }
+//                        } else {
+//                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+//                            Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
+//                        }
+//                    } finally {
+//                        loadingDialog.hide();
+//                    }
+//                });
+//    }
+
     private void firebaseAuthWithGoogle(String idToken) {
-        loadingDialog.show();
         // Step 1: Get Firebase credentials from Google
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
 
         // Step 2: Sign in with Firebase using credentials
         mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
-                // Step 3: If successful, get current user and details
+                // If sign-in is successful, get the FirebaseUser object
                 FirebaseUser user = mAuth.getCurrentUser();
                 assert user != null;
                 String uid = user.getUid();
-                String googleId = user.getEmail();
+                String googleEmail = user.getEmail();
                 String displayName = user.getDisplayName();
 
-                // Split display name into first and last names if necessary
+                // Split display name into first and last names (if possible)
                 String firstName = (displayName != null && displayName.contains(" "))
                         ? displayName.split(" ")[0] : displayName;
                 String lastName = (displayName != null && displayName.contains(" "))
                         ? displayName.split(" ")[1] : "";
 
+                // Retrieve the profile picture URL from the FirebaseUser object
+                Uri photoUrl = user.getPhotoUrl();
+                String profilePictureUrl = (photoUrl != null) ? photoUrl.toString() : null;
+
+                // Logging details for debugging
                 Log.d(TAG, "First Name: " + firstName);
                 Log.d(TAG, "Last Name: " + lastName);
-                Log.d(TAG, "Google ID: " + googleId);
+                Log.d(TAG, "Google Email: " + googleEmail);
+                Log.d(TAG, "Profile Picture URL: " + profilePictureUrl);
 
-
-                saveUserToFirestore(uid, firstName, lastName, googleId, null);
+                // Save user data to Firestore including the profile picture URL
+                saveUserToFirestore(uid, firstName, lastName, googleEmail, null, profilePictureUrl);
                 createDialoge(LoginActivity.this, true); // Show new user dialog
                 Log.d(TAG, "New user registration process completed.");
-
             } else {
                 // Handle sign-in failure
                 Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -182,6 +299,7 @@ public class LoginActivity extends BaseActivity {
             loadingDialog.hide();
         });
     }
+
 
     private void loginuser(EditText lemail, EditText lpassword) {
         String email = lemail.getText().toString();
@@ -272,7 +390,7 @@ public class LoginActivity extends BaseActivity {
                 user.updateProfile(profileUpdates).addOnCompleteListener(task1 -> {
                     if (task1.isSuccessful()) {
                         Utill.showToast(this, "User Profile Updated");
-                        saveUserToFirestore(user.getUid(), fname, lname, email, password);
+                        saveUserToFirestore(user.getUid(), fname, lname, email, password, defaultImageURL);
                         createDialoge(LoginActivity.this, false);
                     } else {
                         Utill.showToast(this, "User Profile Update Failed");
@@ -288,26 +406,38 @@ public class LoginActivity extends BaseActivity {
     }
 
 
-    //    for save new user to firebase database
-    private void saveUserToFirestore(String uid, String fname, String lname, String email, String password) {
+    private void saveUserToFirestore(String uid, String fname, String lname, String email, String password, String profilePictureUrl) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Create a map to store user details
-        Map<String, String> user = new HashMap<>();
+        Map<String, Object> user = new HashMap<>();
         user.put("uid", uid);
         user.put("fname", fname);
         user.put("lname", lname);
         user.put("email", email);
-        user.put("password", password);
+        user.put("password", password); // Consider not storing passwords in Firestore for security reasons
+        user.put("profile_picture", profilePictureUrl); // New field for profile picture URL
         user.put("upi", null); // Set initial UPI as null
 
-        // Save to Firestore
+        // Generate search keywords from first and last names
+        List<String> searchKeywords = new ArrayList<>();
+        searchKeywords.addAll(generateSearchKeywords(fname));
+        searchKeywords.addAll(generateSearchKeywords(lname));
+        user.put("searchKeywords", searchKeywords);
+
+        // Save user details to Firestore under the "users" collection
         db.collection("users")
                 .document(uid)
                 .set(user)
-                .addOnCompleteListener(task -> Log.d(TAG, "User saved to Firestore"))
-                .addOnFailureListener(e -> Utill.showToast(this, "Error: " + e.getMessage()));
-        loadingDialog.hide();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "User saved to Firestore with search keywords.");
+                    } else {
+                        Log.e(TAG, "Error saving user: ", task.getException());
+                    }
+                    // Hide your loading dialog or perform further actions here
+                    loadingDialog.hide();
+                });
     }
 
 
@@ -352,6 +482,18 @@ public class LoginActivity extends BaseActivity {
         startActivity(intent);
         // Finish the DialogActivity so it’s no longer on the back stack
         finish();
+    }
+
+    //    this method will generate the search keyword for each user...
+    private List<String> generateSearchKeywords(String name) {
+        List<String> keywords = new ArrayList<>();
+        String lowerCaseName = name.toLowerCase().trim();
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 0; i < lowerCaseName.length(); i++) {
+            prefix.append(lowerCaseName.charAt(i));
+            keywords.add(prefix.toString());
+        }
+        return keywords;
     }
 
 }

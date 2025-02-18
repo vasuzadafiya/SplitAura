@@ -3,11 +3,13 @@ package com.example.splitaura;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.FrameLayout;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -31,7 +33,16 @@ public class Homepage extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_homepage);
+        setContentView(R.layout.homepage);
+        // Make the activity draw behind the status bar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            // Set the status bar color to transparent
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
 
         frameLayout = findViewById(R.id.frame_layout);
         curvedBracketContainer = findViewById(R.id.curvedBracketContainer);
@@ -97,7 +108,7 @@ public class Homepage extends BaseActivity {
             isCurvedBarVisible = true;
             shadowOverlay.setVisibility(View.VISIBLE);
             shadowOverlay.setAlpha(0f);
-            shadowOverlay.animate().alpha(0.6f).setDuration(300).start();
+            shadowOverlay.animate().alpha(0.6f).setDuration(200).start();
             shadowOverlay.setClickable(true); // Block background clicks
 
             curvedBracketContainer.setVisibility(View.VISIBLE);
@@ -160,7 +171,7 @@ public class Homepage extends BaseActivity {
     }
 
     private void openFriendsActivity() {
-//        startActivity(new Intent(this, FriendsActivity.class));
+        startActivity(new Intent(this, FriendsActivity.class));
         hideCurvedBracket();
     }
 }

@@ -47,4 +47,22 @@
     <string name="top_up">Top-up</string>
     <string name="withdraw">Withdraw</string>
     <string name="history">History</string>
+    <string name="group_title">Title</string>
+    <string name="group_description">Description</string>
+    <string name="trip_emoji">Trip 🧳</string>
+    <string name="family_emoji">Family👨‍👩‍👧‍👦</string>
+    <string name="project_emoji">Project💼</string>
+    <string name="couple_emoji">Couple👩‍❤️‍👨</string>
+    <string name="event_emoji">Event🎉</string>
+    <string name="other_emoji">Other🔀</string>
+    <string name="tv_title">Title</string>
+    <string name="tv_description">Description</string>
+    <string name="tv_currency">Currency</string>
+    <string name="tv_category">Category</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_continue">Continue</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="upload_cover_image">Upload Cover Image</string>
+    <string name="new_group">New Group</string>
+    <string name="number_groups">You are in 0 groups</string>
 </resources>

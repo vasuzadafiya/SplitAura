@@ -33,7 +33,6 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:padding="4dp"
-        android:background="@android:color/transparent"
         android:layout_gravity="center_horizontal"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent"
@@ -43,7 +42,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/curvedBackground"
             android:layout_width="300dp"
-            android:layout_height="200dp"
+            android:layout_height="180dp"
             android:background="@drawable/curved_background">
 
             <!-- Group Icon (Center) -->
@@ -59,7 +58,6 @@
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <ImageView
-                    android:id="@+id/ivGroup"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:background="@drawable/icon_background"
@@ -71,7 +69,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Group Expense"
-                    android:textColor="@color/white"
+                    android:textColor="@color/f_pass_color"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -91,7 +89,6 @@
                 app:layout_constraintEnd_toStartOf="@id/friendsContainer">
 
                 <ImageView
-                    android:id="@+id/ivPersonal"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:background="@drawable/icon_background"
@@ -103,7 +100,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Personal Expense"
-                    android:textColor="@color/white"
+                    android:textColor="@color/f_pass_color"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -123,7 +120,6 @@
                 app:layout_constraintStart_toEndOf="@id/personalContainer">
 
                 <ImageView
-                    android:id="@+id/ivFriends"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:background="@drawable/icon_background"
@@ -135,7 +131,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Manage Friends"
-                    android:textColor="@color/white"
+                    android:textColor="@color/f_pass_color"
                     android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>

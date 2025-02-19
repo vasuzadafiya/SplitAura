@@ -25,6 +25,7 @@ firebaseDatabase = "21.0.0"
 material = "1.12.0"
 firebaseCrashlytics = "19.4.0"
 googleFirebaseCrashlytics = "3.0.3"
+gridlayout = "1.0.0"
 
 [libraries]
 credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsPlayServicesAuth" }
@@ -55,6 +56,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
+gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 
 
 [plugins]

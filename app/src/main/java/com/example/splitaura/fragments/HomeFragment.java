@@ -63,6 +63,7 @@ public class HomeFragment extends Fragment {
         username = view.findViewById(R.id.username_text);
         profilePicture = view.findViewById(R.id.profile_picture);
 
+
 //        firebase instance
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();

@@ -14,7 +14,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.splitaura.R;
-import com.example.splitaura.model.GroupItem;
+import com.example.splitaura.models.GroupItem;
 
 import java.util.List;
 import java.util.Random;

@@ -167,6 +167,7 @@ public class Homepage extends BaseActivity {
 
     private void openGroupActivity() {
 //        startActivity(new Intent(this, GroupActivity.class));
+        startActivity(new Intent(this,ReceivedFriendRequestsActivity.class));
         hideCurvedBracket();
     }
 

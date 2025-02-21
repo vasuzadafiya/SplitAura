@@ -1,4 +1,4 @@
-package com.example.splitaura.model;
+package com.example.splitaura.models;
 
 import java.util.List;
 

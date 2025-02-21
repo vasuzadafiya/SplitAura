@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.splitaura.R;
-import com.example.splitaura.model.FriendBalance;
+import com.example.splitaura.models.FriendBalance;
 
 import java.util.List;
 

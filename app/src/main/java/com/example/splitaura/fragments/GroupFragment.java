@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.splitaura.AddGroupActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.GroupAdapter;
-import com.example.splitaura.model.GroupItem;
+import com.example.splitaura.models.GroupItem;
 
 import java.util.ArrayList;
 import java.util.Arrays;

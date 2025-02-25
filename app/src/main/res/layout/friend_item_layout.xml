@@ -2,57 +2,65 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="2dp"
-    android:layout_marginBottom="36dp"
-    app:cardCornerRadius="16dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp">
+        android:layout_height="80dp"
+        android:padding="8dp">
 
         <!-- Profile Image -->
         <ImageView
-            android:id="@+id/userProfileImageView"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:id="@+id/friendProfileImageView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_profile"
-            android:background="@drawable/circle_shape"
+            android:src="@drawable/image"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
         <!-- Friend Name -->
         <TextView
-            android:id="@+id/userNameTextView"
+            android:id="@+id/friendNameTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="User Name"
-            android:textSize="16sp"
+            android:text="Friend Name"
             android:textStyle="bold"
-            android:textColor="#000000"
-            app:layout_constraintStart_toEndOf="@id/userProfileImageView"
-            app:layout_constraintTop_toTopOf="@id/userProfileImageView"
-            app:layout_constraintBottom_toBottomOf="@id/userProfileImageView"
-            app:layout_constraintEnd_toStartOf="@id/sendRequestButton" />
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toEndOf="@id/friendProfileImageView"
+            app:layout_constraintTop_toTopOf="@id/friendProfileImageView"
+            app:layout_constraintEnd_toStartOf="@id/removeFriendButton"
+            android:layout_marginStart="8dp" />
 
-        <!-- Friend Balance -->
+        <!-- Friend Email -->
         <TextView
-            android:id="@+id/sendRequestButton"
+            android:id="@+id/friendEmailTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="friend@example.com"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/friendNameTextView"
+            app:layout_constraintTop_toBottomOf="@id/friendNameTextView"
+            app:layout_constraintEnd_toEndOf="@id/friendNameTextView" />
+
+        <!-- Remove Button (optional if using swipe-to-delete) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/removeFriendButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="- ₹45.69"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/red"
+            android:text="Remove"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/userProfileImageView"
-            app:layout_constraintBottom_toBottomOf="@id/userProfileImageView" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="8dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.cardview.widget.CardView>

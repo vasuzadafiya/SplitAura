@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -167,12 +168,13 @@ public class Homepage extends BaseActivity {
 
     private void openGroupActivity() {
 //        startActivity(new Intent(this, GroupActivity.class));
-        startActivity(new Intent(this,ReceivedFriendRequestsActivity.class));
+//        startActivity(new Intent(this,.class));
+        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
         hideCurvedBracket();
     }
 
     private void openFriendsActivity() {
-        startActivity(new Intent(this, FriendsActivity.class));
+        startActivity(new Intent(this, ManageFriends.class));
         hideCurvedBracket();
     }
 }

@@ -19,7 +19,29 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.splitaura.services.ImgurApiService;
+import com.example.splitaura.services.ImgurResponse;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class AddGroupActivity extends AppCompatActivity {
 
@@ -64,19 +86,16 @@ public class AddGroupActivity extends AppCompatActivity {
         setupCurrencySpinner();
 
         // Set up image picker launcher
-        imagePickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null) {
-                            selectedImageUri = data.getData();
-                            uploadIcon.setImageURI(selectedImageUri);
-                            Log.d(TAG, "Selected Image URI: " + selectedImageUri);
-                        }
-                    }
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                if (data != null) {
+                    selectedImageUri = data.getData();
+                    uploadIcon.setImageURI(selectedImageUri);
+                    Log.d(TAG, "Selected Image URI: " + selectedImageUri);
                 }
-        );
+            }
+        });
     }
 
     private void initializeViews() {
@@ -141,25 +160,20 @@ public class AddGroupActivity extends AppCompatActivity {
 
     private void selectCategory(Button button, String category) {
         if (selectedCategoryButton == button) {
-            // If the same button is clicked again, deselect it
+            // Deselect if the same button is clicked again
             button.setSelected(false);
             button.setBackgroundResource(R.drawable.btn_bg_transparent);
             button.setTextColor(getColor(R.color.background));
             selectedCategory = "";
             selectedCategoryButton = null;
         } else {
-            // Reset all buttons to default state
             resetCategoryButtons();
-
-            // Set the selected button to the pressed state
             button.setSelected(true);
             button.setBackgroundResource(R.drawable.btn_bg);
             button.setTextColor(getColor(R.color.white));
-
             selectedCategory = category;
             selectedCategoryButton = button;
         }
-
         Log.d(TAG, "Selected Category: " + selectedCategory);
     }
 
@@ -192,11 +206,13 @@ public class AddGroupActivity extends AppCompatActivity {
 
         if (title.isEmpty()) {
             titleEditText.setError("Title is required");
+            titleEditText.requestFocus();
             return;
         }
 
         if (description.isEmpty()) {
             descriptionEditText.setError("Description is required");
+            descriptionEditText.requestFocus();
             return;
         }
 
@@ -210,7 +226,111 @@ public class AddGroupActivity extends AppCompatActivity {
             return;
         }
 
-        Toast.makeText(this, "Form validated successfully!", Toast.LENGTH_SHORT).show();
-        // Proceed with further actions
+        if (selectedImageUri == null) {
+            Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show progress and disable button during upload
+        progressBar.setVisibility(View.VISIBLE);
+        continueButton.setEnabled(false);
+
+        // Convert URI to File for upload
+        File imageFile = getFileFromUri(selectedImageUri);
+        if (imageFile != null) {
+            uploadImageToImgur(imageFile, title, description, selectedCurrency, selectedCategory);
+        } else {
+            Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.GONE);
+            continueButton.setEnabled(true);
+        }
+    }
+
+    // Utility method to convert a content URI to a File
+    private File getFileFromUri(Uri uri) {
+        File file = null;
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            file = new File(getCacheDir(), "temp_image.jpg");
+            OutputStream outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.close();
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
+
+    // Method to upload image to Imgur using Retrofit
+    private void uploadImageToImgur(File imageFile, String title, String description, String currency, String category) {
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.imgur.com/").addConverterFactory(GsonConverterFactory.create()).build();
+
+        ImgurApiService apiService = retrofit.create(ImgurApiService.class);
+
+        RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), imageFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
+
+        // Replace YOUR_IMGUR_CLIENT_ID with your actual client ID from Imgur
+        Call<ImgurResponse> call = apiService.uploadImage("Client-ID 974699ce54d1dfb", body);
+        call.enqueue(new Callback<ImgurResponse>() {
+            @Override
+            public void onResponse(Call<ImgurResponse> call, Response<ImgurResponse> response) {
+                progressBar.setVisibility(View.GONE);
+                continueButton.setEnabled(true);
+                if (response.isSuccessful() && response.body() != null) {
+                    String imageUrl = response.body().data.link;
+                    Log.d(TAG, "Uploaded image URL: " + imageUrl);
+                    uploadDataToFirestore(title, description, currency, category, imageUrl);
+                } else {
+                    try {
+                        String errorResponse = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        Log.e(TAG, "Upload failed: " + errorResponse);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "Error parsing error body");
+                    }
+                    if (imageFile != null) {
+                        Log.d(TAG, "File path: " + imageFile.getAbsolutePath() + ", size: " + imageFile.length());
+                    }
+
+                    Toast.makeText(AddGroupActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+            @Override
+            public void onFailure(Call<ImgurResponse> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                continueButton.setEnabled(true);
+                Toast.makeText(AddGroupActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Upload error: " + t.getMessage());
+            }
+        });
+    }
+
+    // Method to store group data (including the image URL) in Firestore
+    private void uploadDataToFirestore(String title, String description, String currency, String category, String imageUrl) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        Map<String, Object> groupData = new HashMap<>();
+        groupData.put("title", title);
+        groupData.put("description", description);
+        groupData.put("currency", currency);
+        groupData.put("category", category);
+        groupData.put("imageUrl", imageUrl);
+
+
+        db.collection("users").document(user.getUid()).collection("groups").add(groupData).addOnSuccessListener(documentReference -> {
+            Toast.makeText(AddGroupActivity.this, "Group created successfully!", Toast.LENGTH_SHORT).show();
+            finish();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(AddGroupActivity.this, "Failed to create group", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Firestore error: " + e.getMessage());
+        });
     }
 }

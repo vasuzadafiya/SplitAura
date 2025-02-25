@@ -161,7 +161,7 @@ public class Homepage extends BaseActivity {
     }
 
     private void openPersonalActivity() {
-//        startActivity(new Intent(this, PersonalActivity.class));
+        startActivity(new Intent(this, AddExpenseActivity.class));
         hideCurvedBracket();
     }
 

@@ -65,4 +65,10 @@
     <string name="upload_cover_image">Upload Cover Image</string>
     <string name="new_group">New Group</string>
     <string name="number_groups">You are in 0 groups</string>
+    <string name="tv_amount">Amount ₹</string>
+    <string name="tv_notes">Notes</string>
+    <string name="new_expense">Add New Expense</string>
+    <string name="tv_paidby">Paid By</string>
+    <string name="tv_split_by">Split By</string>
+    <string name="add_yout_image">Add Your Image</string>
 </resources>

@@ -34,16 +34,12 @@ public class FriendsFragment extends Fragment {
 
     //    constant Keys...
     static final String STATUS_KEY = "status";
-    static final String FIRST_NAME = "fname";
-
 
     private RecyclerView recyclerView;
     private FriendAdapter adapter;
     private FirebaseFirestore db;
     private String currentUserUid;
     private LinearLayout placeholder;
-
-
 
     public FriendsFragment() {
         // Required empty public constructor
@@ -81,8 +77,7 @@ public class FriendsFragment extends Fragment {
     private void setupRecyclerView() {
         Query query = db.collection("users")
                 .document(currentUserUid)
-                .collection("friends")
-                .orderBy(FIRST_NAME, Query.Direction.ASCENDING);
+                .collection("friends");
 
         FirestoreRecyclerOptions<Friend> options = new FirestoreRecyclerOptions.Builder<Friend>()
                 .setQuery(query, Friend.class)
@@ -94,7 +89,6 @@ public class FriendsFragment extends Fragment {
         // Listen for real-time changes and toggle placeholder visibility
         query.addSnapshotListener((value, error) -> {
             if (error != null) {
-                Toast.makeText(getContext(), "Error fetching friends list", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -109,7 +103,7 @@ public class FriendsFragment extends Fragment {
             }
         });
 
-        // Set up the remove friend listener (unchanged)...
+        // Set up the remove friend listener
         adapter.setOnRemoveFriendListener((DocumentSnapshot snapshot, Friend friend) -> {
             String friendUid = snapshot.getId();
             Task<Void> deleteFromCurrentUser = snapshot.getReference().delete();
@@ -142,7 +136,6 @@ public class FriendsFragment extends Fragment {
                                         }
                                     }
                                     Tasks.whenAll(updateTasks)
-                                            .addOnSuccessListener(t -> Toast.makeText(getContext(), "Friend removed and status updated", Toast.LENGTH_SHORT).show())
                                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Friend removed but error updating friend request", Toast.LENGTH_SHORT).show());
                                 })
                                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Friend removed but error querying friend requests", Toast.LENGTH_SHORT).show());

@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -373,14 +372,7 @@ public class LoginActivity extends BaseActivity {
 
         // Show the dialog
         dialog.show();
-
-        new Handler().postDelayed(() -> {
-            if(dialog.isShowing()){
-                dialog.dismiss();
-            }
             navigateToHomepage(activity);
-        }, 3500);
-
     }
 
     private void navigateToHomepage(Activity activity) {

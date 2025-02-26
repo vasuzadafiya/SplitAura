@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -18,6 +19,7 @@ import com.example.splitaura.fragments.FriendRequestFragment;
 import com.example.splitaura.fragments.FriendsFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ManageFriends extends BaseActivity {
 
@@ -71,15 +73,20 @@ public class ManageFriends extends BaseActivity {
                 replaceFragment(new FriendRequestFragment());
             }
         });
-
         back.setOnClickListener(v -> finish());
     }
 
     private void replaceFragment(Fragment fragment) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_SHORT).show();
+            finish(); // Close activity if no user is logged in
+            return;
+        }
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.frame_layout, fragment)
                 .commit();
     }
+
 
     private void updateButtonStyles(MaterialButton selectedButton) {
         MaterialButton[] buttons = new MaterialButton[]{btnFriends, btnAddFriends, btnRequests};

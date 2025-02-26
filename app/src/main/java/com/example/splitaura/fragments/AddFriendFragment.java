@@ -25,16 +25,18 @@ import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AddFriendFragment extends Fragment {
+    static final String USER = "users";
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private UserAdapter adapter;
     private RecyclerView recyclerView;
-    private EditText searchView;
     private LoadingDialog dialog;
     private FirebaseAuth mAuth;
 
@@ -47,7 +49,7 @@ public class AddFriendFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_friend, container, false);
 
-        searchView = view.findViewById(R.id.searchView);
+        EditText searchView = view.findViewById(R.id.searchView);
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -61,15 +63,15 @@ public class AddFriendFragment extends Fragment {
         searchView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No operation needed here.
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 loadUsers(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {
+                // No operation needed here.
             }
         });
 
@@ -77,14 +79,14 @@ public class AddFriendFragment extends Fragment {
     }
 
     private void loadUsers(String searchText) {
-        String currentUid = mAuth.getCurrentUser().getUid();
+        String currentUid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
         Query query;
 
         if (searchText.isEmpty()) {
-            query = db.collection("users")
+            query = db.collection(USER)
                     .whereNotEqualTo(FieldPath.documentId(), currentUid);
         } else {
-            query = db.collection("users")
+            query = db.collection(USER)
                     .whereNotEqualTo(FieldPath.documentId(), currentUid)
                     .whereArrayContains("searchKeywords", searchText.toLowerCase());
         }
@@ -106,26 +108,19 @@ public class AddFriendFragment extends Fragment {
             String receiverFullName = snapshot.getString("fname") + " " + snapshot.getString("lname");
             String senderUid = mAuth.getCurrentUser().getUid();
 
-            db.collection("users")
-                    .document(senderUid)
+            db.collection(USER).document(senderUid)
                     .get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String senderFname = documentSnapshot.getString("fname");
-                            String senderLname = documentSnapshot.getString("lname");
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                            String senderFname = task.getResult().getString("fname");
+                            String senderLname = task.getResult().getString("lname");
                             String senderName = senderFname + " " + senderLname;
-                            String senderProfilePicture = documentSnapshot.getString("profile_picture");
-
+                            String senderProfilePicture = task.getResult().getString("profile_picture");
                             sendFriendRequest(senderUid, senderName, senderProfilePicture, receiverUid, receiverFullName);
-                            dialog.hide();
                         } else {
-                            dialog.hide();
                             Toast.makeText(getContext(), "Sender details not found", Toast.LENGTH_SHORT).show();
+                            dialog.hide();
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        dialog.hide();
-                        Toast.makeText(getContext(), "Error retrieving sender info", Toast.LENGTH_SHORT).show();
                     });
         });
 
@@ -133,38 +128,60 @@ public class AddFriendFragment extends Fragment {
     }
 
     private void sendFriendRequest(String senderUid, String senderName, String senderProfilePicture, String receiverUid, String receiverFullName) {
+        db.collection(USER).document(receiverUid)
+                .collection("friends")
+                .document(senderUid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult() != null && task.getResult().exists()) {
+                            Toast.makeText(getContext(), "You are already friends with " + receiverFullName, Toast.LENGTH_SHORT).show();
+                            dialog.hide();
+                        } else {
+                            addFriend(senderUid, receiverUid, senderName, senderProfilePicture, receiverFullName);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Error checking friendship status", Toast.LENGTH_SHORT).show();
+                        dialog.hide();
+                    }
+                });
+    }
+
+    public void addFriend(String senderUid, String receiverUid, String senderName, String senderProfilePicture, String receiverFullName) {
         db.collection("friend_requests")
                 .whereEqualTo("sender_uid", senderUid)
                 .whereEqualTo("receiver_uid", receiverUid)
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (querySnapshot.isEmpty()) {
-                        Map<String, Object> requestData = new HashMap<>();
-                        requestData.put("sender_uid", senderUid);
-                        requestData.put("senderName", senderName);
-                        requestData.put("senderProfilePicture", senderProfilePicture);
-                        requestData.put("receiver_uid", receiverUid);
-                        requestData.put("status", "Pending");
-                        requestData.put("sentAt", FieldValue.serverTimestamp());
+                .addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful()) {
+                        QuerySnapshot querySnapshot = task2.getResult();
+                        if (querySnapshot != null && querySnapshot.isEmpty()) {
+                            Map<String, Object> requestData = new HashMap<>();
+                            requestData.put("sender_uid", senderUid);
+                            requestData.put("senderName", senderName);
+                            requestData.put("senderProfilePicture", senderProfilePicture);
+                            requestData.put("receiver_uid", receiverUid);
+                            requestData.put("status", "Pending");
+                            requestData.put("sentAt", FieldValue.serverTimestamp());
 
-                        db.collection("friend_requests")
-                                .add(requestData)
-                                .addOnSuccessListener(documentReference -> {
-                                    dialog.hide();
-                                    Toast.makeText(getContext(), "Request sent to " + receiverFullName, Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> {
-                                    dialog.hide();
-                                    Toast.makeText(getContext(), "Error sending friend request", Toast.LENGTH_SHORT).show();
-                                });
+                            db.collection("friend_requests")
+                                    .add(requestData)
+                                    .addOnCompleteListener(task3 -> {
+                                        if (task3.isSuccessful()) {
+                                            Toast.makeText(getContext(), "Request sent to " + receiverFullName, Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(getContext(), "Error sending friend request", Toast.LENGTH_SHORT).show();
+                                        }
+                                        dialog.hide();
+                                    });
+                        } else {
+                            Toast.makeText(getContext(), "Friend request already sent!", Toast.LENGTH_SHORT).show();
+                            dialog.hide();
+                        }
                     } else {
+                        Toast.makeText(getContext(), "Error checking existing friend requests", Toast.LENGTH_SHORT).show();
                         dialog.hide();
-                        Toast.makeText(getContext(), "Friend request already sent!", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .addOnFailureListener(e -> {
-                    dialog.hide();
-                    Toast.makeText(getContext(), "Error checking existing friend requests", Toast.LENGTH_SHORT).show();
                 });
     }
 

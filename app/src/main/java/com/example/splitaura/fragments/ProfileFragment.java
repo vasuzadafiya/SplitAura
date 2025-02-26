@@ -15,6 +15,8 @@ import com.example.splitaura.LoginActivity;
 import com.example.splitaura.R;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Objects;
+
 
 public class ProfileFragment extends Fragment {
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -31,25 +33,24 @@ public class ProfileFragment extends Fragment {
         logout = view.findViewById(R.id.btn_logout);
 
         logout();
-
         return view;
     }
 
     private void logout() {
-        logout.setOnClickListener(v -> {
-            // Clear SharedPreferences cache
-            SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
-            prefs.edit().clear().apply();
-
-            // Navigate to the login screen
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            startActivity(intent);
-            // Sign out the user from FirebaseAuth
-            mAuth.signOut();
-            assert getActivity() != null;
-            getActivity().finishAffinity();
-
-        });
+        logout.setOnClickListener(this::onClick);
     }
 
+    private void onClick(View v) {
+        // Clear SharedPreferences cache
+        SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
+
+        // Navigate to the login screen
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        mAuth.signOut();
+
+        startActivity(intent);
+        requireActivity().finish();
+    }
 }

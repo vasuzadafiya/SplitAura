@@ -9,7 +9,24 @@ public class User {
     private List<String> searchKeywords;
 
     // Firestore requires an empty constructor
-    public User() { }
+    public User() {
+    }
+
+    public void setFname(String fname) {
+        this.fname = fname;
+    }
+
+    public void setLname(String lname) {
+        this.lname = lname;
+    }
+
+    public void setProfile_picture(String profile_picture) {
+        this.profile_picture = profile_picture;
+    }
+
+    public void setSearchKeywords(List<String> searchKeywords) {
+        this.searchKeywords = searchKeywords;
+    }
 
     public User(String fname, String lname, String profile_picture, List<String> searchKeywords) {
         this.fname = fname;

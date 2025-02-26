@@ -58,7 +58,7 @@ public class UserAdapter extends FirestoreRecyclerAdapter<User, UserAdapter.User
         return new UserViewHolder(view);
     }
 
-    public class UserViewHolder extends RecyclerView.ViewHolder {
+    public static class UserViewHolder extends RecyclerView.ViewHolder {
         ImageView userProfileImageView;
         TextView userNameTextView;
         Button sendRequestButton;

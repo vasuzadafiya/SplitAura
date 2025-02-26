@@ -78,5 +78,6 @@
     <string name="requests">Requests</string>
     <string name="placeholder_image">PlaceHolder Image</string>
     <string name="placeholder_title">Oops! Seems like you’re flying solo, \n Time to find your crew!</string>
+    <string name="icon_category">Icon Category</string>
 
 </resources>

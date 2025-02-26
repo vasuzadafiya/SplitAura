@@ -10,4 +10,13 @@
         <item name="android:spinnerMode">dropdown</item>
         <item name="android:dropDownVerticalOffset">4dp</item>
     </style>
+    <!-- Full-Screen Dialog Theme -->
+    <style name="FullScreenDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+
+
 </resources>
+

@@ -28,7 +28,7 @@
     <color name="red">#FD4F4F</color>
     <color name="lavender">#8692f7</color>
     <color name="bracketBackground">#1E1E1E</color>
-    <color name="iconBackground">#2D2D2D</color>
+    <color name="iconBackground">#F3F3F3</color>
     <color name="iconShadow">#000000</color>
     <color name="iconTint">#FFFFFF</color>
 </resources>

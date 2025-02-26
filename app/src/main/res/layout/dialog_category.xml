@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/category_dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:layout_gravity="center"
+        android:textSize="24sp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:paddingBottom="16dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewCategories"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="16dp">
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="140dp"
+            android:layout_height="55dp"
+            android:text="Cancel"
+            android:background="@drawable/btn_bg_transparent"
+            android:textColor="@color/f_pass_color"/>
+
+        <Button
+            android:id="@+id/ok_button"
+            android:layout_width="140dp"
+            android:layout_height="55dp"
+            android:text="Save"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/btn_bg"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+</LinearLayout>

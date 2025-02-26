@@ -1,5 +1,9 @@
 package com.example.splitaura;
 
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -7,131 +11,123 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
+import com.example.splitaura.adapters.CategoryAdapter;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AddExpenseActivity extends AppCompatActivity {
 
     // Views
-    private ImageView backButton, uploadIcon;
-    private TextView titleNewGroup, uploadText;
+    private ScrollView scrollView;
+    private ImageView backButton, uploadIcon, imagePreview;
+    private TextView categoryButton;
     private TextInputEditText titleEditText, amountEditText, descriptionEditText;
     private TextInputLayout titleInputLayout, amountInputLayout, descriptionInputLayout;
-    private Spinner spinnerCategory, spinnerPaidBy, spinnerSplitBy;
     private Button skipButton, nextButton;
     private ProgressBar progressBar;
+    private List<String> selectedCategories = new ArrayList<>();
+
+    // Cloudinary Image URI
+    private Uri imageUri;
+    private String uploadedImageUrl;
+
+    // Cloudinary configuration
+    private Cloudinary cloudinary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_expense);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        }); // Replace with your layout name
+
+        // Initialize Cloudinary
+        cloudinary = MediaManager.get().getCloudinary();
 
         // Initialize Views
+        scrollView = findViewById(R.id.scrollview);
         backButton = findViewById(R.id.back_button);
-        titleNewGroup = findViewById(R.id.title_new_group);
+//        imagePreview = findViewById(R.id.imagePreview);
         titleEditText = findViewById(R.id.title_edit_text);
         amountEditText = findViewById(R.id.amount_edit_text);
-        descriptionEditText = findViewById(R.id.description_edit_text);
+        descriptionEditText = findViewById(R.id.notes_edit_text);
         titleInputLayout = findViewById(R.id.title_input_layout);
         amountInputLayout = findViewById(R.id.amount_input_layout);
-        descriptionInputLayout = findViewById(R.id.description_input_layout);
-        spinnerCategory = findViewById(R.id.spinner_category);
-        spinnerPaidBy = findViewById(R.id.spinner_paid_by);
-        spinnerSplitBy = findViewById(R.id.spinner_split_by);
+        descriptionInputLayout = findViewById(R.id.notes_input_layout);
+        categoryButton = findViewById(R.id.category_spinner);
         uploadIcon = findViewById(R.id.uploadIcon);
-        uploadText = findViewById(R.id.uploadText);
         skipButton = findViewById(R.id.skip_btn);
         nextButton = findViewById(R.id.next_button);
         progressBar = findViewById(R.id.progressBar);
 
-        // Set up listeners
         setupListeners();
-        intializeSpinners();
+        initializeSpinners();
     }
 
-    private void intializeSpinners() {
-        // Static values for category spinner
-        List<String> categoryList = new ArrayList<>();
-        categoryList.add("Food");
-        categoryList.add("Travel");
-        categoryList.add("Accommodation");
-        categoryList.add("Shopping");
-
-        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryList);
-        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerCategory.setAdapter(categoryAdapter);
-
-        // Static values for paid by spinner
-        List<String> paidByList = new ArrayList<>();
-        paidByList.add("Me");
-        paidByList.add("Friend 1");
-        paidByList.add("Friend 2");
-
+    private void initializeSpinners() {
+        // Paid By Spinner
+        Spinner spinnerPaidBy = findViewById(R.id.spinner_paid_by);
+        List<String> paidByList = List.of("Me", "Friend 1", "Friend 2");
         ArrayAdapter<String> paidByAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, paidByList);
-        paidByAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        paidByAdapter.setDropDownViewResource(R.layout.spinner_dropdown_list);
         spinnerPaidBy.setAdapter(paidByAdapter);
 
-        // Static values for split by spinner
-        List<String> splitByList = new ArrayList<>();
-        splitByList.add("Equally");
-        splitByList.add("By Amount");
-        splitByList.add("Custom");
-
+        // Split By Spinner
+        Spinner spinnerSplitBy = findViewById(R.id.spinner_split_by);
+        List<String> splitByList = List.of("Equally", "By Amount", "Custom");
         ArrayAdapter<String> splitByAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, splitByList);
-        splitByAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        splitByAdapter.setDropDownViewResource(R.layout.spinner_dropdown_list);
         spinnerSplitBy.setAdapter(splitByAdapter);
     }
 
     private void setupListeners() {
         // Back button click
-        backButton.setOnClickListener(v -> {
-            // Handle back button press
-            onBackPressed();
-        });
+        backButton.setOnClickListener(v -> onBackPressed());
 
         // Skip button
-        skipButton.setOnClickListener(v -> {
-            // Handle skip/cancel action
-            finish(); // Or perform another action
-        });
+        skipButton.setOnClickListener(v -> finish());
 
-        // Next button
+        // Next button to validate fields and save expense
         nextButton.setOnClickListener(v -> {
-            // Handle the next action, like saving data
             if (validateFields()) {
                 progressBar.setVisibility(View.VISIBLE);
-                saveExpense();
+                if (imageUri != null) {
+                    uploadImageToCloudinary(imageUri);
+                } else {
+                    saveExpense(null); // No image, save directly
+                }
             }
         });
 
-        // Upload Icon Click (if image upload is required)
-        uploadIcon.setOnClickListener(v -> {
-            // Open file picker or image picker
-            openImagePicker();
-        });
+        // Upload Icon Click
+        uploadIcon.setOnClickListener(v -> openImagePicker());
+
+        // Category button click to show custom AlertDialog
+        categoryButton.setOnClickListener(v -> showCategoryDialog());
     }
 
     private boolean validateFields() {
-        // Validate input fields
         if (titleEditText.getText().toString().trim().isEmpty()) {
             titleInputLayout.setError("Title is required");
             return false;
@@ -147,36 +143,143 @@ public class AddExpenseActivity extends AppCompatActivity {
         }
 
         if (descriptionEditText.getText().toString().trim().isEmpty()) {
-            descriptionInputLayout.setError("Description is required");
+            descriptionInputLayout.setError("Notes are required");
             return false;
         } else {
             descriptionInputLayout.setError(null);
         }
 
-        // Additional validations for Spinners if needed
+        if (selectedCategories.isEmpty()) {
+            Toast.makeText(this, "Please select at least one category", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
         return true;
     }
 
-    private void saveExpense() {
-        // Retrieve data from the input fields
+    private void saveExpense(String imageUrl) {
+        // Fetch values
         String title = titleEditText.getText().toString().trim();
         String amount = amountEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
+        Spinner spinnerPaidBy = findViewById(R.id.spinner_paid_by);
+        Spinner spinnerSplitBy = findViewById(R.id.spinner_split_by);
+
         String paidBy = spinnerPaidBy.getSelectedItem().toString();
         String splitBy = spinnerSplitBy.getSelectedItem().toString();
 
-        // Perform the save operation, like sending data to Firestore or a local database
-        // This is just a placeholder for now
-        new Handler().postDelayed(() -> {
-            progressBar.setVisibility(View.GONE);
-            Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
-            // Clear fields or navigate to another activity
-        }, 2000); // Simulating a network/database delay
+        // Create a new expense map
+        Map<String, Object> expenseData = new HashMap<>();
+        expenseData.put("title", title);
+        expenseData.put("amount", amount);
+        expenseData.put("notes", description);
+        expenseData.put("categories", selectedCategories);
+        expenseData.put("paidBy", paidBy);
+        expenseData.put("splitBy", splitBy);
+        if (imageUrl != null) {
+            expenseData.put("imageUrl", imageUrl);
+        }
+
+        // Firestore instance
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        // Save expense data to Firestore
+        firestore.collection("users")
+                .document("user_1") // Replace with dynamic user ID
+                .collection("groups")
+                .document("group_1") // Replace with dynamic group ID
+                .collection("expenses")
+                .add(expenseData)
+                .addOnSuccessListener(documentReference -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void uploadImageToCloudinary(Uri imageUri) {
+        String filePath = getRealPathFromUri(imageUri);  // Get actual file path from Uri
+        if (filePath != null) {
+            MediaManager.get().upload(filePath)
+                    .callback(new UploadCallback() {
+                        @Override
+                        public void onStart(String requestId) {
+                            // Upload started
+                        }
+
+                        @Override
+                        public void onProgress(String requestId, long bytes, long totalBytes) {
+                            // Handle progress
+                        }
+
+                        @Override
+                        public void onSuccess(String requestId, Map resultData) {
+                            String imageUrl = (String) resultData.get("url");
+                            saveExpense(imageUrl);  // Proceed to save with image URL
+                        }
+
+                        @Override
+                        public void onError(String requestId, ErrorInfo error) {
+                            Toast.makeText(AddExpenseActivity.this, "Image upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onReschedule(String requestId, ErrorInfo error) {
+                            // Retry upload
+                        }
+                    })
+                    .dispatch();
+        }
     }
 
     private void openImagePicker() {
-        // Launch image picker or file chooser to upload image
-        // Handle image upload logic (using Cloudinary, Imgur, or local storage)
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, 100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
+            imageUri = data.getData();
+            imagePreview.setImageURI(imageUri);  // Show image preview
+        }
+    }
+
+    private String getRealPathFromUri(Uri uri) {
+        // Logic to get the real file path from URI (depends on how the image is chosen)
+        return uri.getPath();  // Placeholder (implement actual logic)
+    }
+
+    private void showCategoryDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_category, null);
+        builder.setView(dialogView);
+
+        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerViewCategories);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // CategoryAdapter instance
+        CategoryAdapter adapter = new CategoryAdapter(this,selectedCategories);
+        recyclerView.setAdapter(adapter);
+
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            if (selectedCategories.isEmpty()) {
+                categoryButton.setText("Select Categories");
+            } else {
+                categoryButton.setText("Categories Selected");
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

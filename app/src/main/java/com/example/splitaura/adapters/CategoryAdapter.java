@@ -43,7 +43,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
     // ViewHolder class for category items
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageView categoryIcon;
+        public ImageView categoryIcon, checkmark;
         public TextView categoryName;
         public View categoryContainer;
 
@@ -52,6 +52,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
             categoryIcon = view.findViewById(R.id.iconCategory);
             categoryName = view.findViewById(R.id.textCategoryName);
             categoryContainer = view.findViewById(R.id.category_container);
+            checkmark = view.findViewById(R.id.checkmark);
         }
     }
 
@@ -71,8 +72,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
 
         // Handle selection background
         if (selectedCategories.contains(category)) {
-            holder.categoryContainer.setBackgroundColor(Color.parseColor("#2196F3")); // Blue background for selected
-            holder.categoryIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_checkmark)); // Checkmark icon
+            holder.categoryContainer.setBackgroundColor(Color.parseColor("#2196F3")); // Blue background for selecte
+            holder.checkmark.setVisibility(View.VISIBLE);
         } else {
             holder.categoryContainer.setBackground(ContextCompat.getDrawable(context, categoryBackgrounds[position])); // Default background
         }

@@ -2,10 +2,10 @@ package com.example.splitaura;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -18,8 +18,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,9 +28,13 @@ import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +70,7 @@ public class AddExpenseActivity extends AppCompatActivity {
         // Initialize Views
         scrollView = findViewById(R.id.scrollview);
         backButton = findViewById(R.id.back_button);
-//        imagePreview = findViewById(R.id.imagePreview);
+        imagePreview = findViewById(R.id.imagePreview);
         titleEditText = findViewById(R.id.title_edit_text);
         amountEditText = findViewById(R.id.amount_edit_text);
         descriptionEditText = findViewById(R.id.notes_edit_text);
@@ -202,40 +204,48 @@ public class AddExpenseActivity extends AppCompatActivity {
     }
 
     private void uploadImageToCloudinary(Uri imageUri) {
-        String filePath = getRealPathFromUri(imageUri);  // Get actual file path from Uri
-        if (filePath != null) {
-            MediaManager.get().upload(filePath)
-                    .callback(new UploadCallback() {
-                        @Override
-                        public void onStart(String requestId) {
-                            // Upload started
-                        }
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(imageUri);  // Get InputStream from Uri
+            if (inputStream != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    MediaManager.get().upload(inputStream.readAllBytes())
+                            .callback(new UploadCallback() {
+                                @Override
+                                public void onStart(String requestId) {
+                                    // Upload started
+                                }
 
-                        @Override
-                        public void onProgress(String requestId, long bytes, long totalBytes) {
-                            // Handle progress
-                        }
+                                @Override
+                                public void onProgress(String requestId, long bytes, long totalBytes) {
+                                    // Handle progress
+                                }
 
-                        @Override
-                        public void onSuccess(String requestId, Map resultData) {
-                            String imageUrl = (String) resultData.get("url");
-                            saveExpense(imageUrl);  // Proceed to save with image URL
-                        }
+                                @Override
+                                public void onSuccess(String requestId, Map resultData) {
+                                    String imageUrl = (String) resultData.get("url");
+                                    saveExpense(imageUrl);  // Proceed to save with image URL
+                                }
 
-                        @Override
-                        public void onError(String requestId, ErrorInfo error) {
-                            Toast.makeText(AddExpenseActivity.this, "Image upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.GONE);
-                        }
+                                @Override
+                                public void onError(String requestId, ErrorInfo error) {
+                                    Toast.makeText(AddExpenseActivity.this, "Image upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
+                                }
 
-                        @Override
-                        public void onReschedule(String requestId, ErrorInfo error) {
-                            // Retry upload
-                        }
-                    })
-                    .dispatch();
+                                @Override
+                                public void onReschedule(String requestId, ErrorInfo error) {
+                                    // Retry upload
+                                }
+                            })
+                            .dispatch();
+                }
+            }
+        } catch (IOException e) {
+            Toast.makeText(this, "File not found: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e(String.valueOf(this),"File not found :" + e.getMessage());
         }
     }
+
 
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -248,7 +258,8 @@ public class AddExpenseActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
-            imagePreview.setImageURI(imageUri);  // Show image preview
+            imagePreview.setImageURI(imageUri);
+            imagePreview.setVisibility(View.VISIBLE);// Show image preview
         }
     }
 
@@ -258,28 +269,42 @@ public class AddExpenseActivity extends AppCompatActivity {
     }
 
     private void showCategoryDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Inflate the dialog layout
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_category, null);
+
+        // Build the AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullScreenDialog);
         builder.setView(dialogView);
 
-        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerViewCategories);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // RecyclerView for categories
+        RecyclerView categoryRecyclerView = dialogView.findViewById(R.id.recyclerViewCategories);
+        categoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // CategoryAdapter instance
-        CategoryAdapter adapter = new CategoryAdapter(this,selectedCategories);
-        recyclerView.setAdapter(adapter);
+        // Data for categories
+        String[] categories = {"General", "Games", "Sports", "Music", "Movies", "Food", "Liquor", "Grocery", "Shop"};
+        CategoryAdapter categoryAdapter = new CategoryAdapter(this, selectedCategories);
 
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            if (selectedCategories.isEmpty()) {
-                categoryButton.setText("Select Categories");
+        // Set the adapter
+        categoryRecyclerView.setAdapter(categoryAdapter);
+
+        // Handle cancel and ok button clicks
+        Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+        Button okButton = dialogView.findViewById(R.id.ok_button);
+
+        // Create and show dialog
+        AlertDialog dialog = builder.create();
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        okButton.setOnClickListener(v -> {
+            if (!selectedCategories.isEmpty()) {
+                String selectedCategoriesString = String.join(", ", selectedCategories); // Join categories
+                Toast.makeText(this, "Selected categories: " + selectedCategoriesString, Toast.LENGTH_SHORT).show();
+                categoryButton.setText(selectedCategoriesString); // Display selected categories on button
+                dialog.dismiss();
             } else {
-                categoryButton.setText("Categories Selected");
+                Toast.makeText(this, "Please select at least one category", Toast.LENGTH_SHORT).show();
             }
         });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
-        AlertDialog dialog = builder.create();
         dialog.show();
     }
 }

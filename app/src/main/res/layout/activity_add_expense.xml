@@ -219,6 +219,13 @@
                 app:layout_constraintTop_toBottomOf="@id/uploadIcon"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:id="@+id/imagePreview"
+                android:scaleType="centerInside"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <LinearLayout
             android:id="@+id/bottomButtons"

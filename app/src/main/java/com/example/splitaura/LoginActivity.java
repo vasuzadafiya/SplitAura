@@ -36,9 +36,12 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class LoginActivity extends BaseActivity {
 
@@ -60,7 +63,7 @@ public class LoginActivity extends BaseActivity {
     EditText lemail;
     EditText lpassword;
     Button loginBtn;
-    String defaultImageURL = "https://www.w3schools.com/howto/img_avatar.png";
+    String defaultImageURL;
 
     //    for custom LoginDialogue
     private LoadingDialog loadingDialog;
@@ -86,6 +89,7 @@ public class LoginActivity extends BaseActivity {
         createac = findViewById(R.id.create_acc_button);
         signup = findViewById(R.id.sign_up); //textView
         confirmpassword = findViewById(R.id.confirm_password1_edit_text);
+        defaultImageURL=getRandomUrl();
 
 
         //        initialize Login variables
@@ -122,70 +126,10 @@ public class LoginActivity extends BaseActivity {
 
     }
 
-//    private void signIn() {
-//        mGoogleSignInClient.revokeAccess().addOnCompleteListener(task -> {
-//            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-//            startActivityForResult(signInIntent, RC_SIGN_IN);
-//        });
-//    }
-//
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        // If the requestCode matches, handle the result
-//        if (requestCode == RC_SIGN_IN) {
-//            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-//            try {
-//                // Handle Google Sign-In Success
-//                GoogleSignInAccount account = task.getResult(ApiException.class);
-//                firebaseAuthWithGoogle(account.getIdToken());
-//            } catch (ApiException e) {
-//                // If Google Sign-In fails, log the exception
-//                Log.w(TAG, "Google sign in failed", e);
-//                Utill.showToast(LoginActivity.this, "Google sign-in failed");
-//            }
-//        }
-//    }
-//
-//    private void firebaseAuthWithGoogle(String idToken) {
-//        loadingDialog.show();
-//        // Step 1: Get Firebase credentials from Google
-//        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-//
-//        // Step 2: Sign in with Firebase using credentials
-//        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
-//            if (task.isSuccessful()) {
-//                // Step 3: If successful, get current user and details
-//                FirebaseUser user = mAuth.getCurrentUser();
-//                assert user != null;
-//                String uid = user.getUid();
-//                String googleId = user.getEmail();
-//                String displayName = user.getDisplayName();
-//
-//                // Split display name into first and last names if necessary
-//                String firstName = (displayName != null && displayName.contains(" "))
-//                        ? displayName.split(" ")[0] : displayName;
-//                String lastName = (displayName != null && displayName.contains(" "))
-//                        ? displayName.split(" ")[1] : "";
-//
-//                Log.d(TAG, "First Name: " + firstName);
-//                Log.d(TAG, "Last Name: " + lastName);
-//                Log.d(TAG, "Google ID: " + googleId);
-//
-//
-//                saveUserToFirestore(uid, firstName, lastName, googleId, null);
-//                createDialoge(LoginActivity.this, true); // Show new user dialog
-//                Log.d(TAG, "New user registration process completed.");
-//
-//            } else {
-//                // Handle sign-in failure
-//                Log.w(TAG, "signInWithCredential:failure", task.getException());
-//                Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
-//            }
-//            loadingDialog.hide();
-//        });
-//    }
+    private String getRandomUrl() {
+        return RandomUrlHolder.URLS.get(RandomUrlHolder.RANDOM.nextInt(RandomUrlHolder.URLS.size()));
+    }
+
 
     // Initiate Google Sign-In
     private void signIn() {
@@ -214,48 +158,6 @@ public class LoginActivity extends BaseActivity {
             }
         }
     }
-
-//    private void firebaseAuthWithGoogle(String idToken) {
-//        loadingDialog.show();
-//        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-//        mAuth.signInWithCredential(credential)
-//                .addOnCompleteListener(this, task -> {
-//                    try {
-//                        if (task.isSuccessful()) {
-//                            FirebaseUser user = mAuth.getCurrentUser();
-//                            if (user != null) {
-//                                String uid = user.getUid();
-//                                String email = user.getEmail();
-//                                String displayName = user.getDisplayName();
-//
-//                                // Robust splitting: first word is firstName, rest is lastName
-//                                String firstName = displayName;
-//                                String lastName = "";
-//                                if (displayName != null && displayName.contains(" ")) {
-//                                    String[] nameParts = displayName.split(" ");
-//                                    firstName = nameParts[0];
-//                                    if (nameParts.length > 1) {
-//                                        lastName = TextUtils.join(" ", Arrays.copyOfRange(nameParts, 1, nameParts.length));
-//                                    }
-//                                }
-//
-//                                Log.d(TAG, "First Name: " + firstName);
-//                                Log.d(TAG, "Last Name: " + lastName);
-//                                Log.d(TAG, "Google Email: " + email);
-//
-//                                saveUserToFirestore(uid, firstName, lastName, email, null);
-//                                createDialoge(LoginActivity.this, true); // Show new user dialog
-//                                Log.d(TAG, "New user registration process completed.");
-//                            }
-//                        } else {
-//                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-//                            Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
-//                        }
-//                    } finally {
-//                        loadingDialog.hide();
-//                    }
-//                });
-//    }
 
     private void firebaseAuthWithGoogle(String idToken) {
         // Step 1: Get Firebase credentials from Google
@@ -472,7 +374,12 @@ public class LoginActivity extends BaseActivity {
         // Show the dialog
         dialog.show();
 
-        new Handler().postDelayed(() -> navigateToHomepage(activity), 3500);
+        new Handler().postDelayed(() -> {
+            if(dialog.isShowing()){
+                dialog.dismiss();
+            }
+            navigateToHomepage(activity);
+        }, 3500);
 
     }
 
@@ -496,4 +403,17 @@ public class LoginActivity extends BaseActivity {
         return keywords;
     }
 
+    private static class RandomUrlHolder {
+        private static final List<String> URLS = Collections.unmodifiableList(Arrays.asList(
+                "https://avatar.iran.liara.run/public/8",
+                "https://avatar.iran.liara.run/public/37",
+                "https://avatar.iran.liara.run/public/13",
+                "https://avatar.iran.liara.run/public/31",
+                "https://avatar.iran.liara.run/public/20",
+                "https://avatar.iran.liara.run/public/12",
+                "https://avatar.iran.liara.run/public/16",
+                "https://avatar.iran.liara.run/public/64"
+        ));
+        private static final Random RANDOM = new Random();
+    }
 }

@@ -3,19 +3,19 @@ package com.example.splitaura.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
 import com.example.splitaura.models.Friend;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class FriendAdapter extends FirestoreRecyclerAdapter<Friend, FriendAdapter.FriendViewHolder> {
 
@@ -53,10 +53,11 @@ public class FriendAdapter extends FirestoreRecyclerAdapter<Friend, FriendAdapte
         return new FriendViewHolder(view);
     }
 
-    public class FriendViewHolder extends RecyclerView.ViewHolder {
+    public static class FriendViewHolder extends RecyclerView.ViewHolder {
         ImageView friendProfileImageView;
-        TextView friendNameTextView, friendEmailTextView;
-        MaterialButton removeFriendButton;
+        TextView friendNameTextView;
+        TextView friendEmailTextView;
+        ImageButton removeFriendButton;
 
         public FriendViewHolder(@NonNull View itemView) {
             super(itemView);

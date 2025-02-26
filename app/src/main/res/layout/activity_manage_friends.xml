@@ -1,6 +1,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/light_blue"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ManageFriends">
@@ -16,13 +17,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Header Text -->
-        <ImageView
-            android:id="@+id/back_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+        <ImageButton
+            android:id="@+id/back_navigation"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginStart="16dp"
             android:contentDescription="@string/btn_back"
             android:src="@drawable/ic_arrow_back"
+            android:background="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -34,7 +36,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
             android:gravity="center"
-            android:text="Manage Friends"
+            android:text="@string/manage_friends"
             android:textColor="@color/black"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -62,7 +64,7 @@
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:text="Friends"
+            android:text="@string/friends"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -70,7 +72,7 @@
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:text="Add Friends"
+            android:text="@string/add_friends"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -78,7 +80,7 @@
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:text="Requests"
+            android:text="@string/requests"
             app:cornerRadius="12dp" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -89,7 +91,7 @@
         android:layout_height="0dp"
         android:layout_margin="16dp"
         android:radius="16dp"
-        app:cardBackgroundColor="@color/colorPrimary"
+        app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -100,9 +102,7 @@
         <FrameLayout
             android:id="@+id/frame_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
+            android:layout_height="match_parent" />
     </androidx.cardview.widget.CardView>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

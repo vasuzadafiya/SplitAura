@@ -1,16 +1,17 @@
 package com.example.splitaura;
 
-import android.content.res.ColorStateList;
+import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
-import androidx.activity.EdgeToEdge;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+
 import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.fragments.AddFriendFragment;
 import com.example.splitaura.fragments.FriendRequestFragment;
@@ -20,13 +21,27 @@ import com.google.android.material.button.MaterialButtonToggleGroup;
 
 public class ManageFriends extends BaseActivity {
 
-    private MaterialButton btnFriends, btnAddFriends, btnRequests;
+    private MaterialButton btnFriends;
+    private MaterialButton btnAddFriends;
+    private MaterialButton btnRequests;
+    private ImageButton back;
 
+    @SuppressLint("ObsoleteSdkInt")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_manage_friends);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            // Set the status bar color to transparent
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+
+        back = findViewById(R.id.back_navigation);
 
         setButton();
     }
@@ -39,58 +54,55 @@ public class ManageFriends extends BaseActivity {
 
         // Set default selection (Friends tab selected)
         btnFriends.setChecked(true);
-        updateButtonStyle(btnFriends);
+        updateButtonStyles(btnFriends);
         replaceFragment(new FriendsFragment());
 
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                MaterialButton selectedButton = findViewById(checkedId);
-                updateButtonStyle(selectedButton);
+            if (!isChecked) return; // Skip if button is being unchecked
+            MaterialButton selectedButton = findViewById(checkedId);
+            updateButtonStyles(selectedButton);
 
-                // Fragment switching logic
-                if (checkedId == R.id.btn_friends) {
-                    replaceFragment(new FriendsFragment());
-                } else if (checkedId == R.id.btn_add_friends) {
-                    replaceFragment(new AddFriendFragment());
-                } else if (checkedId == R.id.btn_requests) {
-                    replaceFragment(new FriendRequestFragment());
-                }
+            // Use if-else chain instead of switch-case to avoid constant expression issues.
+            if (checkedId == R.id.btn_friends) {
+                replaceFragment(new FriendsFragment());
+            } else if (checkedId == R.id.btn_add_friends) {
+                replaceFragment(new AddFriendFragment());
+            } else if (checkedId == R.id.btn_requests) {
+                replaceFragment(new FriendRequestFragment());
             }
         });
+
+        back.setOnClickListener(v -> finish());
     }
 
     private void replaceFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frame_layout, fragment);
-        fragmentTransaction.commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.frame_layout, fragment)
+                .commit();
     }
 
-    private void updateButtonStyle(MaterialButton selectedButton) {
-        // Reset all buttons to default state
-        resetButtonStyle(btnFriends);
-        resetButtonStyle(btnAddFriends);
-        resetButtonStyle(btnRequests);
-
-        // Set selected button style
-        selectedButton.setBackgroundColor(ContextCompat.getColor(this, R.color.f_pass_color));
-        selectedButton.setTextColor(Color.WHITE);
-
-        // Update height dynamically
-        ViewGroup.LayoutParams params = selectedButton.getLayoutParams();
-        params.height = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics()); // Convert DP to PX
-        selectedButton.setLayoutParams(params);
+    private void updateButtonStyles(MaterialButton selectedButton) {
+        MaterialButton[] buttons = new MaterialButton[]{btnFriends, btnAddFriends, btnRequests};
+        for (MaterialButton button : buttons) {
+            if (button == selectedButton) {
+                button.setBackgroundColor(ContextCompat.getColor(this, R.color.f_pass_color));
+                button.setTextColor(Color.WHITE);
+                ViewGroup.LayoutParams params = button.getLayoutParams();
+                params.height = (int) TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+                button.setLayoutParams(params);
+            } else {
+                button.setBackgroundColor(Color.WHITE);
+                button.setTextColor(Color.GRAY);
+                ViewGroup.LayoutParams params = button.getLayoutParams();
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                button.setLayoutParams(params);
+            }
+        }
     }
 
-    private void resetButtonStyle(MaterialButton button) {
-        button.setBackgroundColor(Color.WHITE);
-        button.setTextColor(Color.GRAY);
-
-        // Reset height if needed
-        ViewGroup.LayoutParams params = button.getLayoutParams();
-        params.height = ViewGroup.LayoutParams.WRAP_CONTENT; // Reset to default height
-        button.setLayoutParams(params);
+    public void navigateToAddFriendFragment() {
+        // Programmatically "click" the Add Friends button
+        btnAddFriends.setChecked(true);
     }
-
 }

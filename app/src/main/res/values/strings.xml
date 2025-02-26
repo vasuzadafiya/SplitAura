@@ -71,4 +71,12 @@
     <string name="tv_paidby">Paid By</string>
     <string name="tv_split_by">Split By</string>
     <string name="add_yout_image">Add Your Image</string>
+    <string name="friend_name">Friend Name</string>
+    <string name="delete">Remove Friend</string>
+    <string name="manage_friends">Manage Friends</string>
+    <string name="add_friends">Add Friends</string>
+    <string name="requests">Requests</string>
+    <string name="placeholder_image">PlaceHolder Image</string>
+    <string name="placeholder_title">Oops! Seems like you’re flying solo, \n Time to find your crew!</string>
+
 </resources>

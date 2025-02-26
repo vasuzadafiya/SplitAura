@@ -16,6 +16,9 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".ManageFriends"
+            android:exported="false" />
+        <activity
             android:name=".AddExpenseActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"/>
@@ -23,7 +26,7 @@
             android:name=".ReceivedFriendRequestsActivity"
             android:exported="false" />
         <activity
-            android:name=".FriendsActivity"
+            android:name=".AddFriends"
             android:exported="false" />
         <activity
             android:name=".AddGroupActivity"

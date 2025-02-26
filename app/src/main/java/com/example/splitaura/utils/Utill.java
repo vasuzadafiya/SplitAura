@@ -1,4 +1,4 @@
-package com.example.splitaura.utility;
+package com.example.splitaura.utils;
 
 import android.app.Activity;
 import android.content.Context;

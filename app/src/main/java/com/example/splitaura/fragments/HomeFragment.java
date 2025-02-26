@@ -1,7 +1,5 @@
 package com.example.splitaura.fragments;
 
-import static android.content.ContentValues.TAG;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -110,25 +108,27 @@ public class HomeFragment extends Fragment {
 
 
     private void fetchProfilePicture() {
-        DocumentReference docRef = db.collection("users").document(userId);
-        docRef.get().addOnCompleteListener(task -> {
+        DocumentReference userRef = db.collection("users").document(userId);
+        userRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
-                    String profilePictureUrl = document.getString("profilePicture");
-                    if (profilePictureUrl != null && isAdded() && getActivity() != null) {
-                        // Only load the image if the Fragment is added and the Activity is not null
+                if (document != null && document.exists()) {
+                    // Retrieve the profile picture URL from Firestore
+                    String profilePicUrl = document.getString("profile_picture");
+                    // If the URL exists and is not empty, load the image into the ImageView
+                    if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
                         Glide.with(this)
-                                .load(profilePictureUrl)
+                                .load(profilePicUrl)
                                 .into(profilePicture);
                     }
-                } else {
-                    Log.d(TAG,"No such document");
+                    // If profilePicUrl is null or empty, do nothing
+                    // so the static image defined in XML remains visible.
                 }
             } else {
-                Log.d(TAG, "get failed with ", task.getException());
+                // Optionally, log or handle errors here
             }
         });
+
     }
 
     //    for setting greeting message to user

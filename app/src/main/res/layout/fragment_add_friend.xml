@@ -2,15 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    tools:context=".fragments.FriendsFragment">
 
     <EditText
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:drawable/edit_text"
+        android:background="@drawable/border_greyish"
         android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="10dp"
         android:hint="Search users"
         android:padding="10dp" />
 

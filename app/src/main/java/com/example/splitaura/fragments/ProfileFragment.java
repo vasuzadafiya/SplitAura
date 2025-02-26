@@ -36,21 +36,19 @@ public class ProfileFragment extends Fragment {
     }
 
     private void logout() {
-        logout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Clear SharedPreferences cache
-                SharedPreferences prefs = getContext().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
-                prefs.edit().clear().apply();
+        logout.setOnClickListener(v -> {
+            // Clear SharedPreferences cache
+            SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
+            prefs.edit().clear().apply();
 
-                // Sign out the user from FirebaseAuth
-                mAuth.signOut();
+            // Navigate to the login screen
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+            startActivity(intent);
+            // Sign out the user from FirebaseAuth
+            mAuth.signOut();
+            assert getActivity() != null;
+            getActivity().finishAffinity();
 
-                // Navigate to the login screen
-                Intent intent = new Intent(getActivity(), LoginActivity.class);
-                startActivity(intent);
-                getActivity().finishAffinity();
-            }
         });
     }
 

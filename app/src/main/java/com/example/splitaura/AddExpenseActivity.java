@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,15 +25,13 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.adapters.CategoryAdapter;
+import com.example.splitaura.admin.BaseActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.crashlytics.internal.model.CrashlyticsReport;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -42,7 +39,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AddExpenseActivity extends AppCompatActivity {
+public class AddExpenseActivity extends BaseActivity {
+    FirebaseAuth mAuth =FirebaseAuth.getInstance();
+    FirebaseUser user = mAuth.getCurrentUser();
 
     // Views
     private ScrollView scrollView;
@@ -188,24 +187,22 @@ public class AddExpenseActivity extends AppCompatActivity {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
         // Save expense data to Firestore
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            String userId = user.getUid();  // Get the UID of the current authenticated user
-            firestore.collection("users")
-                    .document(userId)  // Use the actual user’s UID here
-                    .collection("groups")
-                    .document("group_1")  // Replace with the actual group ID
-                    .collection("expenses")
-                    .add(expenseData).addOnSuccessListener(documentReference -> {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        }
+        firestore.collection("users")
+                .document(user.getUid()) // Replace with dynamic user ID
+                .collection("groups")
+                .document("fgtHzgzf3bB2UFG687rZ") // Replace with dynamic group ID
+                .collection("expenses")
+                .add(expenseData)
+                .addOnSuccessListener(documentReference -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(String.valueOf(this),"Failed to save expense: " + e.getMessage());
+                });
     }
 
     private void uploadImageToCloudinary(Uri imageUri) {

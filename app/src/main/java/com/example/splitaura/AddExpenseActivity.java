@@ -28,6 +28,8 @@ import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crashlytics.internal.model.CrashlyticsReport;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -186,21 +188,24 @@ public class AddExpenseActivity extends AppCompatActivity {
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
         // Save expense data to Firestore
-        firestore.collection("users")
-                .document("user_1") // Replace with dynamic user ID
-                .collection("groups")
-                .document("group_1") // Replace with dynamic group ID
-                .collection("expenses")
-                .add(expenseData)
-                .addOnSuccessListener(documentReference -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();  // Get the UID of the current authenticated user
+            firestore.collection("users")
+                    .document(userId)  // Use the actual user’s UID here
+                    .collection("groups")
+                    .document("group_1")  // Replace with the actual group ID
+                    .collection("expenses")
+                    .add(expenseData).addOnSuccessListener(documentReference -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }
     }
 
     private void uploadImageToCloudinary(Uri imageUri) {

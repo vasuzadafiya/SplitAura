@@ -66,7 +66,7 @@ dependencies {
     implementation libs.firebase.database
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.firebaseui:firebase-ui-firestore:8.0.2'
-    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation(libs.cloudinary.android.v302)
 
 
 //    for picture processing

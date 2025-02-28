@@ -2,12 +2,15 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:layout_margin="5dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@drawable/image_border"
+    android:padding="2dp">
 
     <ImageView
         android:id="@+id/ivProfile"
         android:layout_width="60dp"
         android:layout_height="60dp"
+        android:contentDescription="@string/profile"
         android:layout_gravity="center"
         android:scaleType="centerCrop"
         android:src="@drawable/obwomenmain" />

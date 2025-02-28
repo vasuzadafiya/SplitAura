@@ -10,8 +10,8 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.example.splitaura.admin.BaseActivity;
@@ -23,9 +23,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Homepage extends BaseActivity {
 
-    private BottomNavigationView bottomNavigationView;
+
     private FrameLayout curvedBracketContainer;
-    private ConstraintLayout curvedBackground;
     private View shadowOverlay;
     private boolean isCurvedBarVisible = false;
 
@@ -44,9 +43,8 @@ public class Homepage extends BaseActivity {
         }
 
         curvedBracketContainer = findViewById(R.id.curvedBracketContainer);
-        curvedBackground = findViewById(R.id.curvedBackground);
         shadowOverlay = findViewById(R.id.shadowOverlay);
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
         // Initialize Click Listeners for Spotlight Icons
         findViewById(R.id.personalContainer).setOnClickListener(v -> openPersonalActivity());
@@ -125,9 +123,7 @@ public class Homepage extends BaseActivity {
                 shadowOverlay.setClickable(false); // Re-enable background clicks
             }).start();
 
-            curvedBracketContainer.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                curvedBracketContainer.setVisibility(View.GONE);
-            }).start();
+            curvedBracketContainer.animate().alpha(0f).setDuration(200).withEndAction(() -> curvedBracketContainer.setVisibility(View.GONE)).start();
         }
     }
 
@@ -164,8 +160,7 @@ public class Homepage extends BaseActivity {
     }
 
     private void openGroupActivity() {
-        startActivity(new Intent(this, SelectGroupMembers.class));
-//        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
         hideCurvedBracket();
     }
 

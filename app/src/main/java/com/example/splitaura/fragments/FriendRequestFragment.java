@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.FriendRequestAdapter;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.FriendRequest;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.Task;
@@ -42,6 +43,7 @@ public class FriendRequestFragment extends Fragment {
     private String currentUserUid;
     // This view is displayed when no friend requests are found.
     private LinearLayout placeholder;
+    private LoadingDialog dialog;
 
     public FriendRequestFragment() {
         // Required empty public constructor
@@ -70,6 +72,7 @@ public class FriendRequestFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         // Ensure your layout contains a view with the id "placeholder"
         placeholder = view.findViewById(R.id.placeholder);
+        dialog = new LoadingDialog(requireContext());
     }
 
 
@@ -80,7 +83,7 @@ public class FriendRequestFragment extends Fragment {
                 .whereEqualTo("status", "Pending");
 
         // One-time query to count documents and show a toast.
-        friendRequestsQuery.get().addOnSuccessListener(querySnapshot -> initializeViews(querySnapshot.size())).addOnFailureListener(e -> Toast.makeText(requireContext(), "Error fetching friend requests", Toast.LENGTH_SHORT).show());
+        friendRequestsQuery.get().addOnSuccessListener(querySnapshot -> changeView(querySnapshot.size())).addOnFailureListener(e -> Toast.makeText(requireContext(), "Error fetching friend requests", Toast.LENGTH_SHORT).show());
 
         // Set up adapter options
         FirestoreRecyclerOptions<FriendRequest> options =
@@ -95,69 +98,104 @@ public class FriendRequestFragment extends Fragment {
         // Start listening (one-time load, not continuous realtime updates)
         adapter.startListening();
 
-        // Existing acceptance logic remains unchanged.
         adapter.setOnRequestActionListener((DocumentSnapshot snapshot, FriendRequest request) -> {
-            if (snapshot.exists()) {
-                snapshot.getReference().update("status", "Accepted")
-                        .addOnSuccessListener(unused -> {
-                            String senderUid = snapshot.getString("sender_uid");
-                            String receiverUid = snapshot.getString("receiver_uid");
-
-                            assert senderUid != null;
-                            db.collection(USER).document(senderUid).get()
-                                    .addOnSuccessListener(documentSnapshotSender -> {
-                                        if (documentSnapshotSender.exists()) {
-                                            String senderEmail = documentSnapshotSender.getString(EMAIL);
-                                            String senderFname = documentSnapshotSender.getString(FNAME);
-                                            String senderLname = documentSnapshotSender.getString(LNAME);
-                                            String senderProfilePicture = documentSnapshotSender.getString(PROFILE_PICTURE);
-
-                                            Map<String, Object> senderData = new HashMap<>();
-                                            senderData.put(EMAIL, senderEmail);
-                                            senderData.put(FNAME, senderFname);
-                                            senderData.put(LNAME, senderLname);
-                                            senderData.put(PROFILE_PICTURE, senderProfilePicture);
-                                            senderData.put(UID, senderUid);
-
-                                            assert receiverUid != null;
-                                            db.collection(USER).document(receiverUid).get()
-                                                    .addOnSuccessListener(documentSnapshotReceiver -> {
-                                                        if (documentSnapshotReceiver.exists()) {
-                                                            String receiverEmail = documentSnapshotReceiver.getString(EMAIL);
-                                                            String receiverFname = documentSnapshotReceiver.getString(FNAME);
-                                                            String receiverLname = documentSnapshotReceiver.getString(LNAME);
-                                                            String receiverProfilePicture = documentSnapshotReceiver.getString(PROFILE_PICTURE);
-
-                                                            Map<String, Object> receiverData = new HashMap<>();
-                                                            receiverData.put(EMAIL, receiverEmail);
-                                                            receiverData.put(FNAME, receiverFname);
-                                                            receiverData.put(LNAME, receiverLname);
-                                                            receiverData.put(PROFILE_PICTURE, receiverProfilePicture);
-                                                            receiverData.put(UID, receiverUid);
-
-                                                            Task<Void> task1 = db.collection(USER).document(senderUid)
-                                                                    .collection("friends").document(receiverUid)
-                                                                    .set(receiverData);
-                                                            Task<Void> task2 = db.collection(USER).document(receiverUid)
-                                                                    .collection("friends").document(senderUid)
-                                                                    .set(senderData);
-
-                                                            Tasks.whenAll(task1, task2)
-                                                                    .addOnSuccessListener(task -> Toast.makeText(requireContext(), "Friend request accepted and friends added", Toast.LENGTH_SHORT).show())
-                                                                    .addOnFailureListener(e -> Toast.makeText(requireContext(), "Error adding friends", Toast.LENGTH_SHORT).show());
-                                                        }
-                                                    })
-                                                    .addOnFailureListener(e -> Toast.makeText(requireContext(), "Error fetching receiver details", Toast.LENGTH_SHORT).show());
-                                        }
-                                    })
-                                    .addOnFailureListener(e -> Toast.makeText(requireContext(), "Error fetching sender details", Toast.LENGTH_SHORT).show());
-                        })
-                        .addOnFailureListener(e -> Toast.makeText(requireContext(), "Error accepting request", Toast.LENGTH_SHORT).show());
+            dialog.show();
+            if (!snapshot.exists()) {
+                dialog.hide();
+                return;
             }
+
+            snapshot.getReference().update("status", "Accepted")
+                    .addOnSuccessListener(unused -> {
+                        String senderUid = snapshot.getString("sender_uid");
+                        String receiverUid = snapshot.getString("receiver_uid");
+
+                        if (senderUid == null || receiverUid == null) {
+                            Toast.makeText(requireContext(), "Invalid sender or receiver", Toast.LENGTH_SHORT).show();
+                            dialog.hide();
+                            return;
+                        }
+
+                        db.collection(USER).document(senderUid).get()
+                                .addOnSuccessListener(documentSnapshotSender -> {
+                                    if (!documentSnapshotSender.exists()) {
+                                        Toast.makeText(requireContext(), "Sender details not found", Toast.LENGTH_SHORT).show();
+                                        dialog.hide();
+                                        return;
+                                    }
+                                    String senderEmail = documentSnapshotSender.getString(EMAIL);
+                                    String senderFname = documentSnapshotSender.getString(FNAME);
+                                    String senderLname = documentSnapshotSender.getString(LNAME);
+                                    String senderProfilePicture = documentSnapshotSender.getString(PROFILE_PICTURE);
+
+                                    Map<String, Object> senderData = new HashMap<>();
+                                    senderData.put(EMAIL, senderEmail);
+                                    senderData.put(FNAME, senderFname);
+                                    senderData.put(LNAME, senderLname);
+                                    senderData.put(PROFILE_PICTURE, senderProfilePicture);
+                                    senderData.put(UID, senderUid);
+
+                                    db.collection(USER).document(receiverUid).get()
+                                            .addOnSuccessListener(documentSnapshotReceiver -> {
+                                                if (!documentSnapshotReceiver.exists()) {
+                                                    Toast.makeText(requireContext(), "Receiver details not found", Toast.LENGTH_SHORT).show();
+                                                    dialog.hide();
+                                                    return;
+                                                }
+                                                String receiverEmail = documentSnapshotReceiver.getString(EMAIL);
+                                                String receiverFname = documentSnapshotReceiver.getString(FNAME);
+                                                String receiverLname = documentSnapshotReceiver.getString(LNAME);
+                                                String receiverProfilePicture = documentSnapshotReceiver.getString(PROFILE_PICTURE);
+
+                                                Map<String, Object> receiverData = new HashMap<>();
+                                                receiverData.put(EMAIL, receiverEmail);
+                                                receiverData.put(FNAME, receiverFname);
+                                                receiverData.put(LNAME, receiverLname);
+                                                receiverData.put(PROFILE_PICTURE, receiverProfilePicture);
+                                                receiverData.put(UID, receiverUid);
+
+                                                Task<Void> task1 = db.collection(USER).document(senderUid)
+                                                        .collection("friends").document(receiverUid)
+                                                        .set(receiverData);
+                                                Task<Void> task2 = db.collection(USER).document(receiverUid)
+                                                        .collection("friends").document(senderUid)
+                                                        .set(senderData);
+
+                                                Tasks.whenAll(task1, task2)
+                                                        .addOnSuccessListener(task -> {
+                                                            Toast.makeText(requireContext(), "Friend request accepted and friends added", Toast.LENGTH_SHORT).show();
+
+                                                            // Reload the fragment by detaching and reattaching it.
+                                                            getParentFragmentManager().beginTransaction()
+                                                                    .detach(FriendRequestFragment.this)
+                                                                    .attach(FriendRequestFragment.this)
+                                                                    .commit();
+                                                            dialog.hide();
+                                                        })
+                                                        .addOnFailureListener(e -> {
+                                                            Toast.makeText(requireContext(), "Error adding friends", Toast.LENGTH_SHORT).show();
+                                                            dialog.hide();
+                                                        });
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Toast.makeText(requireContext(), "Error fetching receiver details", Toast.LENGTH_SHORT).show();
+                                                dialog.hide();
+                                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(requireContext(), "Error fetching sender details", Toast.LENGTH_SHORT).show();
+                                    dialog.hide();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Error accepting request", Toast.LENGTH_SHORT).show();
+                        dialog.hide();
+                    });
         });
+
     }
 
-    private void initializeViews(int count) {
+    private void changeView(int count) {
         if (count == 0) {
             placeholder.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);

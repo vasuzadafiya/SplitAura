@@ -1,15 +1,19 @@
-package com.example.splitaura;  // adjust your package name as needed
+package com.example.splitaura;
 
 import static android.content.ContentValues.TAG;
 
+import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,10 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.splitaura.adapters.ContactsAdapter;
 import com.example.splitaura.adapters.SelectedContactsAdapter;
 import com.example.splitaura.admin.BaseActivity;
-import com.example.splitaura.models.Contact;
+import com.example.splitaura.models.Friend;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -30,100 +35,114 @@ import java.util.List;
 import java.util.Map;
 
 public class SelectGroupMembers extends BaseActivity {
-
-    private RecyclerView rvContacts, rvSelectedContacts;
+    // Views
+    private TextView heading;
+    private ImageButton back;
+    private RecyclerView rvContacts;
+    private RecyclerView rvSelectedContacts;
     private EditText etSearch;
-    private MaterialButton btnCancel, btnSave;
-    private String title, description, currency, category, imageUrl;
+    private MaterialButton btnCancel;
+    private MaterialButton btnSave;
+    private LinearLayout placeholder;
+    private LinearLayout buttonContainer;
 
-    // Master list for all contacts and the ones selected by the user
-    private List<Contact> allContacts = new ArrayList<>();
-    // This list will hold the current (filtered) contacts for display
-    private List<Contact> contactList = new ArrayList<>();
-    private List<Contact> selectedContacts = new ArrayList<>();
+    // Data variables
+    private String title;
+    private String description;
+    private String currency;
+    private String category;
+    private String imageUrl;
+    private final List<Friend> allFriends = new ArrayList<>();
+    private final List<Friend> friendList = new ArrayList<>();
+    private final List<Friend> selectedFriends = new ArrayList<>();
 
     private ContactsAdapter contactsAdapter;
     private SelectedContactsAdapter selectedContactsAdapter;
 
+    // Cached Firebase instances
+    private FirebaseFirestore db;
+    private FirebaseUser currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_select_group_members); // your main XML design
+        setContentView(R.layout.activity_select_group_members);
+        initializeViews();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            // Set the status bar color to transparent
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        // Cache Firebase instances for reuse
+        db = FirebaseFirestore.getInstance();
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
+        // Set status bar transparency for Lollipop and above
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
 
-        intializeViews();
-
-        // Setup the contacts RecyclerView (vertical list)
+        // Setup the friends RecyclerView (vertical list)
         rvContacts.setLayoutManager(new LinearLayoutManager(this));
-        contactsAdapter = new ContactsAdapter(contactList, new ContactsAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Contact contact) {
-                // Toggle selection
-                if (!selectedContacts.contains(contact)) {
-                    selectedContacts.add(contact);
-                } else {
-                    selectedContacts.remove(contact);
-                }
-                // Toggle visibility based on selection count
-                rvSelectedContacts.setVisibility(selectedContacts.isEmpty() ? View.GONE : View.VISIBLE);
-                selectedContactsAdapter.notifyDataSetChanged();
+        contactsAdapter = new ContactsAdapter(friendList, selectedFriends, friend -> {
+            // Toggle selection on click
+            if (!selectedFriends.contains(friend)) {
+                selectedFriends.add(friend);
+            } else {
+                selectedFriends.remove(friend);
             }
+            // Show or hide the selected friends RecyclerView based on selection count
+            rvSelectedContacts.setVisibility(selectedFriends.isEmpty() ? View.GONE : View.VISIBLE);
+            contactsAdapter.notifyDataSetChanged();
+            selectedContactsAdapter.notifyDataSetChanged();
         });
         rvContacts.setAdapter(contactsAdapter);
 
-        // Setup the selected contacts RecyclerView (horizontal list)
+        // Setup the selected friends RecyclerView (horizontal list)
         rvSelectedContacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        selectedContactsAdapter = new SelectedContactsAdapter(selectedContacts);
+        selectedContactsAdapter = new SelectedContactsAdapter(selectedFriends);
         rvSelectedContacts.setAdapter(selectedContactsAdapter);
 
-        // Load test data (simulate Firestore fetching)
-        loadTestData();
+        // Load data from Firestore
+        loadData();
 
-        // Add TextWatcher to enable search functionality
+        // Search functionality with optimized query processing
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // No action needed here
+                // No action needed
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterContacts(s.toString());
+                filterFriends(s.toString());
             }
-
             @Override
             public void afterTextChanged(Editable s) {
-                // No action needed here
+                // No action needed
             }
         });
 
         // Handle Cancel and Save button actions
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish(); // simply exit the activity
-            }
-        });
-        btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                uploadDataToFirestore(title, description, currency, category, imageUrl, selectedContacts);
-                // For now, just show a Toast with the number of selected contacts.
-                Toast.makeText(SelectGroupMembers.this, "Selected " + selectedContacts.size() + " contacts", Toast.LENGTH_SHORT).show();
-            }
+        btnCancel.setOnClickListener(view -> finish());
+        btnSave.setOnClickListener(view -> uploadDataToFirestore(title, description, currency, category, imageUrl, selectedFriends));
+        back.setOnClickListener(v -> finish());
+
+        // Add friend button
+        Button addFriend = findViewById(R.id.placeholder_button);
+        addFriend.setOnClickListener(v -> {
+            Intent intent = new Intent(SelectGroupMembers.this, ManageFriends.class);
+            intent.putExtra("SelectAddFriend", true);
+            startActivity(intent);
         });
     }
 
-    private void intializeViews() {
-        // Initialize views
+    private void initializeViews() {
+        back = findViewById(R.id.back_navigation);
+        heading = findViewById(R.id.header_title);
         rvContacts = findViewById(R.id.rvContacts);
+        placeholder = findViewById(R.id.placeholder);
+        buttonContainer = findViewById(R.id.buttonContainer);
         rvSelectedContacts = findViewById(R.id.rvSelectedContacts);
         etSearch = findViewById(R.id.etSearch);
         btnCancel = findViewById(R.id.btnCancel);
@@ -135,56 +154,94 @@ public class SelectGroupMembers extends BaseActivity {
         imageUrl = getIntent().getStringExtra("imageUrl");
     }
 
-    // Method to filter contacts based on search query
-    private void filterContacts(String query) {
-        List<Contact> filteredList = new ArrayList<>();
-        for (Contact contact : allContacts) {
-            if (contact.name.toLowerCase().contains(query.toLowerCase()) || contact.email.toLowerCase().contains(query.toLowerCase())) {
-                filteredList.add(contact);
+    // Filter friends based on search query with optimized lower-case conversion
+    private void filterFriends(String query) {
+        if (query == null) query = "";
+        String lowerQuery = query.toLowerCase();
+        // If query is empty, reset to the full list
+        if (lowerQuery.isEmpty()) {
+            contactsAdapter.updateList(new ArrayList<>(allFriends));
+            return;
+        }
+        List<Friend> filteredList = new ArrayList<>();
+        for (Friend friend : allFriends) {
+            // Cache lower-case conversion for friend fields
+            String fullName = friend.getFullName().toLowerCase();
+            String email = friend.getEmail().toLowerCase();
+            if (fullName.contains(lowerQuery) || email.contains(lowerQuery)) {
+                filteredList.add(friend);
             }
         }
-        // Update the adapter with the filtered list
         contactsAdapter.updateList(filteredList);
     }
 
-    // Simulate fetching data from Firestore with test data
-    private void loadTestData() {
-        // Populate the master list with test data
-        allContacts.add(new Contact("Vasu Zadafiya", "john@example.com", R.drawable.image));
-        allContacts.add(new Contact("Jenish Sutariya", "jane@example.com", R.drawable.obmensmall));
-        allContacts.add(new Contact("Sensi Vaghani", "alice@example.com", R.drawable.obwomens));
-        allContacts.add(new Contact("Boby girl", "bob@example.com", R.drawable.obwomensmall));
-        // Duplicate entries for testing search and scroll
-        allContacts.add(new Contact("Justine", "john@example .com", R.drawable.image));
-        allContacts.add(new Contact("Sahil", "jane@example .com", R.drawable.obmensmall));
-        allContacts.add(new Contact("Trushali", "alice@example .com", R.drawable.obwomens));
-        allContacts.add(new Contact("meera", "bob@example .com", R.drawable.obwomensmall));
+    // Load friend data from Firestore and manage view visibility dynamically
+    private void loadData() {
+        db.collection("users").document(currentUser.getUid())
+                .collection("friends")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    // Clear existing lists
+                    allFriends.clear();
+                    friendList.clear();
 
-        // Initially, display all contacts
-        contactList.clear();
-        contactList.addAll(allContacts);
-        contactsAdapter.notifyDataSetChanged();
+                    // Convert each document into a Friend object
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Friend friend = document.toObject(Friend.class);
+                        if (friend != null) {
+                            allFriends.add(friend);
+                        }
+                    }
+
+                    // Update friendList and notify adapter
+                    friendList.addAll(allFriends);
+                    contactsAdapter.notifyDataSetChanged();
+
+                    // Dynamic view handling: If no friends found, show placeholder and hide others.
+                    if (friendList.isEmpty()) {
+                        placeholder.setVisibility(View.VISIBLE);
+                        heading.setVisibility(View.GONE);
+                        rvContacts.setVisibility(View.GONE);
+                        buttonContainer.setVisibility(View.GONE);
+                        rvSelectedContacts.setVisibility(View.GONE);
+                        etSearch.setVisibility(View.GONE);
+                    } else {
+                        placeholder.setVisibility(View.GONE);
+                        heading.setVisibility(View.VISIBLE);
+                        rvContacts.setVisibility(View.VISIBLE);
+                        buttonContainer.setVisibility(View.VISIBLE);
+                        etSearch.setVisibility(View.VISIBLE);
+                        // Show selected contacts only if there are selections.
+                        rvSelectedContacts.setVisibility(selectedFriends.isEmpty() ? View.GONE : View.VISIBLE);
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(SelectGroupMembers.this, "Error fetching friends: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    // Method to store group data (including the image URL) in Firestore
-    private void uploadDataToFirestore(String title, String description, String currency, String category, String imageUrl, List<Contact> selectedContacts) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    // Upload group data to Firestore with proper user validation
+    private void uploadDataToFirestore(String title, String description, String currency, String category, String imageUrl, List<Friend> selectedFriends) {
+        if (currentUser == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Map<String, Object> groupData = new HashMap<>();
         groupData.put("title", title);
         groupData.put("description", description);
         groupData.put("currency", currency);
         groupData.put("category", category);
         groupData.put("imageUrl", imageUrl);
-        groupData.put("members", selectedContacts);
+        groupData.put("members", selectedFriends);
 
-
-        db.collection("users").document(user.getUid()).collection("groups").add(groupData).addOnSuccessListener(documentReference -> {
-            Toast.makeText(this, "Group created successfully!", Toast.LENGTH_SHORT).show();
-            finish();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(this, "Failed to create group", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Firestore error: " + e.getMessage());
-        });
+        db.collection("users").document(currentUser.getUid())
+                .collection("groups")
+                .add(groupData)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Group created successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to create group", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Firestore error: " + e.getMessage());
+                });
     }
 }

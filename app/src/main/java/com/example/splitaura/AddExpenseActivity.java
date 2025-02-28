@@ -115,6 +115,7 @@ public class AddExpenseActivity extends BaseActivity {
         nextButton.setOnClickListener(v -> {
             if (validateFields()) {
                 progressBar.setVisibility(View.VISIBLE);
+                nextButton.setVisibility(View.GONE);
                 if (imageUri != null) {
                     uploadImageToCloudinary(imageUri);
                 } else {
@@ -190,7 +191,7 @@ public class AddExpenseActivity extends BaseActivity {
         firestore.collection("users")
                 .document(user.getUid()) // Replace with dynamic user ID
                 .collection("groups")
-                .document("fgtHzgzf3bB2UFG687rZ") // Replace with dynamic group ID
+                .document("group_1") // Replace with dynamic group ID
                 .collection("expenses")
                 .add(expenseData)
                 .addOnSuccessListener(documentReference -> {

@@ -26,8 +26,13 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="red">#FD4F4F</color>
+    <color name="custom_green">#67E65C</color> <!-- Pure blue, adjust as needed -->
+    <color name="custom_red">#FF0000</color>
     <color name="lavender">#8692f7</color>
     <color name="bracketBackground">#1E1E1E</color>
+    <color name="light_grayish_blue">#F5F9FF</color> <!-- Very light blue, almost white -->
+    <color name="light_grayish_pink">#FFF5F9</color>
+    <color name="light_grayish_green">#F5FFF5</color>
     <color name="iconBackground">#F3F3F3</color>
     <color name="iconShadow">#000000</color>
     <color name="iconTint">#FFFFFF</color>

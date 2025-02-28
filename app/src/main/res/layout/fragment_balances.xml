@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".fragments.BalancesFragment">
+
+    <!-- CardView for Balances -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardview_balances"
+        android:layout_width="0dp"
+        android:layout_height="250dp"
+        app:cardBackgroundColor="@color/light_grayish_blue"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_balances"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="100dp"
+            android:padding="8dp"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/balance_item" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Divider between balances and owing users -->
+    <View
+        android:id="@+id/view_divider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardview_balances" />
+
+    <!-- CardView for Owing Users -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardview_owing"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardBackgroundColor="@color/light_grayish_pink"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view_divider">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_owing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="100dp"
+            android:padding="8dp"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/owe_item" />
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

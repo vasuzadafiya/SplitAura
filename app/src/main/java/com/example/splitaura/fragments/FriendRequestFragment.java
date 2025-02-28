@@ -35,6 +35,7 @@ public class FriendRequestFragment extends Fragment {
     private static final String FNAME = "fname";
     private static final String LNAME = "lname";
     private static final String PROFILE_PICTURE = "profile_picture";
+    private static final String UID = "uid";
 
     private RecyclerView recyclerView;
     private FirebaseFirestore db;
@@ -116,6 +117,7 @@ public class FriendRequestFragment extends Fragment {
                                             senderData.put(FNAME, senderFname);
                                             senderData.put(LNAME, senderLname);
                                             senderData.put(PROFILE_PICTURE, senderProfilePicture);
+                                            senderData.put(UID, senderUid);
 
                                             assert receiverUid != null;
                                             db.collection(USER).document(receiverUid).get()
@@ -131,6 +133,7 @@ public class FriendRequestFragment extends Fragment {
                                                             receiverData.put(FNAME, receiverFname);
                                                             receiverData.put(LNAME, receiverLname);
                                                             receiverData.put(PROFILE_PICTURE, receiverProfilePicture);
+                                                            receiverData.put(UID, receiverUid);
 
                                                             Task<Void> task1 = db.collection(USER).document(senderUid)
                                                                     .collection("friends").document(receiverUid)

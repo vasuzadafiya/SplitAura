@@ -42,11 +42,13 @@ dependencies {
     implementation libs.constraintlayout
     implementation libs.firebase.crashlytics
     implementation libs.gridlayout
+    implementation libs.firebase.messaging
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.viewpager2
     implementation libs.dotsindicator
+    implementation 'com.google.android.gms:play-services-maps:19.1.0'
 
 //    Animation and UI Dependency
 //    implementation libs.material.v170
@@ -83,6 +85,5 @@ dependencies {
     // Retrofit for REST API calls
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-
 
 }

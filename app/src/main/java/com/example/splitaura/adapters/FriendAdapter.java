@@ -31,6 +31,7 @@ public class FriendAdapter extends FirestoreRecyclerAdapter<Friend, FriendAdapte
         String fullName = model.getFname() + " " + model.getLname();
         holder.friendNameTextView.setText(fullName);
         holder.friendEmailTextView.setText(model.getEmail());
+        holder.friendUidTextView.setText(model.getUid());
 
         // Load profile image with Glide.
         Glide.with(holder.itemView.getContext())
@@ -58,13 +59,16 @@ public class FriendAdapter extends FirestoreRecyclerAdapter<Friend, FriendAdapte
         TextView friendNameTextView;
         TextView friendEmailTextView;
         ImageButton removeFriendButton;
+        TextView friendUidTextView;
 
         public FriendViewHolder(@NonNull View itemView) {
             super(itemView);
-            friendProfileImageView = itemView.findViewById(R.id.friendProfileImageView);
-            friendNameTextView = itemView.findViewById(R.id.friendNameTextView);
-            friendEmailTextView = itemView.findViewById(R.id.friendEmailTextView);
+            friendProfileImageView = itemView.findViewById(R.id.ivProfile);
+            friendNameTextView = itemView.findViewById(R.id.tvName);
+            friendEmailTextView = itemView.findViewById(R.id.tvEmail);
+            friendUidTextView = itemView.findViewById(R.id.tvuid);
             removeFriendButton = itemView.findViewById(R.id.removeFriendButton);
+            removeFriendButton.setVisibility(View.VISIBLE);
         }
     }
 

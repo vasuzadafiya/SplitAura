@@ -15,8 +15,6 @@ import com.example.splitaura.LoginActivity;
 import com.example.splitaura.R;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.Objects;
-
 
 public class ProfileFragment extends Fragment {
     FirebaseAuth mAuth = FirebaseAuth.getInstance();

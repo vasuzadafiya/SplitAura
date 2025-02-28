@@ -10,28 +10,38 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="wrap_content"
         android:padding="8dp">
 
         <!-- Profile Image -->
         <ImageView
-            android:id="@+id/friendProfileImageView"
+            android:id="@+id/ivProfile"
             android:layout_width="60dp"
             android:layout_height="60dp"
+            android:contentDescription="@string/profile"
             android:scaleType="centerCrop"
             android:src="@drawable/image"
-            android:contentDescription="@string/profile"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Remove Button (optional) -->
+        <ImageButton
+            android:id="@+id/removeFriendButton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/delete"
+            android:src="@drawable/ic_remove_friend"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Friend Name -->
-
-        <!-- Friend Email -->
-
-        <!-- Remove Button (optional if using swipe-to-delete) -->
         <TextView
-            android:id="@+id/friendNameTextView"
+            android:id="@+id/tvName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -41,32 +51,29 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/removeFriendButton"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toEndOf="@id/friendProfileImageView"
-            app:layout_constraintTop_toTopOf="@id/friendProfileImageView" />
+            app:layout_constraintStart_toEndOf="@id/ivProfile"
+            app:layout_constraintTop_toTopOf="@id/ivProfile" />
 
+        <!-- Friend Email -->
         <TextView
-            android:id="@+id/friendEmailTextView"
+            android:id="@+id/tvEmail"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/email_id"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="@+id/friendNameTextView"
-            app:layout_constraintStart_toStartOf="@+id/friendNameTextView"
-            app:layout_constraintTop_toBottomOf="@id/friendNameTextView" />
-
-        <ImageButton
-            android:id="@+id/removeFriendButton"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:contentDescription="@string/delete"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_remove_friend"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="8dp"/>
-
+            app:layout_constraintEnd_toStartOf="@+id/removeFriendButton"
+            app:layout_constraintStart_toStartOf="@+id/tvName"
+            app:layout_constraintTop_toBottomOf="@+id/tvName" /><!-- Friend Email -->
+        <TextView
+            android:id="@+id/tvuid"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="uid"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/removeFriendButton"
+            app:layout_constraintStart_toStartOf="@+id/tvEmail"
+            app:layout_constraintTop_toBottomOf="@+id/tvEmail" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

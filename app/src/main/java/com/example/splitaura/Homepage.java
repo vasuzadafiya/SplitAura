@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
@@ -24,7 +23,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Homepage extends BaseActivity {
 
-    private FrameLayout frameLayout;
     private BottomNavigationView bottomNavigationView;
     private FrameLayout curvedBracketContainer;
     private ConstraintLayout curvedBackground;
@@ -45,7 +43,6 @@ public class Homepage extends BaseActivity {
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
 
-        frameLayout = findViewById(R.id.frame_layout);
         curvedBracketContainer = findViewById(R.id.curvedBracketContainer);
         curvedBackground = findViewById(R.id.curvedBackground);
         shadowOverlay = findViewById(R.id.shadowOverlay);
@@ -162,12 +159,12 @@ public class Homepage extends BaseActivity {
     }
 
     private void openPersonalActivity() {
-//        startActivity(new Intent(this, AddExpenseActivity.class));
+        startActivity(new Intent(this, AddExpenseActivity.class));
         hideCurvedBracket();
     }
 
     private void openGroupActivity() {
-        startActivity(new Intent(this, GroupExpensesActivity.class));
+        startActivity(new Intent(this, SelectGroupMembers.class));
 //        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
         hideCurvedBracket();
     }

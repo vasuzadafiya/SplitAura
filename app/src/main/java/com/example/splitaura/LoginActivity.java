@@ -32,7 +32,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -190,14 +193,16 @@ public class LoginActivity extends BaseActivity {
 
                 // Save user data to Firestore including the profile picture URL
                 saveUserToFirestore(uid, firstName, lastName, googleEmail, null, profilePictureUrl);
-                createDialoge(LoginActivity.this, true); // Show new user dialog
+//                createDialoge(LoginActivity.this, true); // Show new user dialog
+                navigateToHomepage(this);
                 Log.d(TAG, "New user registration process completed.");
             } else {
                 // Handle sign-in failure
+                loadingDialog.hide();
                 Log.w(TAG, "signInWithCredential:failure", task.getException());
                 Utill.showToast(LoginActivity.this, "Authentication Failed: " + task.getException());
             }
-            loadingDialog.hide();
+
         });
     }
 
@@ -221,7 +226,8 @@ public class LoginActivity extends BaseActivity {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
                 Utill.showToast(this, "Login Successful");
-                createDialoge(LoginActivity.this, true);
+//                createDialoge(LoginActivity.this, true);
+                navigateToHomepage(this);
             } else {
                 Utill.showToast(this, "User Not Found : " + task.getException());
             }
@@ -292,7 +298,8 @@ public class LoginActivity extends BaseActivity {
                     if (task1.isSuccessful()) {
                         Utill.showToast(this, "User Profile Updated");
                         saveUserToFirestore(user.getUid(), fname, lname, email, password, defaultImageURL);
-                        createDialoge(LoginActivity.this, false);
+//                        createDialoge(LoginActivity.this, false);
+                        navigateToHomepage(this);
                     } else {
                         Utill.showToast(this, "User Profile Update Failed");
                     }
@@ -310,37 +317,55 @@ public class LoginActivity extends BaseActivity {
     private void saveUserToFirestore(String uid, String fname, String lname, String email, String password, String profilePictureUrl) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Create a map to store user details
-        Map<String, Object> user = new HashMap<>();
-        user.put("uid", uid);
-        user.put("fname", fname);
-        user.put("lname", lname);
-        user.put("email", email);
-        user.put("password", password); // Consider not storing passwords in Firestore for security reasons
-        user.put("profile_picture", profilePictureUrl); // New field for profile picture URL
-        user.put("upi", null); // Set initial UPI as null
+        // Retrieve the FCM device token locally
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(tokenTask -> {
+            if (!tokenTask.isSuccessful()) {
+                Log.e(TAG, "Fetching FCM registration token failed", tokenTask.getException());
+                return;
+            }
+            String deviceToken = tokenTask.getResult();
+            Log.d(TAG, "FCM Device Token: " + deviceToken);
 
-        // Generate search keywords from first and last names
-        List<String> searchKeywords = new ArrayList<>();
-        searchKeywords.addAll(generateSearchKeywords(fname));
-        searchKeywords.addAll(generateSearchKeywords(lname));
-        user.put("searchKeywords", searchKeywords);
+            // Create a map to store user details
+            Map<String, Object> user = new HashMap<>();
+            user.put("uid", uid);
+            user.put("fname", fname);
+            user.put("lname", lname);
+            user.put("email", email);
+            user.put("password", password); // Consider NOT storing passwords in Firestore.
+            user.put("profile_picture", profilePictureUrl);
+            user.put("upi", null); // Set initial UPI as null
 
-        // Save user details to Firestore under the "users" collection
-        db.collection("users")
-                .document(uid)
-                .set(user)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "User saved to Firestore with search keywords.");
-                    } else {
-                        Log.e(TAG, "Error saving user: ", task.getException());
-                    }
-                    // Hide your loading dialog or perform further actions here
-                    loadingDialog.hide();
-                });
+            // Generate search keywords from first and last names
+            List<String> searchKeywords = new ArrayList<>();
+            searchKeywords.addAll(generateSearchKeywords(fname));
+            searchKeywords.addAll(generateSearchKeywords(lname));
+            user.put("searchKeywords", searchKeywords);
+
+            // Save (or merge) the user details to Firestore under the "users" collection
+            db.collection("users")
+                    .document(uid)
+                    .set(user, SetOptions.merge())
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Update device token field using arrayUnion to support multiple devices
+                            db.collection("users")
+                                    .document(uid)
+                                    .update("deviceTokens", FieldValue.arrayUnion(deviceToken))
+                                    .addOnCompleteListener(updateTask -> {
+                                        if (updateTask.isSuccessful()) {
+                                            Log.d(TAG, "User saved and device token updated in Firestore.");
+                                        } else {
+                                            Log.e(TAG, "Error updating device token: ", updateTask.getException());
+                                        }
+                                    });
+                        } else {
+                            Log.e(TAG, "Error saving user: ", task.getException());
+                        }
+                    });
+        });
+        loadingDialog.hide();
     }
-
 
     private void createDialoge(Activity activity, Boolean islogin) {
         loadingDialog.hide();
@@ -376,10 +401,10 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void navigateToHomepage(Activity activity) {
-        // Transition to HomeActivity after 4 seconds
+        loadingDialog.hide();
+
         Intent intent = new Intent(activity, Homepage.class);
         startActivity(intent);
-        // Finish the DialogActivity so it’s no longer on the back stack
         finish();
     }
 

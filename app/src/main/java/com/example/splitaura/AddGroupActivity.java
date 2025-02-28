@@ -22,17 +22,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.splitaura.services.ImgurApiService;
 import com.example.splitaura.services.ImgurResponse;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -285,7 +280,7 @@ public class AddGroupActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     String imageUrl = response.body().data.link;
                     Log.d(TAG, "Uploaded image URL: " + imageUrl);
-                    uploadDataToFirestore(title, description, currency, category, imageUrl);
+                    nextNavigation(title, description, currency, category, imageUrl);
                 } else {
                     try {
                         String errorResponse = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
@@ -313,24 +308,14 @@ public class AddGroupActivity extends AppCompatActivity {
         });
     }
 
-    // Method to store group data (including the image URL) in Firestore
-    private void uploadDataToFirestore(String title, String description, String currency, String category, String imageUrl) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        Map<String, Object> groupData = new HashMap<>();
-        groupData.put("title", title);
-        groupData.put("description", description);
-        groupData.put("currency", currency);
-        groupData.put("category", category);
-        groupData.put("imageUrl", imageUrl);
-
-
-        db.collection("users").document(user.getUid()).collection("groups").add(groupData).addOnSuccessListener(documentReference -> {
-            Toast.makeText(AddGroupActivity.this, "Group created successfully!", Toast.LENGTH_SHORT).show();
-            finish();
-        }).addOnFailureListener(e -> {
-            Toast.makeText(AddGroupActivity.this, "Failed to create group", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, "Firestore error: " + e.getMessage());
-        });
+    private void nextNavigation(String title, String description, String currency, String category, String imageUrl) {
+        Intent intent = new Intent(this, SelectGroupMembers.class);
+        intent.putExtra("title", title);
+        intent.putExtra("description", description);
+        intent.putExtra("currency", currency);
+        intent.putExtra("category", category);
+        intent.putExtra("imageUrl", imageUrl);
+        startActivity(intent);
     }
+
 }

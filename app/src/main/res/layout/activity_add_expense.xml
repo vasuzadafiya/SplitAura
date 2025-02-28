@@ -225,7 +225,7 @@
                 android:layout_height="match_parent"
                 android:visibility="gone"
                 android:id="@+id/imagePreview"
-                android:scaleType="centerInside"/>
+                android:scaleType="center"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <LinearLayout
             android:id="@+id/bottomButtons"

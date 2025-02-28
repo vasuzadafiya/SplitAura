@@ -33,6 +33,7 @@
     <string name="profile_fragment">Profile Fragment</string>
     <string name="home">Home</string>
     <string name="groups">Groups</string>
+    <string name="group_info">Group Info</string>
     <string name="payment">Payment</string>
     <string name="profile">Profile</string>
     <string name="spotlight">spotlight</string>
@@ -42,6 +43,9 @@
     <string name="available_bal">Available Balance</string>
     <string name="view_all"><![CDATA[View All ->]]></string>
     <string name="friends">Friends</string>
+    <string name="total_group_spending">Total Group Spending</string>
+    <string name="total_you_paid_for">Total You Paid For</string>
+    <string name="your_total_share">Your Total Share</string>
     <string name="pay">pay</string>
     <string name="request">Request</string>
     <string name="top_up">Top-up</string>
@@ -79,5 +83,10 @@
     <string name="placeholder_image">PlaceHolder Image</string>
     <string name="placeholder_title">Oops! Seems like you’re flying solo, \n Time to find your crew!</string>
     <string name="icon_category">Icon Category</string>
+    <string name="expenses">Expenses</string>
+    <string name="balances">Balances</string>
+    <string name="Totals">Totals</string>
+    <string name="group_name">Group Name</string>
+    <string name="add_expense">Add Expense</string>
 
 </resources>

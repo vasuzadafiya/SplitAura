@@ -179,6 +179,7 @@
                 style="@style/CustomSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/spinner_background"
                 android:layout_marginTop="8dp"
                 android:padding="12dp"
                 android:spinnerMode="dropdown" />

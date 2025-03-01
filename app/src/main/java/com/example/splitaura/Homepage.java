@@ -164,7 +164,7 @@ public class Homepage extends BaseActivity {
     }
 
     private void openGroupActivity() {
-        startActivity(new Intent(this, GroupExpensesActivity.class));
+        startActivity(new Intent(this, SelectGroupMembers.class));
 //        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
         hideCurvedBracket();
     }

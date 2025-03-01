@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -41,6 +42,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class AddGroupActivity extends AppCompatActivity {
 
     private static final String TAG = "AddGroupActivity";
+    private static final String IMGUR_CLIENT_ID = "Client-ID 974699ce54d1dfb";
+    private static final int BUFFER_SIZE = 1024;
+
+    // Reuse Retrofit instance
+    private static final Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl("https://api.imgur.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build();
 
     private ImageView backButton;
     private View uploadImageLayout;
@@ -71,26 +80,11 @@ public class AddGroupActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_group);
 
-        // Initialize views
+        // Initialize views and set up UI
         initializeViews();
-
-        // Set up listeners
         setupListeners();
-
-        // Set up currency spinner
         setupCurrencySpinner();
-
-        // Set up image picker launcher
-        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK) {
-                Intent data = result.getData();
-                if (data != null) {
-                    selectedImageUri = data.getData();
-                    uploadIcon.setImageURI(selectedImageUri);
-                    Log.d(TAG, "Selected Image URI: " + selectedImageUri);
-                }
-            }
-        });
+        setupImagePickerLauncher();
     }
 
     private void initializeViews() {
@@ -140,10 +134,22 @@ public class AddGroupActivity extends AppCompatActivity {
                 selectedCurrency = parent.getItemAtPosition(position).toString();
                 Log.d(TAG, "Selected Currency: " + selectedCurrency);
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Do nothing
+            }
+        });
+    }
+
+    private void setupImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                if (data != null) {
+                    selectedImageUri = data.getData();
+                    uploadIcon.setImageURI(selectedImageUri);
+                    Log.d(TAG, "Selected Image URI: " + selectedImageUri);
+                }
             }
         });
     }
@@ -173,31 +179,17 @@ public class AddGroupActivity extends AppCompatActivity {
     }
 
     private void resetCategoryButtons() {
-        categoryTripButton.setSelected(false);
-        categoryFamilyButton.setSelected(false);
-        categoryProjectButton.setSelected(false);
-        categoryCoupleButton.setSelected(false);
-        categoryEventButton.setSelected(false);
-        categoryOtherButton.setSelected(false);
-
-        categoryTripButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-        categoryFamilyButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-        categoryProjectButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-        categoryCoupleButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-        categoryEventButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-        categoryOtherButton.setBackgroundResource(R.drawable.btn_bg_transparent);
-
-        categoryTripButton.setTextColor(getColor(R.color.background));
-        categoryFamilyButton.setTextColor(getColor(R.color.background));
-        categoryProjectButton.setTextColor(getColor(R.color.background));
-        categoryCoupleButton.setTextColor(getColor(R.color.background));
-        categoryEventButton.setTextColor(getColor(R.color.background));
-        categoryOtherButton.setTextColor(getColor(R.color.background));
+        Button[] buttons = {categoryTripButton, categoryFamilyButton, categoryProjectButton, categoryCoupleButton, categoryEventButton, categoryOtherButton};
+        for (Button btn : buttons) {
+            btn.setSelected(false);
+            btn.setBackgroundResource(R.drawable.btn_bg_transparent);
+            btn.setTextColor(getColor(R.color.background));
+        }
     }
 
     private void validateAndProceed() {
-        String title = titleEditText.getText().toString().trim();
-        String description = descriptionEditText.getText().toString().trim();
+        String title = Objects.requireNonNull(titleEditText.getText()).toString().trim();
+        String description = Objects.requireNonNull(descriptionEditText.getText()).toString().trim();
 
         if (title.isEmpty()) {
             titleEditText.setError("Title is required");
@@ -226,11 +218,10 @@ public class AddGroupActivity extends AppCompatActivity {
             return;
         }
 
-        // Show progress and disable button during upload
+        // Show progress and disable continue button during upload
         progressBar.setVisibility(View.VISIBLE);
         continueButton.setEnabled(false);
 
-        // Convert URI to File for upload
         File imageFile = getFileFromUri(selectedImageUri);
         if (imageFile != null) {
             uploadImageToImgur(imageFile, title, description, selectedCurrency, selectedCategory);
@@ -241,37 +232,31 @@ public class AddGroupActivity extends AppCompatActivity {
         }
     }
 
-    // Utility method to convert a content URI to a File
+    // Utility method to convert a content URI to a File using try-with-resources for efficient stream handling
     private File getFileFromUri(Uri uri) {
-        File file = null;
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
-            file = new File(getCacheDir(), "temp_image.jpg");
-            OutputStream outputStream = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
+        File file = new File(getCacheDir(), "temp_image.jpg");
+        try (InputStream inputStream = getContentResolver().openInputStream(uri);
+             OutputStream outputStream = new FileOutputStream(file)) {
+            byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
             }
-            outputStream.close();
-            inputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
         return file;
     }
 
-    // Method to upload image to Imgur using Retrofit
+    // Method to upload image to Imgur using the reused Retrofit instance
     private void uploadImageToImgur(File imageFile, String title, String description, String currency, String category) {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.imgur.com/").addConverterFactory(GsonConverterFactory.create()).build();
-
         ImgurApiService apiService = retrofit.create(ImgurApiService.class);
 
         RequestBody requestFile = RequestBody.create(MediaType.parse("image/*"), imageFile);
         MultipartBody.Part body = MultipartBody.Part.createFormData("image", imageFile.getName(), requestFile);
 
-        // Replace YOUR_IMGUR_CLIENT_ID with your actual client ID from Imgur
-        Call<ImgurResponse> call = apiService.uploadImage("Client-ID 974699ce54d1dfb", body);
+        Call<ImgurResponse> call = apiService.uploadImage(IMGUR_CLIENT_ID, body);
         call.enqueue(new Callback<ImgurResponse>() {
             @Override
             public void onResponse(Call<ImgurResponse> call, Response<ImgurResponse> response) {
@@ -292,11 +277,9 @@ public class AddGroupActivity extends AppCompatActivity {
                     if (imageFile != null) {
                         Log.d(TAG, "File path: " + imageFile.getAbsolutePath() + ", size: " + imageFile.length());
                     }
-
                     Toast.makeText(AddGroupActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
                 }
             }
-
 
             @Override
             public void onFailure(Call<ImgurResponse> call, Throwable t) {
@@ -316,6 +299,6 @@ public class AddGroupActivity extends AppCompatActivity {
         intent.putExtra("category", category);
         intent.putExtra("imageUrl", imageUrl);
         startActivity(intent);
+        finish();
     }
-
 }

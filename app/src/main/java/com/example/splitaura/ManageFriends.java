@@ -44,15 +44,27 @@ public class ManageFriends extends BaseActivity {
         }
 
         back = findViewById(R.id.back_navigation);
-
+        back.setOnClickListener(v -> finish());
+        setView();
         setButton();
+        checkAddFriendPermission();
+    }
+
+    private void checkAddFriendPermission() {
+        if (getIntent().getBooleanExtra("SelectAddFriend", false)) {
+            navigateToAddFriendFragment();
+        }
+    }
+
+    private void setView() {
+        btnFriends = findViewById(R.id.btn_friends);
+        btnAddFriends = findViewById(R.id.btn_add_friends);
+        btnRequests = findViewById(R.id.btn_requests);
     }
 
     private void setButton() {
         MaterialButtonToggleGroup toggleGroup = findViewById(R.id.toggleGroup);
-        btnFriends = findViewById(R.id.btn_friends);
-        btnAddFriends = findViewById(R.id.btn_add_friends);
-        btnRequests = findViewById(R.id.btn_requests);
+
 
         // Set default selection (Friends tab selected)
         btnFriends.setChecked(true);

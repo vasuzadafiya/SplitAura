@@ -1,11 +1,16 @@
 package com.example.splitaura.fragments;
 
+import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,13 +19,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.FriendAdapter;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,14 +40,14 @@ import java.util.List;
 
 public class FriendsFragment extends Fragment {
 
-    //    constant Keys...
+    // Constant key used for updating status.
     static final String STATUS_KEY = "status";
-
     private RecyclerView recyclerView;
     private FriendAdapter adapter;
     private FirebaseFirestore db;
     private String currentUserUid;
     private LinearLayout placeholder;
+    private LoadingDialog loadingDialog;
 
     public FriendsFragment() {
         // Required empty public constructor
@@ -54,10 +62,9 @@ public class FriendsFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewFriends);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         placeholder = view.findViewById(R.id.placeholder);
-        Button addFriend;
-        addFriend = view.findViewById(R.id.btn_add_friends);
+        Button addFriend = view.findViewById(R.id.btn_add_friends);
+        loadingDialog = new LoadingDialog(requireContext());
 
-        // Set click listener for the Add Friends button in the placeholder
         addFriend.setOnClickListener(v -> {
             if (getActivity() instanceof ManageFriends) {
                 ((ManageFriends) getActivity()).navigateToAddFriendFragment();
@@ -86,77 +93,116 @@ public class FriendsFragment extends Fragment {
         adapter = new FriendAdapter(options);
         recyclerView.setAdapter(adapter);
 
-        // Listen for real-time changes and toggle placeholder visibility
+        // Toggle placeholder visibility based on friend list existence.
         query.addSnapshotListener((value, error) -> {
-            if (error != null) {
-                return;
-            }
-
+            if (error != null) return;
             if (value != null && value.isEmpty()) {
-                // No friends: show placeholder, hide list
                 placeholder.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
             } else {
-                // Friends exist: hide placeholder, show list
                 placeholder.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
             }
         });
 
-        // Set up the remove friend listener
-        adapter.setOnRemoveFriendListener((DocumentSnapshot snapshot, Friend friend) -> {
-            String friendUid = snapshot.getId();
-            Task<Void> deleteFromCurrentUser = snapshot.getReference().delete();
-            Task<Void> deleteFromFriend = db.collection("users")
-                    .document(friendUid)
-                    .collection("friends")
-                    .document(currentUserUid)
-                    .delete();
+        // Instead of immediately removing the friend, show the custom alert dialog.
+        adapter.setOnRemoveFriendListener(this::showRemoveFriendDialog);
+    }
 
-            Tasks.whenAll(deleteFromCurrentUser, deleteFromFriend)
-                    .addOnSuccessListener(unused -> {
-                        Task<QuerySnapshot> query1 = db.collection("friend_requests")
-                                .whereEqualTo("sender_uid", currentUserUid)
-                                .whereEqualTo("receiver_uid", friendUid)
-                                .whereEqualTo(STATUS_KEY, "Accepted")
-                                .get();
-                        Task<QuerySnapshot> query2 = db.collection("friend_requests")
-                                .whereEqualTo("sender_uid", friendUid)
-                                .whereEqualTo("receiver_uid", currentUserUid)
-                                .whereEqualTo(STATUS_KEY, "Accepted")
-                                .get();
+    // Builds and shows the custom alert dialog.
+    private void showRemoveFriendDialog(DocumentSnapshot snapshot, Friend friend) {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_remove_friend, null);
+        ImageView profileImageView = dialogView.findViewById(R.id.ivDialogProfile);
+        TextView nameTextView = dialogView.findViewById(R.id.tvDialogName);
+        TextView alertTextView = dialogView.findViewById(R.id.tvDialogAlertText);
+        MaterialButton cancelButton = dialogView.findViewById(R.id.btnCancel);
+        MaterialButton removeButton = dialogView.findViewById(R.id.btnRemove);
 
-                        Tasks.whenAllSuccess(query1, query2)
-                                .addOnSuccessListener(results -> {
-                                    List<Task<Void>> updateTasks = new ArrayList<>();
-                                    for (Object res : results) {
-                                        QuerySnapshot qs = (QuerySnapshot) res;
-                                        for (DocumentSnapshot doc : qs.getDocuments()) {
-                                            updateTasks.add(doc.getReference().update(STATUS_KEY, "Removed"));
-                                        }
-                                    }
-                                    Tasks.whenAll(updateTasks)
-                                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Friend removed but error updating friend request", Toast.LENGTH_SHORT).show());
-                                })
-                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Friend removed but error querying friend requests", Toast.LENGTH_SHORT).show());
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Error removing friend", Toast.LENGTH_SHORT).show());
+        // Load profile image using Glide.
+        Glide.with(getContext())
+                .load(friend.getProfile_picture())
+                .circleCrop()
+                .into(profileImageView);
+
+        // Set the friend’s full name.
+        String fullName = friend.getFname() + " " + friend.getLname();
+        nameTextView.setText(fullName);
+        // Set a custom alert text.
+        alertTextView.setText("Are you sure you want to remove this friend?");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        removeButton.setOnClickListener(v -> {
+            // Show loading dialog and dismiss the alert dialog.
+            loadingDialog.show();
+            dialog.dismiss();
+            removeFriend(snapshot);
         });
+
+        dialog.show();
+    }
+
+    // Executes the friend removal logic with proper loading dialog handling.
+    private void removeFriend(DocumentSnapshot snapshot) {
+        String friendUid = snapshot.getId();
+        Task<Void> deleteFromCurrentUser = snapshot.getReference().delete();
+        Task<Void> deleteFromFriend = db.collection("users")
+                .document(friendUid)
+                .collection("friends")
+                .document(currentUserUid)
+                .delete();
+
+        Tasks.whenAll(deleteFromCurrentUser, deleteFromFriend)
+                .continueWithTask(task -> {
+                    // Query friend requests in both directions.
+                    Task<QuerySnapshot> query1 = db.collection("friend_requests")
+                            .whereEqualTo("sender_uid", currentUserUid)
+                            .whereEqualTo("receiver_uid", friendUid)
+                            .whereEqualTo(STATUS_KEY, "Accepted")
+                            .get();
+                    Task<QuerySnapshot> query2 = db.collection("friend_requests")
+                            .whereEqualTo("sender_uid", friendUid)
+                            .whereEqualTo("receiver_uid", currentUserUid)
+                            .whereEqualTo(STATUS_KEY, "Accepted")
+                            .get();
+                    return Tasks.whenAllSuccess(query1, query2);
+                })
+                .continueWithTask(task -> {
+                    List<Object> results = task.getResult();
+                    List<Task<Void>> updateTasks = new ArrayList<>();
+                    for (Object res : results) {
+                        QuerySnapshot qs = (QuerySnapshot) res;
+                        for (DocumentSnapshot doc : qs.getDocuments()) {
+                            updateTasks.add(doc.getReference().update(STATUS_KEY, "Removed"));
+                        }
+                    }
+                    return Tasks.whenAll(updateTasks);
+                })
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Friend removed", Toast.LENGTH_SHORT).show();
+                    loadingDialog.hide();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error removing friend: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    loadingDialog.hide();
+                });
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (adapter != null) {
-            adapter.startListening();
-        }
+        if (adapter != null) adapter.startListening();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (adapter != null) {
-            adapter.stopListening();
-        }
+        if (adapter != null) adapter.stopListening();
     }
 }

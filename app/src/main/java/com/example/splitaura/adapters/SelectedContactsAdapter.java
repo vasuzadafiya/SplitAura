@@ -5,22 +5,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.splitaura.R;
-import com.example.splitaura.models.Contact;
-
+import com.example.splitaura.models.Friend;
 import java.util.List;
+import com.bumptech.glide.Glide;
 
-// Adapter for displaying selected contacts in a horizontal list
 public class SelectedContactsAdapter extends RecyclerView.Adapter<SelectedContactsAdapter.SelectedContactViewHolder> {
 
-    private List<Contact> selectedContacts;
+    private final List<Friend> selectedFriends;
 
-    public SelectedContactsAdapter(List<Contact> selectedContacts) {
-        this.selectedContacts = selectedContacts;
+    public SelectedContactsAdapter(List<Friend> selectedFriends) {
+        this.selectedFriends = selectedFriends;
     }
 
+    @NonNull
     @Override
     public SelectedContactViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
@@ -30,13 +30,18 @@ public class SelectedContactsAdapter extends RecyclerView.Adapter<SelectedContac
 
     @Override
     public void onBindViewHolder(SelectedContactViewHolder holder, int position) {
-        Contact contact = selectedContacts.get(position);
-        holder.ivProfile.setImageResource(contact.profileImageRes);
+        Friend friend = selectedFriends.get(position);
+        // Load image using Glide
+        Glide.with(holder.itemView.getContext())
+                .load(friend.getProfile_picture())
+                .circleCrop()
+                .placeholder(R.drawable.obmensmall)
+                .into(holder.ivProfile);
     }
 
     @Override
     public int getItemCount() {
-        return selectedContacts.size();
+        return selectedFriends.size();
     }
 
     public static class SelectedContactViewHolder extends RecyclerView.ViewHolder {

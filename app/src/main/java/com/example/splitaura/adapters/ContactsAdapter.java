@@ -1,59 +1,69 @@
 package com.example.splitaura.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
-import com.example.splitaura.models.Contact;
+import com.example.splitaura.models.Friend;
 
 import java.util.List;
 
-// Adapter for displaying all contacts
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
 
-    private List<Contact> contacts;
-    private OnItemClickListener listener;
-    public ContactsAdapter(List<Contact> contacts, OnItemClickListener listener) {
-        this.contacts = contacts;
+    private final List<Friend> friends;
+    private final List<Friend> selectedFriends;
+    private final OnItemClickListener listener;
+
+    public ContactsAdapter(List<Friend> friends, List<Friend> selectedFriends, OnItemClickListener listener) {
+        this.friends = friends;
+        this.selectedFriends = selectedFriends;
         this.listener = listener;
     }
 
+    @NonNull
     @Override
     public ContactViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.friend_item_layout, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.friend_item_layout, parent, false);
         return new ContactViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ContactViewHolder holder, int position) {
-        final Contact contact = contacts.get(position);
-        holder.bind(contact, listener);
+        Friend friend = friends.get(position);
+        boolean isSelected = selectedFriends.contains(friend);
+        holder.bind(friend, listener, isSelected);
     }
 
     @Override
     public int getItemCount() {
-        return contacts.size();
+        return friends.size();
     }
 
     // Update the adapter's list and refresh
-    public void updateList(List<Contact> newList) {
-        contacts.clear();
-        contacts.addAll(newList);
+    public void updateList(List<Friend> newList) {
+        friends.clear();
+        friends.addAll(newList);
         notifyDataSetChanged();
     }
 
     public interface OnItemClickListener {
-        void onItemClick(Contact contact);
+        void onItemClick(Friend friend);
     }
 
     public static class ContactViewHolder extends RecyclerView.ViewHolder {
         ImageView ivProfile;
-        TextView tvName, tvEmail;
+        TextView tvName;
+        TextView tvEmail;
 
         public ContactViewHolder(View itemView) {
             super(itemView);
@@ -62,16 +72,24 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             tvEmail = itemView.findViewById(R.id.tvEmail);
         }
 
-        public void bind(final Contact contact, final OnItemClickListener listener) {
-            tvName.setText(contact.name);
-            tvEmail.setText(contact.email);
-            ivProfile.setImageResource(contact.profileImageRes);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    listener.onItemClick(contact);
-                }
-            });
+        public void bind(final Friend friend, final OnItemClickListener listener, boolean isSelected) {
+            tvName.setText(friend.getFullName());
+            tvEmail.setText(friend.getEmail());
+            Glide.with(itemView.getContext())
+                    .load(friend.getProfile_picture())
+                    .circleCrop()
+                    .placeholder(R.drawable.obmensmall)
+                    .into(ivProfile);
+            // Change background color using CardView if available
+            CardView cardView = itemView.findViewById(R.id.cardView);
+            if (cardView != null) {
+                // Use the default card color (e.g., Color.WHITE) or your theme's background color
+                cardView.setCardBackgroundColor(isSelected ? Color.LTGRAY : Color.WHITE);
+            } else {
+                itemView.setBackgroundColor(isSelected ? Color.LTGRAY : Color.TRANSPARENT);
+            }
+
+            itemView.setOnClickListener(view -> listener.onItemClick(friend));
         }
     }
 }

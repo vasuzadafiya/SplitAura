@@ -49,6 +49,12 @@
             android:name=".OnboardingScreen"
             android:exported="false" />
         <activity
+            android:name=".GroupExpensesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SelectGroupMembers"
+            android:exported="false" />
+        <activity
             android:name=".Splash"
             android:exported="true">
             <intent-filter>

@@ -26,7 +26,7 @@ public class GroupViewModel extends AndroidViewModel {
     private final MutableLiveData<List<GroupItem>> groupListLiveData;
     private final FirebaseFirestore db;
     private final String userId;
-    private ListenerRegistration groupsListener; // To manage the listener
+    private ListenerRegistration groupsListener; // To manage the realtime listener
 
     public GroupViewModel(@NonNull Application application) {
         super(application);
@@ -62,6 +62,7 @@ public class GroupViewModel extends AndroidViewModel {
                     if (queryDocumentSnapshots != null) {
                         List<GroupItem> groups = new ArrayList<>();
                         for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                            String groupId = document.getId(); // Capture the document ID
                             String title = document.getString("title");
 
                             // Format createdAt field from Timestamp to "dd/MM/yyyy"
@@ -93,7 +94,7 @@ public class GroupViewModel extends AndroidViewModel {
                             }
                             int moreMembersCount = (totalMembers > 3) ? totalMembers - 3 : 0;
 
-                            groups.add(new GroupItem(title, date, amount, imageUrl, memberImages, moreMembersCount));
+                            groups.add(new GroupItem(groupId, title, date, amount, imageUrl, memberImages, moreMembersCount));
                         }
                         groupListLiveData.setValue(groups);
                     }
@@ -103,7 +104,7 @@ public class GroupViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Remove the listener when ViewModel is cleared to prevent memory leaks.
+        // Remove the listener when the ViewModel is cleared to prevent memory leaks.
         if (groupsListener != null) {
             groupsListener.remove();
         }

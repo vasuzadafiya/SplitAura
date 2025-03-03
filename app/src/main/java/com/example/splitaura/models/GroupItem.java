@@ -2,8 +2,8 @@ package com.example.splitaura.models;
 
 import java.util.List;
 
-// Updated model to use image URLs instead of int resource IDs.
 public class GroupItem {
+    private String groupId;  // New field for Firestore document ID
     private String groupName;
     private String date;
     private double amount;
@@ -11,13 +11,18 @@ public class GroupItem {
     private List<String> memberImagesUrls;
     private int moreMembersCount;
 
-    public GroupItem(String groupName, String date, double amount, String groupImageUrl, List<String> memberImagesUrls, int moreMembersCount) {
+    public GroupItem(String groupId, String groupName, String date, double amount, String groupImageUrl, List<String> memberImagesUrls, int moreMembersCount) {
+        this.groupId = groupId;
         this.groupName = groupName;
         this.date = date;
         this.amount = amount;
         this.groupImageUrl = groupImageUrl;
         this.memberImagesUrls = memberImagesUrls;
         this.moreMembersCount = moreMembersCount;
+    }
+
+    public String getGroupId() {
+        return groupId;
     }
 
     public String getGroupName() {

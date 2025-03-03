@@ -1,6 +1,7 @@
 package com.example.splitaura.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,12 +9,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.models.GroupItem;
 
@@ -91,12 +94,16 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.moreMembers.setVisibility(View.VISIBLE);
             holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
         }
-        // Set a random background color for the CardView
+
         int randomColor = COLORS[random.nextInt(COLORS.length)];
         holder.cardView.setCardBackgroundColor(randomColor);
 
+        // Handle "View Details" button click to show a Toast with the group ID
         holder.viewDetails.setOnClickListener(v -> {
-            // Handle View Details Click as needed
+            Intent intent = new Intent(context, GroupExpensesActivity.class);
+            intent.putExtra("groupId", group.getGroupId());
+            context.startActivity(intent);
+            Toast.makeText(context, "Group id: " + group.getGroupId(), Toast.LENGTH_SHORT).show();
         });
     }
 

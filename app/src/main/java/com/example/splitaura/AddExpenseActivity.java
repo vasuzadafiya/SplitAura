@@ -40,8 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 public class AddExpenseActivity extends BaseActivity {
-    FirebaseAuth mAuth =FirebaseAuth.getInstance();
-    FirebaseUser user = mAuth.getCurrentUser();
+
+    // Firebase
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private FirebaseUser user = mAuth.getCurrentUser();
+    private FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
     // Views
     private ScrollView scrollView;
@@ -51,24 +54,38 @@ public class AddExpenseActivity extends BaseActivity {
     private TextInputLayout titleInputLayout, amountInputLayout, descriptionInputLayout;
     private Button skipButton, nextButton;
     private ProgressBar progressBar;
+
+    // Category selection
     private List<String> selectedCategories = new ArrayList<>();
 
-    // Cloudinary Image URI
+    // Cloudinary
     private Uri imageUri;
     private String uploadedImageUrl;
-
-    // Cloudinary configuration
     private Cloudinary cloudinary;
+
+    // Group ID passed via intent (used throughout the activity)
+    private String groupId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expense);
 
+        // Retrieve the group ID from the intent once.
+        groupId = getIntent().getStringExtra("groupId");
+
         // Initialize Cloudinary
         cloudinary = MediaManager.get().getCloudinary();
 
-        // Initialize Views
+        // Initialize views
+        initViews();
+
+        // Setup listeners and spinners
+        setupListeners();
+        initializeSpinners();
+    }
+
+    private void initViews() {
         scrollView = findViewById(R.id.scrollview);
         backButton = findViewById(R.id.back_button);
         imagePreview = findViewById(R.id.imagePreview);
@@ -83,9 +100,6 @@ public class AddExpenseActivity extends BaseActivity {
         skipButton = findViewById(R.id.skip_btn);
         nextButton = findViewById(R.id.next_button);
         progressBar = findViewById(R.id.progressBar);
-
-        setupListeners();
-        initializeSpinners();
     }
 
     private void initializeSpinners() {
@@ -105,13 +119,13 @@ public class AddExpenseActivity extends BaseActivity {
     }
 
     private void setupListeners() {
-        // Back button click
+        // Back button
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // Skip button
+        // Skip button finishes the activity
         skipButton.setOnClickListener(v -> finish());
 
-        // Next button to validate fields and save expense
+        // Next button validates fields and saves expense
         nextButton.setOnClickListener(v -> {
             if (validateFields()) {
                 progressBar.setVisibility(View.VISIBLE);
@@ -119,15 +133,15 @@ public class AddExpenseActivity extends BaseActivity {
                 if (imageUri != null) {
                     uploadImageToCloudinary(imageUri);
                 } else {
-                    saveExpense(null); // No image, save directly
+                    saveExpense(null); // Save directly if no image selected
                 }
             }
         });
 
-        // Upload Icon Click
+        // Upload icon opens image picker
         uploadIcon.setOnClickListener(v -> openImagePicker());
 
-        // Category button click to show custom AlertDialog
+        // Category button shows a custom dialog for selecting categories
         categoryButton.setOnClickListener(v -> showCategoryDialog());
     }
 
@@ -162,17 +176,18 @@ public class AddExpenseActivity extends BaseActivity {
     }
 
     private void saveExpense(String imageUrl) {
-        // Fetch values
+        // Get field values
         String title = titleEditText.getText().toString().trim();
         String amount = amountEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
+
         Spinner spinnerPaidBy = findViewById(R.id.spinner_paid_by);
         Spinner spinnerSplitBy = findViewById(R.id.spinner_split_by);
 
         String paidBy = spinnerPaidBy.getSelectedItem().toString();
         String splitBy = spinnerSplitBy.getSelectedItem().toString();
 
-        // Create a new expense map
+        // Build expense data map
         Map<String, Object> expenseData = new HashMap<>();
         expenseData.put("title", title);
         expenseData.put("amount", amount);
@@ -184,14 +199,11 @@ public class AddExpenseActivity extends BaseActivity {
             expenseData.put("imageUrl", imageUrl);
         }
 
-        // Firestore instance
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-
-        // Save expense data to Firestore
+        // Save expense data to Firestore using the dynamic groupId from the intent
         firestore.collection("users")
-                .document(user.getUid()) // Replace with dynamic user ID
+                .document(user.getUid())
                 .collection("groups")
-                .document("group_1") // Replace with dynamic group ID
+                .document(groupId) // Use the groupId obtained from the intent
                 .collection("expenses")
                 .add(expenseData)
                 .addOnSuccessListener(documentReference -> {
@@ -202,14 +214,16 @@ public class AddExpenseActivity extends BaseActivity {
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(String.valueOf(this),"Failed to save expense: " + e.getMessage());
+                    Log.e(getClass().getSimpleName(), "Failed to save expense: " + e.getMessage());
                 });
     }
 
     private void uploadImageToCloudinary(Uri imageUri) {
         try {
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);  // Get InputStream from Uri
+            InputStream inputStream;
+            inputStream = getContentResolver().openInputStream(imageUri);
             if (inputStream != null) {
+                // For devices running Android Tiramisu and above, use readAllBytes()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     MediaManager.get().upload(inputStream.readAllBytes())
                             .callback(new UploadCallback() {
@@ -220,13 +234,13 @@ public class AddExpenseActivity extends BaseActivity {
 
                                 @Override
                                 public void onProgress(String requestId, long bytes, long totalBytes) {
-                                    // Handle progress
+                                    // Update progress if needed
                                 }
 
                                 @Override
                                 public void onSuccess(String requestId, Map resultData) {
                                     String imageUrl = (String) resultData.get("url");
-                                    saveExpense(imageUrl);  // Proceed to save with image URL
+                                    saveExpense(imageUrl);
                                 }
 
                                 @Override
@@ -237,7 +251,7 @@ public class AddExpenseActivity extends BaseActivity {
 
                                 @Override
                                 public void onReschedule(String requestId, ErrorInfo error) {
-                                    // Retry upload
+                                    // Retry logic if needed
                                 }
                             })
                             .dispatch();
@@ -245,10 +259,9 @@ public class AddExpenseActivity extends BaseActivity {
             }
         } catch (IOException e) {
             Toast.makeText(this, "File not found: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            Log.e(String.valueOf(this),"File not found :" + e.getMessage());
+            Log.e(getClass().getSimpleName(), "File not found: " + e.getMessage());
         }
     }
-
 
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -262,47 +275,34 @@ public class AddExpenseActivity extends BaseActivity {
         if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
             imagePreview.setImageURI(imageUri);
-            imagePreview.setVisibility(View.VISIBLE);// Show image preview
+            imagePreview.setVisibility(View.VISIBLE);
         }
     }
 
-    private String getRealPathFromUri(Uri uri) {
-        // Logic to get the real file path from URI (depends on how the image is chosen)
-        return uri.getPath();  // Placeholder (implement actual logic)
-    }
-
     private void showCategoryDialog() {
-        // Inflate the dialog layout
+        // Inflate the custom dialog layout
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_category, null);
-
-        // Build the AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullScreenDialog);
         builder.setView(dialogView);
 
-        // RecyclerView for categories
+        // Setup RecyclerView for category selection
         RecyclerView categoryRecyclerView = dialogView.findViewById(R.id.recyclerViewCategories);
         categoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Data for categories
         String[] categories = {"General", "Games", "Sports", "Music", "Movies", "Food", "Liquor", "Grocery", "Shop"};
         CategoryAdapter categoryAdapter = new CategoryAdapter(this, selectedCategories);
-
-        // Set the adapter
         categoryRecyclerView.setAdapter(categoryAdapter);
 
-        // Handle cancel and ok button clicks
+        // Setup dialog buttons
         Button cancelButton = dialogView.findViewById(R.id.cancel_button);
         Button okButton = dialogView.findViewById(R.id.ok_button);
-
-        // Create and show dialog
         AlertDialog dialog = builder.create();
 
         cancelButton.setOnClickListener(v -> dialog.dismiss());
         okButton.setOnClickListener(v -> {
             if (!selectedCategories.isEmpty()) {
-                String selectedCategoriesString = String.join(", ", selectedCategories); // Join categories
+                String selectedCategoriesString = String.join(", ", selectedCategories);
                 Toast.makeText(this, "Selected categories: " + selectedCategoriesString, Toast.LENGTH_SHORT).show();
-                categoryButton.setText(selectedCategoriesString); // Display selected categories on button
+                categoryButton.setText(selectedCategoriesString);
                 dialog.dismiss();
             } else {
                 Toast.makeText(this, "Please select at least one category", Toast.LENGTH_SHORT).show();

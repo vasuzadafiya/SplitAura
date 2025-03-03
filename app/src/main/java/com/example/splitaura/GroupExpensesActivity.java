@@ -21,8 +21,13 @@ import com.example.splitaura.fragments.GroupInfoFragment;
 import com.example.splitaura.fragments.TotalsFragment;
 import com.google.android.material.button.MaterialButton;
 
-
 public class GroupExpensesActivity extends BaseActivity {
+
+    // Define a public constant for the group ID key.
+    public static final String GROUP_ID = "groupId";
+
+    // Local variable to hold the passed group ID.
+    private String groupId;
 
     private MaterialButton btnExpenses;
     private MaterialButton btnBalances;
@@ -35,6 +40,9 @@ public class GroupExpensesActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_expenses);
+
+        // Retrieve the group ID using the constant.
+        groupId = getIntent().getStringExtra(GROUP_ID);
 
         // Set status bar color to transparent
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -148,7 +156,5 @@ public class GroupExpensesActivity extends BaseActivity {
         public int getItemCount() {
             return 4; // Total number of fragments
         }
-
     }
-
 }

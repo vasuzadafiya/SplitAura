@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="@color/light_blue"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
 
@@ -90,6 +89,7 @@
                 <ImageView
                     android:id="@+id/member1"
                     android:layout_width="32dp"
+                    android:visibility="gone"
                     android:layout_height="32dp"
                     android:background="@drawable/circle_shape"
                     android:scaleType="centerCrop"
@@ -98,6 +98,7 @@
                 <ImageView
                     android:id="@+id/member2"
                     android:layout_width="32dp"
+                    android:visibility="gone"
                     android:layout_height="32dp"
                     android:layout_marginStart="-8dp"
                     android:background="@drawable/circle_shape"
@@ -108,6 +109,7 @@
                     android:id="@+id/member3"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
+                    android:visibility="gone"
                     android:layout_marginStart="-8dp"
                     android:background="@drawable/circle_shape"
                     android:scaleType="centerCrop"
@@ -121,6 +123,7 @@
                     android:layout_marginStart="8dp"
                     android:text="+12 more"
                     android:textColor="#606C74"
+                    android:visibility="gone"
                     android:textSize="14sp" />
             </LinearLayout>
 

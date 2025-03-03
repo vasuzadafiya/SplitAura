@@ -2,21 +2,21 @@ package com.example.splitaura.models;
 
 import java.util.List;
 
-//this class defines the data structure for each group item. that we will display in homeFragment.
+// Updated model to use image URLs instead of int resource IDs.
 public class GroupItem {
     private String groupName;
     private String date;
     private double amount;
-    private int groupImage;
-    private List<Integer> memberImages;
+    private String groupImageUrl;
+    private List<String> memberImagesUrls;
     private int moreMembersCount;
 
-    public GroupItem(String groupName, String date, double amount, int groupImage, List<Integer> memberImages, int moreMembersCount) {
+    public GroupItem(String groupName, String date, double amount, String groupImageUrl, List<String> memberImagesUrls, int moreMembersCount) {
         this.groupName = groupName;
         this.date = date;
         this.amount = amount;
-        this.groupImage = groupImage;
-        this.memberImages = memberImages;
+        this.groupImageUrl = groupImageUrl;
+        this.memberImagesUrls = memberImagesUrls;
         this.moreMembersCount = moreMembersCount;
     }
 
@@ -32,12 +32,12 @@ public class GroupItem {
         return amount;
     }
 
-    public int getGroupImage() {
-        return groupImage;
+    public String getGroupImageUrl() {
+        return groupImageUrl;
     }
 
-    public List<Integer> getMemberImages() {
-        return memberImages;
+    public List<String> getMemberImagesUrls() {
+        return memberImagesUrls;
     }
 
     public int getMoreMembersCount() {

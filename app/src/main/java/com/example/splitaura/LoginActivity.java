@@ -1,17 +1,19 @@
 package com.example.splitaura;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -34,6 +36,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -66,6 +69,7 @@ public class LoginActivity extends BaseActivity {
     EditText lpassword;
     Button loginBtn;
     String defaultImageURL;
+    TextView forgetPassword;
 
     //    for custom LoginDialogue
     private LoadingDialog loadingDialog;
@@ -80,28 +84,12 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
-
-
         //        initialize signup variable
         mAuth = FirebaseAuth.getInstance();
-        fname = findViewById(R.id.fname_edit_text);
-        lname = findViewById(R.id.lanme_edit_text);
-        email = findViewById(R.id.email1_edit_text);
-        password = findViewById(R.id.password1_edit_text);
-        createac = findViewById(R.id.create_acc_button);
-        signup = findViewById(R.id.sign_up); //textView
-        confirmpassword = findViewById(R.id.confirm_password1_edit_text);
-        defaultImageURL=getRandomUrl();
 
+        signupInitialize();
+        loginInitialize();
 
-        //        initialize Login variables
-        lemail = findViewById(R.id.email_edit_text);
-        lpassword = findViewById(R.id.password_edit_text);
-        loginBtn = findViewById(R.id.login_button);
-        signupConstraint = findViewById(R.id.signin_constarint);
-        loginConstraint = findViewById(R.id.login_constarint);
-        loadingDialog = new LoadingDialog(this);
-        login = findViewById(R.id.log_in);
 
 //    google login variable
         glogin = findViewById(R.id.google_login);
@@ -123,9 +111,86 @@ public class LoginActivity extends BaseActivity {
             signupConstraint.setVisibility(View.GONE);
             loginConstraint.setVisibility(View.VISIBLE);
         });
-
         glogin.setOnClickListener(view -> signIn());
+        forgetPassword.setOnClickListener(view -> forgetPass());
+    }
 
+    private void forgetPass() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.reset_password, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.show();
+
+        EditText emailEditText = dialogView.findViewById(R.id.edit_email);
+        Button sendMail = dialogView.findViewById(R.id.btn_forget);
+        ImageButton back = dialogView.findViewById(R.id.back_navigation);
+        TextView warningText = dialogView.findViewById(R.id.tv_warning);
+
+        sendMail.setOnClickListener(view -> {
+            String email = emailEditText.getText().toString().trim().toLowerCase();
+            if (TextUtils.isEmpty(email)) {
+                emailEditText.setError("Please Enter your Email!");
+                emailEditText.requestFocus();
+                return;
+            }
+
+            loadingDialog.show();
+            FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+
+            // Directly attempt to send the reset email.
+            firebaseAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        loadingDialog.hide();
+                        if (task.isSuccessful()) {
+                            Utill.showToast(LoginActivity.this, "Reset email sent! Check your inbox.");
+                            dialog.dismiss();
+                        } else {
+                            // Retrieve the error message from the exception if available
+                            String errorMessage = (task.getException() != null)
+                                    ? task.getException().getMessage()
+                                    : "Error sending reset email";
+
+                            // Optionally, if you want to warn users that the account might be linked
+                            // to a non-password provider (like Google), you could check the error message.
+                            if (errorMessage.contains("ERROR_USER_NOT_FOUND")) {
+                                Utill.showToast(LoginActivity.this, "User Not Found! Please check your email.");
+                            } else {
+                                Utill.showToast(LoginActivity.this, "Error: " + errorMessage);
+                            }
+                        }
+                    });
+        });
+
+        back.setOnClickListener(v -> dialog.dismiss());
+    }
+
+
+    private void loginInitialize() {
+        //        initialize Login variables
+        lemail = findViewById(R.id.email_edit_text);
+        lpassword = findViewById(R.id.password_edit_text);
+        loginBtn = findViewById(R.id.login_button);
+        signupConstraint = findViewById(R.id.signin_constarint);
+        loginConstraint = findViewById(R.id.login_constarint);
+        loadingDialog = new LoadingDialog(this);
+        login = findViewById(R.id.log_in);
+    }
+
+    private void signupInitialize() {
+        fname = findViewById(R.id.fname_edit_text);
+        lname = findViewById(R.id.lanme_edit_text);
+        email = findViewById(R.id.email1_edit_text);
+        password = findViewById(R.id.password1_edit_text);
+        createac = findViewById(R.id.create_acc_button);
+        signup = findViewById(R.id.sign_up); //textView
+        confirmpassword = findViewById(R.id.confirm_password1_edit_text);
+        defaultImageURL = getRandomUrl();
+        forgetPassword = findViewById(R.id.forgot_password);
     }
 
     private String getRandomUrl() {
@@ -192,7 +257,7 @@ public class LoginActivity extends BaseActivity {
                 Log.d(TAG, "Profile Picture URL: " + profilePictureUrl);
 
                 // Save user data to Firestore including the profile picture URL
-                saveUserToFirestore(uid, firstName, lastName, googleEmail, null, profilePictureUrl);
+                saveUserToFirestore(uid, firstName, lastName, googleEmail, null, profilePictureUrl, true);
 //                createDialoge(LoginActivity.this, true); // Show new user dialog
                 navigateToHomepage(this);
                 Log.d(TAG, "New user registration process completed.");
@@ -297,7 +362,7 @@ public class LoginActivity extends BaseActivity {
                 user.updateProfile(profileUpdates).addOnCompleteListener(task1 -> {
                     if (task1.isSuccessful()) {
                         Utill.showToast(this, "User Profile Updated");
-                        saveUserToFirestore(user.getUid(), fname, lname, email, password, defaultImageURL);
+                        saveUserToFirestore(user.getUid(), fname, lname, email, password, defaultImageURL, false);
 //                        createDialoge(LoginActivity.this, false);
                         navigateToHomepage(this);
                     } else {
@@ -314,7 +379,7 @@ public class LoginActivity extends BaseActivity {
     }
 
 
-    private void saveUserToFirestore(String uid, String fname, String lname, String email, String password, String profilePictureUrl) {
+    private void saveUserToFirestore(String uid, String fname, String lname, String email, String password, String profilePictureUrl, boolean isGoogleLogin) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Retrieve the FCM device token locally
@@ -335,6 +400,7 @@ public class LoginActivity extends BaseActivity {
             user.put("password", password); // Consider NOT storing passwords in Firestore.
             user.put("profile_picture", profilePictureUrl);
             user.put("upi", null); // Set initial UPI as null
+            user.put("gLogin", isGoogleLogin);
 
             // Generate search keywords from first and last names
             List<String> searchKeywords = new ArrayList<>();
@@ -365,39 +431,6 @@ public class LoginActivity extends BaseActivity {
                     });
         });
         loadingDialog.hide();
-    }
-
-    private void createDialoge(Activity activity, Boolean islogin) {
-        loadingDialog.hide();
-        // Use the Activity context
-        @SuppressLint("InflateParams") View dialogView = LayoutInflater.from(activity).inflate(R.layout.loginsuccess, null);
-
-        // Create a dialog
-        Dialog dialog = new Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-        dialog.setContentView(dialogView);
-
-        // Optional: Make the dialog background transparent or set it to a specific background color
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        }
-
-        TextView titleText = dialogView.findViewById(R.id.textView1);
-        TextView description = dialogView.findViewById(R.id.textView2);
-
-        if (Boolean.TRUE.equals(islogin)) {
-            titleText.setText(R.string.loginsuccesstitle);
-            description.setText(R.string.loginsuccessdesc);
-        } else {
-            titleText.setText(R.string.regestrationtitle);
-            description.setText(R.string.regsuccessdesc);
-        }
-
-        // Optional: Set the dialog to cancel on outside touch
-        dialog.setCancelable(false);
-
-        // Show the dialog
-        dialog.show();
-            navigateToHomepage(activity);
     }
 
     private void navigateToHomepage(Activity activity) {

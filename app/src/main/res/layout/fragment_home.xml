@@ -230,7 +230,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/groups_view_all"
+                            android:id="@+id/view_all_groups"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="end"
@@ -243,7 +243,7 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/group_recyclerView"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="300dp"
                         android:paddingHorizontal="16dp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

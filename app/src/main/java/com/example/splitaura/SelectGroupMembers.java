@@ -30,6 +30,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,6 +232,10 @@ public class SelectGroupMembers extends BaseActivity {
         groupData.put("category", category);
         groupData.put("imageUrl", imageUrl);
         groupData.put("members", selectedFriends);
+        groupData.put("createdBy", currentUser.getUid());
+        groupData.put("createdAt", new Date());
+        groupData.put("amount", null);
+
 
         db.collection("users").document(currentUser.getUid())
                 .collection("groups")

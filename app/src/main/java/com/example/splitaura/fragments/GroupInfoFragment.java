@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.splitaura.GroupData;
+import com.example.splitaura.models.GroupData;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.MemberAdapter;
 import com.example.splitaura.adapters.MemberData;

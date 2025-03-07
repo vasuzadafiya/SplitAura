@@ -110,12 +110,12 @@ public class AddGroupActivity extends AppCompatActivity {
 
         uploadImageLayout.setOnClickListener(v -> openImagePicker());
 
-        categoryTripButton.setOnClickListener(v -> selectCategory(categoryTripButton, "Trip"));
-        categoryFamilyButton.setOnClickListener(v -> selectCategory(categoryFamilyButton, "Family"));
-        categoryProjectButton.setOnClickListener(v -> selectCategory(categoryProjectButton, "Project"));
-        categoryCoupleButton.setOnClickListener(v -> selectCategory(categoryCoupleButton, "Couple"));
-        categoryEventButton.setOnClickListener(v -> selectCategory(categoryEventButton, "Event"));
-        categoryOtherButton.setOnClickListener(v -> selectCategory(categoryOtherButton, "Other"));
+        categoryTripButton.setOnClickListener(v -> selectCategory(categoryTripButton, "Trip ✈️"));
+        categoryFamilyButton.setOnClickListener(v -> selectCategory(categoryFamilyButton, getString(R.string.family)));
+        categoryProjectButton.setOnClickListener(v -> selectCategory(categoryProjectButton, "Project 👜"));
+        categoryCoupleButton.setOnClickListener(v -> selectCategory(categoryCoupleButton, "Couple 💑"));
+        categoryEventButton.setOnClickListener(v -> selectCategory(categoryEventButton, "Event 🎉"));
+        categoryOtherButton.setOnClickListener(v -> selectCategory(categoryOtherButton, "Other 🔀"));
 
         cancelButton.setOnClickListener(v -> finish());
 

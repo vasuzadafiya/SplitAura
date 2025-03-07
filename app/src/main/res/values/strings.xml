@@ -89,5 +89,6 @@
     <string name="group_name">Group Name</string>
     <string name="add_expense">Add Expense</string>
     <string name="caution">*this will not reset password for google login\n</string>
+    <string name="family">Family 👨‍👩‍👧‍👦</string>
 
 </resources>

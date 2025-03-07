@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.splitaura.Homepage;
-import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.FriendBalanceAdapter;
 import com.example.splitaura.adapters.GroupAdapter;
@@ -93,7 +92,7 @@ public class HomeFragment extends Fragment {
             if (picUrl != null && !picUrl.isEmpty()) {
                 Glide.with(this)
                         .load(picUrl)
-                        .placeholder(R.drawable.obmensmall)
+                        .placeholder(R.drawable.obsmallmen2)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(profilePicture);
             }
@@ -106,9 +105,9 @@ public class HomeFragment extends Fragment {
         friendRecycleView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         List<FriendBalance> friendBalanceList = new ArrayList<>();
-        friendBalanceList.add(new FriendBalance("Vasu Z.", -45.69, R.drawable.image));
+        friendBalanceList.add(new FriendBalance("Vasu Z.", -45.69, R.drawable.obsmallmen1));
         friendBalanceList.add(new FriendBalance("Sahil H.", 120.50, R.drawable.obwomens));
-        friendBalanceList.add(new FriendBalance("Tushar C.", -230.75, R.drawable.obmensmall));
+        friendBalanceList.add(new FriendBalance("Tushar C.", -230.75, R.drawable.obsmallmen2));
         friendBalanceList.add(new FriendBalance("Bhargav Z.", 90.00, R.drawable.obwomensmall));
 
         FriendBalanceAdapter friendBalanceAdapter = new FriendBalanceAdapter(getContext(), friendBalanceList);

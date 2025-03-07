@@ -148,9 +148,9 @@ public class FriendsFragment extends Fragment {
         dialog.show();
     }
 
-    // Executes the friend removal logic with proper loading dialog handling.
     private void removeFriend(DocumentSnapshot snapshot) {
         String friendUid = snapshot.getId();
+        // Delete friend records from both users
         Task<Void> deleteFromCurrentUser = snapshot.getReference().delete();
         Task<Void> deleteFromFriend = db.collection("users")
                 .document(friendUid)
@@ -160,7 +160,7 @@ public class FriendsFragment extends Fragment {
 
         Tasks.whenAll(deleteFromCurrentUser, deleteFromFriend)
                 .continueWithTask(task -> {
-                    // Query friend requests in both directions.
+                    // Query friend requests in both directions (assuming they are in "Accepted" status)
                     Task<QuerySnapshot> query1 = db.collection("friend_requests")
                             .whereEqualTo("sender_uid", currentUserUid)
                             .whereEqualTo("receiver_uid", friendUid)
@@ -174,15 +174,16 @@ public class FriendsFragment extends Fragment {
                     return Tasks.whenAllSuccess(query1, query2);
                 })
                 .continueWithTask(task -> {
+                    // Remove friend request documents completely
                     List<Object> results = task.getResult();
-                    List<Task<Void>> updateTasks = new ArrayList<>();
+                    List<Task<Void>> deleteTasks = new ArrayList<>();
                     for (Object res : results) {
                         QuerySnapshot qs = (QuerySnapshot) res;
                         for (DocumentSnapshot doc : qs.getDocuments()) {
-                            updateTasks.add(doc.getReference().update(STATUS_KEY, "Removed"));
+                            deleteTasks.add(doc.getReference().delete());
                         }
                     }
-                    return Tasks.whenAll(updateTasks);
+                    return Tasks.whenAll(deleteTasks);
                 })
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Friend removed", Toast.LENGTH_SHORT).show();

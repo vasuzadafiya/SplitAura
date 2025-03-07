@@ -1,3 +1,4 @@
+
 package com.example.splitaura.adapters;
 
 import android.view.LayoutInflater;
@@ -12,59 +13,68 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
+import com.example.splitaura.models.Friend;
 
 import java.util.List;
 
 public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberViewHolder> {
 
-    private List<MemberData> members;
+    private List<Friend> membersList;
 
-    public MemberAdapter(List<MemberData> members) {
-        this.members = members;
+    public MemberAdapter(List<Friend> membersList) {
+        this.membersList = membersList;
     }
 
     @NonNull
     @Override
     public MemberViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_member, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.friend_item_layout, parent, false);
         return new MemberViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MemberViewHolder holder, int position) {
-        MemberData member = members.get(position);
-        holder.tvMemberName.setText(member.getName());
-        holder.tvMemberEmail.setText(member.getEmail());
-        holder.ivProfilePicture.setImageResource(member.getProfileResourceId());
+        Friend friend = membersList.get(position);
+        holder.friendNameTextView.setText(friend.getFname() + " " + friend.getLname());
+        holder.friendEmailTextView.setText(friend.getEmail());
+        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, friend, position));
 
-        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, member, position));
+        Glide.with(holder.itemView.getContext())
+                .load(friend.getProfile_picture())
+                .circleCrop()
+                .into(holder.friendProfileImageView);
     }
 
     @Override
     public int getItemCount() {
-        return members != null ? members.size() : 0;
+        return membersList.size();
     }
 
-    public static class MemberViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivProfilePicture;
-        TextView tvMemberName, tvMemberEmail, menuDots;
-
-        public MemberViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ivProfilePicture = itemView.findViewById(R.id.iv_profile_picture);
-            tvMemberName = itemView.findViewById(R.id.tv_member_name);
-            tvMemberEmail = itemView.findViewById(R.id.tv_member_email);
-            menuDots = itemView.findViewById(R.id.menu_dots);
-        }
-    }
-
-    public void updateMembers(List<MemberData> newMembers) {
-        members = newMembers;
+    public void updateData(List<Friend> newFriends) {
+        this.membersList = newFriends;
         notifyDataSetChanged();
     }
 
-    private void showPopupMenu(View view, MemberData member, int position) {
+    public static class MemberViewHolder extends RecyclerView.ViewHolder {
+        ImageView friendProfileImageView;
+        TextView friendNameTextView;
+        TextView friendEmailTextView;
+        TextView menuDots;
+
+
+        public MemberViewHolder(@NonNull View itemView) {
+            super(itemView);
+            friendProfileImageView = itemView.findViewById(R.id.ivProfile);
+            friendNameTextView = itemView.findViewById(R.id.tvName);
+            friendEmailTextView = itemView.findViewById(R.id.tvEmail);
+            menuDots = itemView.findViewById(R.id.menu_dots);
+            menuDots.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showPopupMenu(View view, Friend friend, int position) {
         PopupMenu popup = new PopupMenu(view.getContext(), view);
         popup.getMenu().add("View Profile");
         popup.getMenu().add("Remove Member");
@@ -75,10 +85,10 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
                 String action = item.getTitle().toString();
                 switch (action) {
                     case "View Profile":
-                        Toast.makeText(view.getContext(), "View Profile for " + member.getName(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(view.getContext(), "View Profile for " + friend.getFname(), Toast.LENGTH_SHORT).show();
                         break;
                     case "Remove Member":
-                        Toast.makeText(view.getContext(), "Remove Member " + member.getName(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(view.getContext(), "Remove Member " + friend.getFname(), Toast.LENGTH_SHORT).show();
                         break;
                 }
                 return true;

@@ -50,11 +50,9 @@ public class GroupViewModel extends AndroidViewModel {
         // Create the date formatter only once
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-        groupsListener = db.collection("users")
-                .document(userId)
-                .collection("groups")
-                .addSnapshotListener((QuerySnapshot queryDocumentSnapshots,
-                                      com.google.firebase.firestore.FirebaseFirestoreException e) -> {
+        groupsListener = db.collection("groups")
+                .whereArrayContains("memberIds", userId)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
                         Log.e("GroupViewModel", "Error fetching groups: ", e);
                         return;

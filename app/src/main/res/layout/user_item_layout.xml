@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -16,11 +17,10 @@
         <!-- Profile Image -->
         <ImageView
             android:id="@+id/userProfileImageView"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="@drawable/circle_shape"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/image"
+            android:src="@drawable/obsmallmen1"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -40,7 +40,7 @@
             app:layout_constraintStart_toEndOf="@id/userProfileImageView"
             app:layout_constraintTop_toTopOf="@id/userProfileImageView" />
 
-        <!-- Friend Balance -->
+        <!-- Add Button (for sending friend request) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/sendRequestButton"
             style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -51,12 +51,40 @@
             android:text="Add"
             android:textColor="@color/white"
             android:textSize="16sp"
+            android:visibility="gone"
             app:cornerRadius="5dp"
             app:layout_constraintBottom_toBottomOf="@id/userProfileImageView"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_accept"
             app:layout_constraintTop_toTopOf="@id/userProfileImageView"
-            />
+            app:layout_constraintVertical_bias="1.0" />
 
+        <!-- Accept Button -->
+        <ImageButton
+            android:id="@+id/btn_accept"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/round_border_green"
+            android:src="@drawable/ic_done"
+            android:visibility="gone"
+            app:cornerRadius="28dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_reject"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Reject Button -->
+        <ImageButton
+            android:id="@+id/btn_reject"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/round_border_red"
+            android:src="@drawable/ic_close"
+            android:visibility="gone"
+            app:cornerRadius="28dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

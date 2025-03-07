@@ -22,7 +22,7 @@
             android:name=".GroupExpensesActivity"
             android:exported="false" />
         <activity android:name=".SelectGroupMembers"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".ManageFriends"
             android:exported="false" />
@@ -47,12 +47,6 @@
             android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".OnboardingScreen"
-            android:exported="false" />
-        <activity
-            android:name=".GroupExpensesActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SelectGroupMembers"
             android:exported="false" />
         <activity
             android:name=".Splash"

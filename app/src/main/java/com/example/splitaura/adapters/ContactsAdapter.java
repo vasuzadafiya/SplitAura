@@ -78,7 +78,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             Glide.with(itemView.getContext())
                     .load(friend.getProfile_picture())
                     .circleCrop()
-                    .placeholder(R.drawable.obmensmall)
+                    .placeholder(R.drawable.obsmallmen2)
                     .into(ivProfile);
             // Change background color using CardView if available
             CardView cardView = itemView.findViewById(R.id.cardView);

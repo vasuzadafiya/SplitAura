@@ -64,4 +64,12 @@ public class Friend {
         return email != null ? email.hashCode() : 0;
     }
 
+
+    public Friend(String uid, String email, String fname, String lname, String profile_picture) {
+        this.uid = uid;
+        this.email = email;
+        this.fname = fname;
+        this.lname = lname;
+        this.profile_picture = profile_picture;
+    }
 }

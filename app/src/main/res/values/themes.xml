@@ -73,5 +73,15 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="RoundButtonStyle" parent="Widget.MaterialComponents.Button">
+        <!-- Use a percentage value for the corners -->
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+        <!-- Optional: define default tint/icon tint -->
+        <item name="android:backgroundTint">@color/green</item>
+        <item name="iconTint">@android:color/white</item>
+    </style>
+
+
 
 </resources>

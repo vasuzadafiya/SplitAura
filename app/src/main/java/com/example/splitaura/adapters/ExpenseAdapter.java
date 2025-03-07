@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -76,7 +77,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     public static class ExpenseViewHolder extends RecyclerView.ViewHolder {
         ImageView categoryIcon;
-        TextView expenseName, expensePaidBy, expenseAmount, expenseDate;
+        TextView expenseName;
+        TextView expensePaidBy;
+        TextView expenseAmount;
+        TextView expenseDate;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);

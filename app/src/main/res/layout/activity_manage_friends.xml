@@ -64,12 +64,14 @@
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
+            app:rippleColor="#80FFFFFF"
             android:text="@string/friends"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_add_friends"
             style="@style/ToggleButtonStyle"
+            app:rippleColor="#80FFFFFF"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:text="@string/add_friends"
@@ -79,6 +81,7 @@
             android:id="@+id/btn_requests"
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
+            app:rippleColor="#80FFFFFF"
             android:layout_height="48dp"
             android:text="@string/requests"
             app:cornerRadius="12dp" />

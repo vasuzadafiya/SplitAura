@@ -11,7 +11,6 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import com.example.splitaura.admin.BaseActivity;
@@ -23,28 +22,27 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Homepage extends BaseActivity {
 
-    private BottomNavigationView bottomNavigationView;
     private FrameLayout curvedBracketContainer;
-    private ConstraintLayout curvedBackground;
     private View shadowOverlay;
     private boolean isCurvedBarVisible = false;
+    // Declare bottomNavigationView as a field so it can be used in other methods.
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.homepage);
-        // Make the activity draw behind the status bar
+
+        // Draw behind status bar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View decorView = getWindow().getDecorView();
             decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            // Set the status bar color to transparent
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
 
         curvedBracketContainer = findViewById(R.id.curvedBracketContainer);
-        curvedBackground = findViewById(R.id.curvedBackground);
         shadowOverlay = findViewById(R.id.shadowOverlay);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
@@ -58,7 +56,9 @@ public class Homepage extends BaseActivity {
 
         // Load default fragment
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, new HomeFragment()).commit();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_layout, new HomeFragment())
+                    .commit();
         }
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -68,26 +68,23 @@ public class Homepage extends BaseActivity {
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
                 hideCurvedBracket();
-
             } else if (itemId == R.id.nav_groups) {
                 selectedFragment = new GroupFragment();
                 hideCurvedBracket();
-
             } else if (itemId == R.id.nav_spotlight) {
                 toggleCurvedBracket();
-
-
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
                 hideCurvedBracket();
-
             } else if (itemId == R.id.nav_payments) {
                 selectedFragment = new PaymentFragment();
                 hideCurvedBracket();
             }
 
             if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, selectedFragment).commit();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_layout, selectedFragment)
+                        .commit();
             }
             return true;
         });
@@ -125,9 +122,8 @@ public class Homepage extends BaseActivity {
                 shadowOverlay.setClickable(false); // Re-enable background clicks
             }).start();
 
-            curvedBracketContainer.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                curvedBracketContainer.setVisibility(View.GONE);
-            }).start();
+            curvedBracketContainer.animate().alpha(0f).setDuration(200)
+                    .withEndAction(() -> curvedBracketContainer.setVisibility(View.GONE)).start();
         }
     }
 
@@ -164,13 +160,19 @@ public class Homepage extends BaseActivity {
     }
 
     private void openGroupActivity() {
-        startActivity(new Intent(this, SelectGroupMembers.class));
-//        Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, GroupExpensesActivity.class));
         hideCurvedBracket();
     }
 
     private void openFriendsActivity() {
         startActivity(new Intent(this, ManageFriends.class));
         hideCurvedBracket();
+    }
+
+    // When navigateToAddFriendFragment is called, automatically select the nav_groups item.
+    public void navigateToAddFriendFragment() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_groups);
+        }
     }
 }

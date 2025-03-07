@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.splitaura.AddExpenseActivity;
+import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.ExpenseAdapter;
 import com.example.splitaura.models.Expense;
@@ -32,14 +33,23 @@ public class ExpensesFragment extends Fragment {
     private ExpenseAdapter expenseAdapter;
     private List<Expense> expenseList = new ArrayList<>();
     private FirebaseFirestore db;
-    private String groupId;// You'll pass the groupId based on the selected group
+
     private ExtendedFloatingActionButton fabAddExpense;
     private SwipeRefreshLayout swipeRefreshLayout;
 
+    // Field to store the group ID
+    private String groupId;
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
+
+        // Retrieve groupId from the parent Activity's intent using the constant GROUP_ID.
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            groupId = getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID);
+        }
 
         recyclerView = view.findViewById(R.id.recycler_view_expenses);
         swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
@@ -49,18 +59,18 @@ public class ExpensesFragment extends Fragment {
         recyclerView.setAdapter(expenseAdapter);
 
         db = FirebaseFirestore.getInstance();
+
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            // Perform your refresh operation, like fetching new data from Firestore
-            refreshData(); // Your method to reload data
-
-            // When refresh is complete, hide the loading spinner
-
+            refreshData();
+            swipeRefreshLayout.setRefreshing(false);
         });
+
         fabAddExpense.setOnClickListener(v -> {
-            v.getContext().startActivity(new Intent(v.getContext(), AddExpenseActivity.class));
+            // Pass the same groupId to AddExpenseActivity using the constant key.
+            Intent intent = new Intent(v.getContext(), AddExpenseActivity.class);
+            intent.putExtra(GroupExpensesActivity.GROUP_ID, groupId);
+            v.getContext().startActivity(intent);
         });
-        // Fetch the group ID based on your logic, for now, hardcoded
-        groupId = "group_1";
 
         fetchExpenses();
 
@@ -69,10 +79,13 @@ public class ExpensesFragment extends Fragment {
 
     private void refreshData() {
         fetchExpenses();
-        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void fetchExpenses() {
+        if (groupId == null || groupId.isEmpty()) {
+            Toast.makeText(getContext(), "Invalid Group ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
         db.collection("users")
                 .document(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .collection("groups")
@@ -81,7 +94,7 @@ public class ExpensesFragment extends Fragment {
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        expenseList.clear(); // Clear the list before adding new data
+                        expenseList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Expense expense = document.toObject(Expense.class);
                             expenseList.add(expense);

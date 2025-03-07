@@ -1,6 +1,7 @@
 package com.example.splitaura.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,21 +9,33 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.models.GroupItem;
 
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> {
-    private Context context;
+    private final Context context;
     private List<GroupItem> groupList;
+    private final Random random = new Random();
+
+    // Define a static array for the background colors.
+    private static final int[] COLORS = {
+            Color.parseColor("#F4FFEB"),
+            Color.parseColor("#EBF8FF"),
+            Color.parseColor("#F1F1F1"),
+            Color.parseColor("#F4FFEB"),
+            Color.parseColor("#FFEBEB"),
+    };
 
     public GroupAdapter(Context context, List<GroupItem> groupList) {
         this.context = context;
@@ -36,7 +49,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         return new GroupViewHolder(view);
     }
 
-
     @Override
     public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
         GroupItem group = groupList.get(position);
@@ -44,37 +56,66 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.groupName.setText(group.getGroupName());
         holder.groupDate.setText(group.getDate());
         holder.groupAmount.setText("₹ " + String.format("%.2f", group.getAmount()));
-        holder.groupImage.setImageResource(group.getGroupImage());
 
-        // Set member images dynamically
-        List<Integer> memberImages = group.getMemberImages();
-        holder.member1.setImageResource(memberImages.get(0));
-        holder.member2.setImageResource(memberImages.get(1));
-        holder.member3.setImageResource(memberImages.get(2));
+        // Load group image from URL using Glide
+        Glide.with(context)
+                .load(group.getGroupImageUrl())
+                .placeholder(R.drawable.ic_group)
+                .circleCrop()
+                .into(holder.groupImage);
 
-        holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
+        // Load member images dynamically using Glide from URLs
+        List<String> memberImages = group.getMemberImagesUrls();
+        if (!memberImages.isEmpty()) {
+            holder.member1.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(memberImages.get(0))
+                    .placeholder(R.drawable.obmensmall)
+                    .circleCrop()
+                    .into(holder.member1);
+        }
+        if (memberImages.size() > 1) {
+            holder.member2.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(memberImages.get(1))
+                    .placeholder(R.drawable.obwomens)
+                    .circleCrop()
+                    .into(holder.member2);
+        }
+        if (memberImages.size() > 2) {
+            holder.member3.setVisibility(View.VISIBLE);
+            Glide.with(context)
+                    .load(memberImages.get(2))
+                    .placeholder(R.drawable.obwomensmall)
+                    .circleCrop()
+                    .into(holder.member3);
+        }
+        if (group.getMoreMembersCount() > 0) {
+            holder.moreMembers.setVisibility(View.VISIBLE);
+            holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
+        }
 
-        // Set random background color for CardView
-        int[] colors = {
-                Color.parseColor("#F4FFEB"),
-                Color.parseColor("#EBF8FF"),
-                Color.parseColor("#F1F1F1"),
-                Color.parseColor("#F4FFEB"),
-                Color.parseColor("#FFEBEB"),
-        };
+        int randomColor = COLORS[random.nextInt(COLORS.length)];
+        holder.cardView.setCardBackgroundColor(randomColor);
 
-        AtomicReference<Random> random = new AtomicReference<>(new Random());
-        int randomColor = colors[random.get().nextInt(colors.length)];
-        holder.cardView.setCardBackgroundColor(randomColor); // Set background color to CardView
-
+        // Handle "View Details" button click to show a Toast with the group ID
         holder.viewDetails.setOnClickListener(v -> {
-            // Handle View Details Click
+            Intent intent = new Intent(context, GroupExpensesActivity.class);
+            intent.putExtra("groupId", group.getGroupId());
+            context.startActivity(intent);
+            Toast.makeText(context, "Group id: " + group.getGroupId(), Toast.LENGTH_SHORT).show();
         });
     }
 
     @Override
     public int getItemCount() {
         return groupList.size();
+    }
+
+    // Setter method to update the list
+    public void setGroupList(List<GroupItem> groupList) {
+        this.groupList = groupList;
+        notifyDataSetChanged();
     }
 
     public static class GroupViewHolder extends RecyclerView.ViewHolder {

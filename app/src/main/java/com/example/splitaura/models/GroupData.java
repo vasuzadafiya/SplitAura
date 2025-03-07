@@ -1,4 +1,4 @@
-package com.example.splitaura;
+package com.example.splitaura.models;
 
 import com.example.splitaura.adapters.MemberData;
 

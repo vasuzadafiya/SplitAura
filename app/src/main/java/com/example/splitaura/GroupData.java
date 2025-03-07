@@ -5,11 +5,11 @@ import com.example.splitaura.adapters.MemberData;
 import java.util.List;
 
 public class GroupData {
-    private String title;
-    private String description;
-    private String currency;
-    private String category;
-    private List<MemberData> members;
+    private final String title;
+    private final String description;
+    private final String currency;
+    private final String category;
+    private final List<MemberData> members;
 
     public GroupData(String title, String description, String currency, String category, List<MemberData> members) {
         this.title = title;

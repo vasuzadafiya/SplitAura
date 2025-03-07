@@ -51,7 +51,7 @@ public class AddExpenseActivity extends BaseActivity {
     private TextInputLayout titleInputLayout, amountInputLayout, descriptionInputLayout;
     private Button skipButton, nextButton;
     private ProgressBar progressBar;
-    private List<String> selectedCategories = new ArrayList<>();
+    private final List<String> selectedCategories = new ArrayList<>();
 
     // Cloudinary Image URI
     private Uri imageUri;

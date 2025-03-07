@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -28,21 +29,20 @@ public class GroupExpensesActivity extends BaseActivity {
     private MaterialButton btnBalances;
     private MaterialButton btnTotals;
     private MaterialButton btnGroups;
-    private ImageView backButton;
-    private ViewPager2 viewPager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ViewPager2 viewPager;
+        ImageView backButton;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_expenses);
 
         // Set status bar color to transparent
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-        }
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
 
         backButton = findViewById(R.id.back_navigation);
         btnExpenses = findViewById(R.id.btn_expenses);
@@ -130,6 +130,7 @@ public class GroupExpensesActivity extends BaseActivity {
             super(activity);
         }
 
+        @NonNull
         @Override
         public Fragment createFragment(int position) {
             switch (position) {

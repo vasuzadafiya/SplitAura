@@ -220,6 +220,7 @@ public class AddGroupActivity extends AppCompatActivity {
 
         // Show progress and disable continue button during upload
         progressBar.setVisibility(View.VISIBLE);
+        continueButton.setVisibility(View.GONE);
         continueButton.setEnabled(false);
 
         File imageFile = getFileFromUri(selectedImageUri);
@@ -285,6 +286,7 @@ public class AddGroupActivity extends AppCompatActivity {
             public void onFailure(Call<ImgurResponse> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 continueButton.setEnabled(true);
+
                 Toast.makeText(AddGroupActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Upload error: " + t.getMessage());
             }

@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".AddExpenseActivity">
-
     <ScrollView
         android:id="@+id/scrollview"
         android:layout_width="match_parent"
@@ -262,5 +261,4 @@
             android:background="@drawable/btn_bg"
             android:text="@string/btn_continue" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

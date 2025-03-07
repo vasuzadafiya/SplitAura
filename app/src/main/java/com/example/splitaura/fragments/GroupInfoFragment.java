@@ -1,11 +1,11 @@
 package com.example.splitaura.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,68 +15,106 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.splitaura.models.GroupData;
+import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.MemberAdapter;
-import com.example.splitaura.adapters.MemberData;
+import com.example.splitaura.models.Friend;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class GroupInfoFragment extends Fragment {
 
-    private TextView tvGroupTitle, tvDescription, tvDescriptionContent, tvCurrency, tvCurrencyContent, tvCategory, tvCategoryContent;
-    private ImageView ivDropdownArrow;
+    private static final String TAG = "GroupInfoFragment";
+    private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent;
     private Button btnAddMember;
     private RecyclerView recyclerViewMembers;
     private MemberAdapter memberAdapter;
+    private String groupId;
+    private FirebaseFirestore db;
+    private ListenerRegistration groupListener;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_group_info, container, false);
+        db = FirebaseFirestore.getInstance();
+        groupId = getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID);
 
         tvGroupTitle = view.findViewById(R.id.tv_group_title);
-        tvDescription = view.findViewById(R.id.tv_description);
         tvDescriptionContent = view.findViewById(R.id.tv_description_content);
-        tvCurrency = view.findViewById(R.id.tv_currency);
         tvCurrencyContent = view.findViewById(R.id.tv_currency_content);
-        tvCategory = view.findViewById(R.id.tv_category);
         tvCategoryContent = view.findViewById(R.id.tv_category_content);
         btnAddMember = view.findViewById(R.id.btn_add_member);
         recyclerViewMembers = view.findViewById(R.id.recycler_view_members);
 
         recyclerViewMembers.setLayoutManager(new LinearLayoutManager(getContext()));
-        memberAdapter = new MemberAdapter(getStaticMembers());
+        memberAdapter = new MemberAdapter(new ArrayList<>());
         recyclerViewMembers.setAdapter(memberAdapter);
 
-        setStaticGroupData();
+        fetchGroupData();
 
         btnAddMember.setOnClickListener(v -> Toast.makeText(getContext(), "Add Member clicked", Toast.LENGTH_SHORT).show());
 
         return view;
     }
 
-    private void setStaticGroupData() {
-        GroupData group = new GroupData(
-                "Trip to Paris",
-                "Vacationing with college friends in Paris.",
-                "INR",
-                "Trip",
-                getStaticMembers()
-        );
+    private void fetchGroupData() {
+        if (groupId == null) {
+            Log.e(TAG, "Group ID is null");
+            return;
+        }
 
-        tvGroupTitle.setText(group.getTitle());
-        tvDescriptionContent.setText(group.getDescription());
-        tvCurrencyContent.setText(group.getCurrency());
-        tvCategoryContent.setText(group.getCategory());
+        db.collection("groups").document(groupId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        tvGroupTitle.setText(documentSnapshot.getString("title"));
+                        tvDescriptionContent.setText(documentSnapshot.getString("description"));
+                        tvCurrencyContent.setText(documentSnapshot.getString("currency"));
+                        tvCategoryContent.setText(documentSnapshot.getString("category"));
+                        fetchGroupMembers();
+                    } else {
+                        Log.e(TAG, "Group document does not exist");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching group data: ", e));
     }
 
-    private List<MemberData> getStaticMembers() {
-        return Arrays.asList(
-                new MemberData("Alexa Hershey", "alexa.hershey123@gmail.com", R.drawable.ic_profile),
-                new MemberData("Alfaza Schluessler", "alfaza.schluessler@yahoo.com", R.drawable.ic_profile),
-                new MemberData("Augustina Midgett", "augustina.midgett45@gmail.com", R.drawable.ic_profile)
-        );
+    private void fetchGroupMembers() {
+        db.collection("groups").document(groupId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<Map<String, Object>> membersList = (List<Map<String, Object>>) documentSnapshot.get("members");
+                        List<Friend> friends = new ArrayList<>();
+
+                        if (membersList != null) {
+                            for (Map<String, Object> member : membersList) {
+                                Friend friend = new Friend();
+                                friend.setUid((String) member.get("uid"));
+                                friend.setEmail((String) member.get("email"));
+                                friend.setFname((String) member.get("fname"));
+                                friend.setLname((String) member.get("lname"));
+                                friend.setProfile_picture((String) member.get("profile_picture"));
+                                friends.add(friend);
+                            }
+                        }
+
+                        // Use MemberAdapter instead of FirestoreRecyclerAdapter
+                        memberAdapter.updateData(friends);
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Error fetching group members", Toast.LENGTH_SHORT).show());
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (groupListener != null) {
+            groupListener.remove();
+        }
     }
 }

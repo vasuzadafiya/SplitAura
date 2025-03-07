@@ -76,7 +76,7 @@ public class GroupFragment extends Fragment {
             if (picUrl != null && !picUrl.isEmpty()) {
                 Glide.with(this)
                         .load(picUrl)
-                        .placeholder(R.drawable.obmensmall)
+                        .placeholder(R.drawable.obsmallmen2)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(profilePic);
             }

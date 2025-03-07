@@ -7,51 +7,66 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.fragments.BalancesFragment;
 import com.example.splitaura.fragments.ExpensesFragment;
 import com.example.splitaura.fragments.GroupInfoFragment;
 import com.example.splitaura.fragments.TotalsFragment;
+import com.example.splitaura.utils.Utill;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class GroupExpensesActivity extends BaseActivity {
 
-    // Define a public constant for the group ID key.
     public static final String GROUP_ID = "groupId";
-
-    // Local variable to hold the passed group ID.
     private String groupId;
 
-    private MaterialButton btnExpenses;
-    private MaterialButton btnBalances;
-    private MaterialButton btnTotals;
-    private MaterialButton btnGroups;
-
+    private ImageView groupIcon;
+    private TextView groupName;
+    private MaterialButton btnExpenses, btnBalances, btnTotals, btnGroups;
+    private ImageView backButton;
+    private ViewPager2 viewPager;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ViewPager2 viewPager;
-        ImageView backButton;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_expenses);
+        initViews();
+        setTransparentStatusBar();
 
-        // Retrieve the group ID using the constant.
+        // Retrieve and validate group ID.
         groupId = getIntent().getStringExtra(GROUP_ID);
+        if (groupId != null) {
+            loadGroupDetails();
+        } else {
+            Utill.showToast(this, "Group ID not found.");
+            finish();
+            return;
+        }
 
-        // Set status bar color to transparent
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        setupViewPager();
+        setupButtonListeners();
+        btnExpenses.setChecked(true);
+        updateButtonStyles(btnExpenses);
+    }
 
+    private void initViews() {
+        // Initialize all views from layout.
+        groupIcon = findViewById(R.id.group_icon);
+        groupName = findViewById(R.id.group_name);
         backButton = findViewById(R.id.back_navigation);
         btnExpenses = findViewById(R.id.btn_expenses);
         btnBalances = findViewById(R.id.btn_balances);
@@ -59,30 +74,36 @@ public class GroupExpensesActivity extends BaseActivity {
         btnGroups = findViewById(R.id.btn_groups);
         viewPager = findViewById(R.id.viewPager);
         viewPager.setUserInputEnabled(false);
+    }
 
-        // Setup ViewPager2 adapter
+    private void setTransparentStatusBar() {
+        // Set status bar to transparent if supported.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+    }
+
+    private void setupViewPager() {
+        // Set up the adapter for ViewPager2.
         GroupExpensesPagerAdapter adapter = new GroupExpensesPagerAdapter(this);
         viewPager.setAdapter(adapter);
-
-        // Setup button listeners to navigate between ViewPager2 pages
-        btnExpenses.setOnClickListener(v -> viewPager.setCurrentItem(0));
-        btnBalances.setOnClickListener(v -> viewPager.setCurrentItem(1));
-        btnTotals.setOnClickListener(v -> viewPager.setCurrentItem(2));
-        btnGroups.setOnClickListener(v -> viewPager.setCurrentItem(3));
-
-        // Set default selection (Expenses tab selected)
-        btnExpenses.setChecked(true);
-        updateButtonStyles(btnExpenses);
-
-        // Page change listener for ViewPager2 to update button styles
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 resetButtons();
-                MaterialButton selectedButton = getButtonForPosition(position);
-                updateButtonStyles(selectedButton);
+                updateButtonStyles(getButtonForPosition(position));
             }
         });
+    }
+
+    private void setupButtonListeners() {
+        // Assign click listeners to navigate between pages.
+        btnExpenses.setOnClickListener(v -> viewPager.setCurrentItem(0));
+        btnBalances.setOnClickListener(v -> viewPager.setCurrentItem(1));
+        btnTotals.setOnClickListener(v -> viewPager.setCurrentItem(2));
+        btnGroups.setOnClickListener(v -> viewPager.setCurrentItem(3));
 
         backButton.setOnClickListener(v -> finish());
     }
@@ -101,25 +122,27 @@ public class GroupExpensesActivity extends BaseActivity {
     }
 
     private void resetButtons() {
-        btnExpenses.setBackgroundTintList(getResources().getColorStateList(R.color.white));
-        btnExpenses.setTextColor(getResources().getColorStateList(R.color.black));
-        btnBalances.setBackgroundTintList(getResources().getColorStateList(R.color.white));
-        btnBalances.setTextColor(getResources().getColorStateList(R.color.black));
-        btnTotals.setBackgroundTintList(getResources().getColorStateList(R.color.white));
-        btnTotals.setTextColor(getResources().getColorStateList(R.color.black));
-        btnGroups.setBackgroundTintList(getResources().getColorStateList(R.color.white));
-        btnGroups.setTextColor(getResources().getColorStateList(R.color.black));
+        // Reset all buttons to default style.
+        MaterialButton[] buttons = {btnExpenses, btnBalances, btnTotals, btnGroups};
+        for (MaterialButton button : buttons) {
+            button.setBackgroundTintList(getResources().getColorStateList(R.color.white));
+            button.setTextColor(getResources().getColorStateList(R.color.black));
+            ViewGroup.LayoutParams params = button.getLayoutParams();
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            button.setLayoutParams(params);
+        }
     }
 
     private void updateButtonStyles(MaterialButton selectedButton) {
-        MaterialButton[] buttons = new MaterialButton[]{btnExpenses, btnBalances, btnTotals, btnGroups};
+        // Update style for selected and unselected buttons.
+        final int selectedHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+        MaterialButton[] buttons = {btnExpenses, btnBalances, btnTotals, btnGroups};
         for (MaterialButton button : buttons) {
             if (button == selectedButton) {
                 button.setBackgroundColor(ContextCompat.getColor(this, R.color.f_pass_color));
                 button.setTextColor(Color.WHITE);
                 ViewGroup.LayoutParams params = button.getLayoutParams();
-                params.height = (int) TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+                params.height = selectedHeight;
                 button.setLayoutParams(params);
             } else {
                 button.setBackgroundColor(Color.WHITE);
@@ -131,14 +154,38 @@ public class GroupExpensesActivity extends BaseActivity {
         }
     }
 
-    // ViewPager2 adapter class for the fragments
+    private void loadGroupDetails() {
+        // Fetch group details from Firestore.
+        db.collection("groups").document(groupId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String name = documentSnapshot.getString("title");
+                String groupIconUrl = documentSnapshot.getString("imageUrl");
+                if (groupIconUrl != null) {
+                    int radius = 20; // adjust as needed
+
+                    // Create RequestOptions with both CenterCrop and RoundedCorners transformations.
+                    RequestOptions requestOptions = new RequestOptions()
+                            .transform(new CenterCrop(), new RoundedCorners(radius));
+
+                    Glide.with(this)
+                            .load(groupIconUrl)
+                            .apply(requestOptions)
+                            .placeholder(R.drawable.applogo) // optional placeholder image
+                            .into(groupIcon);
+                }
+                groupName.setText(name != null ? name : "Group");
+            }
+        }).addOnFailureListener(e -> Utill.showToast(this, e.getMessage()));
+    }
+
+
+    // ViewPager2 adapter class for fragments.
     private static class GroupExpensesPagerAdapter extends FragmentStateAdapter {
 
-        public GroupExpensesPagerAdapter(AppCompatActivity activity) {
+        GroupExpensesPagerAdapter(AppCompatActivity activity) {
             super(activity);
         }
 
-        @NonNull
         @Override
         public Fragment createFragment(int position) {
             switch (position) {
@@ -155,7 +202,7 @@ public class GroupExpensesActivity extends BaseActivity {
 
         @Override
         public int getItemCount() {
-            return 4; // Total number of fragments
+            return 4;
         }
     }
 }

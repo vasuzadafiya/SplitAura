@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -70,7 +69,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.member1.setVisibility(View.VISIBLE);
             Glide.with(context)
                     .load(memberImages.get(0))
-                    .placeholder(R.drawable.obmensmall)
+                    .placeholder(R.drawable.obsmallmen2)
                     .circleCrop()
                     .into(holder.member1);
         }
@@ -103,7 +102,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             Intent intent = new Intent(context, GroupExpensesActivity.class);
             intent.putExtra("groupId", group.getGroupId());
             context.startActivity(intent);
-            Toast.makeText(context, "Group id: " + group.getGroupId(), Toast.LENGTH_SHORT).show();
         });
     }
 

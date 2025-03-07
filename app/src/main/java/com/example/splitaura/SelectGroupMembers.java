@@ -219,12 +219,35 @@ public class SelectGroupMembers extends BaseActivity {
                 .addOnFailureListener(e -> Toast.makeText(SelectGroupMembers.this, "Error fetching friends: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    // Upload group data to Firestore with proper user validation
     private void uploadDataToFirestore(String title, String description, String currency, String category, String imageUrl, List<Friend> selectedFriends) {
-        if (currentUser == null) {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
+        db.collection("users").document(currentUser.getUid()).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                String uid = documentSnapshot.getString("uid");
+                String email = documentSnapshot.getString("email");
+                String fname = documentSnapshot.getString("fname");
+                String lname = documentSnapshot.getString("lname");
+                String profilePicture = documentSnapshot.getString("profile_picture");
+
+                Friend friend = new Friend(uid, email, fname, lname, profilePicture);
+                selectedFriends.add(friend); // Ensure current user is also added
+
+                // Proceed with Firestore upload **after** user is added to the list
+                uploadGroupToFirestore(title, description, currency, category, imageUrl, selectedFriends);
+            } else {
+                Toast.makeText(this, "Error fetching user data!", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Failed to get user data", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Firestore error: " + e.getMessage());
+        });
+    }
+
+    private void uploadGroupToFirestore(String title, String description, String currency, String category, String imageUrl, List<Friend> selectedFriends) {
+        List<String> getFriendIds = new ArrayList<>();
+        for (Friend friend : selectedFriends) {
+            getFriendIds.add(friend.getUid());
         }
+
         Map<String, Object> groupData = new HashMap<>();
         groupData.put("title", title);
         groupData.put("description", description);
@@ -235,10 +258,9 @@ public class SelectGroupMembers extends BaseActivity {
         groupData.put("createdBy", currentUser.getUid());
         groupData.put("createdAt", new Date());
         groupData.put("amount", null);
+        groupData.put("memberIds", getFriendIds);
 
-
-        db.collection("users").document(currentUser.getUid())
-                .collection("groups")
+        db.collection("groups")
                 .add(groupData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "Group created successfully!", Toast.LENGTH_SHORT).show();
@@ -249,4 +271,5 @@ public class SelectGroupMembers extends BaseActivity {
                     Log.e(TAG, "Firestore error: " + e.getMessage());
                 });
     }
+
 }

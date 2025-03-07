@@ -18,6 +18,7 @@ import com.example.splitaura.fragments.GroupFragment;
 import com.example.splitaura.fragments.HomeFragment;
 import com.example.splitaura.fragments.PaymentFragment;
 import com.example.splitaura.fragments.ProfileFragment;
+import com.example.splitaura.utils.Utill;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Homepage extends BaseActivity {
@@ -155,12 +156,14 @@ public class Homepage extends BaseActivity {
     }
 
     private void openPersonalActivity() {
-        startActivity(new Intent(this, AddExpenseActivity.class));
+//        startActivity(new Intent(this, AddExpenseActivity.class));
+        Utill.showToast(this,"Coming Soon");
         hideCurvedBracket();
     }
 
     private void openGroupActivity() {
-        startActivity(new Intent(this, GroupExpensesActivity.class));
+//        startActivity(new Intent(this, GroupExpensesActivity.class));
+        Utill.showToast(this,"Coming Soon");
         hideCurvedBracket();
     }
 

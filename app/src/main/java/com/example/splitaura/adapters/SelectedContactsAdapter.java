@@ -35,7 +35,7 @@ public class SelectedContactsAdapter extends RecyclerView.Adapter<SelectedContac
         Glide.with(holder.itemView.getContext())
                 .load(friend.getProfile_picture())
                 .circleCrop()
-                .placeholder(R.drawable.obmensmall)
+                .placeholder(R.drawable.obsmallmen2)
                 .into(holder.ivProfile);
     }
 

@@ -93,7 +93,7 @@
                     android:visibility="gone"
                     android:background="@drawable/circle_shape"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/obmensmall" />
+                    android:src="@drawable/obsmallmen2" />
 
                 <ImageView
                     android:id="@+id/member2"

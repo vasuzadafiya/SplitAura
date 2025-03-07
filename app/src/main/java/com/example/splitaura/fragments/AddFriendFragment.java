@@ -41,12 +41,14 @@ public class AddFriendFragment extends Fragment {
     private FirebaseAuth mAuth;
 
     public AddFriendFragment() {
-        // Required empty public constructor
+        // Required empty public constructor.
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_add_friend, container, false);
 
         EditText searchView = view.findViewById(R.id.searchView);
@@ -56,14 +58,14 @@ public class AddFriendFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         dialog = new LoadingDialog(requireContext());
 
-        // Load all users initially
+        // Load all users initially.
         loadUsers("");
 
-        // Listen for text changes for dynamic search
+        // Listen for text changes to support dynamic search.
         searchView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // No operation needed here.
+                // No operation needed.
             }
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -71,7 +73,7 @@ public class AddFriendFragment extends Fragment {
             }
             @Override
             public void afterTextChanged(Editable s) {
-                // No operation needed here.
+                // No operation needed.
             }
         });
 
@@ -95,12 +97,15 @@ public class AddFriendFragment extends Fragment {
                 .setQuery(query, User.class)
                 .build();
 
+        // Stop previous adapter listening, if any.
         if (adapter != null) {
             adapter.stopListening();
         }
 
         adapter = new UserAdapter(options);
         recyclerView.setAdapter(adapter);
+        // Force Add mode so that only the Add button is visible.
+        adapter.setAddMode(true);
 
         adapter.setOnUserRequestClickListener(snapshot -> {
             dialog.show();

@@ -48,7 +48,7 @@
                         android:layout_marginRight="16dp"
                         android:contentDescription="Main image"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/obmensmall"
+                        android:src="@drawable/obsmallmen2"
                         app:shapeAppearanceOverlay="@style/CircleImageViewStyle" />
 
 

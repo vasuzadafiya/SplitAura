@@ -161,14 +161,18 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <Spinner
+            <TextView
                 android:id="@+id/spinner_paid_by"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/spinner_background"
-                android:padding="12dp"
-                android:spinnerMode="dropdown" />
+                android:background="@drawable/textview_background"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Paid By"
+                android:textColor="@android:color/black"
+                android:textStyle="bold" />
 
             <!-- Split By Spinner -->
             <TextView
@@ -190,40 +194,46 @@
                 android:spinnerMode="dropdown" />
 
             <!-- Upload Cover Image Section (Simplified to LinearLayout) -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/uploadImageLayout"
                 android:layout_width="match_parent"
-                android:layout_height="130dp"
+                android:layout_height="140dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/border_rectangle"
-                android:padding="16dp"
-                android:gravity="center"
-                android:orientation="vertical">
+                android:padding="8dp">
 
-                <ImageView
-                    android:id="@+id/uploadIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:contentDescription="@string/upload_cover_image"
-                    android:src="@drawable/ic_upload" />
 
-                <TextView
-                    android:id="@+id/uploadText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/add_yout_image"
-                    android:textColor="#757575"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:id="@+id/imagePreview"
+                <LinearLayout
+                    android:id="@+id/uploadLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="center"
-                    android:visibility="gone" />
-            </LinearLayout>
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="visible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/uploadIcon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:contentDescription="@string/upload_cover_image"
+                        android:src="@drawable/ic_upload" />
+
+                    <TextView
+                        android:id="@+id/uploadText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Add Your Image"
+                        android:textColor="#757575"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
     </ScrollView>
 

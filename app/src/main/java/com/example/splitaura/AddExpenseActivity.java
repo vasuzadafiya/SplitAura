@@ -1,5 +1,6 @@
 package com.example.splitaura;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -7,14 +8,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,9 +28,13 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.adapters.CategoryAdapter;
+import com.example.splitaura.adapters.ContactsAdapter;
 import com.example.splitaura.admin.BaseActivity;
+import com.example.splitaura.models.Friend;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.ByteArrayOutputStream;
@@ -38,14 +47,14 @@ import java.util.Map;
 
 public class AddExpenseActivity extends BaseActivity {
 
-    // Firebase
-    private FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-
+    private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
 
     private ImageView backButton;
     private ImageView uploadIcon;
-    private ImageView imagePreview;
     private TextView categoryButton;
+    private TextView paidByButton; // Replaced spinner with TextView/Button
+    private View uploadImageLayout;
     private TextInputEditText titleEditText;
     private TextInputEditText amountEditText;
     private TextInputEditText descriptionEditText;
@@ -54,85 +63,147 @@ public class AddExpenseActivity extends BaseActivity {
     private Button skipButton;
     private Button nextButton;
     private ProgressBar progressBar;
-    private Spinner spinnerPaidBy;
-    private Spinner spinnerSplitBy;
+    private ContactsAdapter adapter;
 
     // Category selection
     private List<String> selectedCategories = new ArrayList<>();
 
     // Cloudinary
-    private Uri imageUri;
+    private Uri selectedImageUri;
 
-    // Group ID passed via intent
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+
+    // Group data
     private String groupId;
+    private List<Friend> groupMembers = new ArrayList<>();
+    private Friend selectedPayer; // Store the selected payer
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expense);
 
-        // Retrieve the group ID from the intent once.
         groupId = getIntent().getStringExtra("groupId");
-
-
-        // Initialize views and spinners
         initViews();
-        initializeSpinners();
-
-        // Setup listeners
         setupListeners();
+        setupImagePickerLauncher();
+        loadGroupMembers(); // Load group members on start
     }
 
     private void initViews() {
         backButton = findViewById(R.id.back_button);
-        imagePreview = findViewById(R.id.imagePreview);
         titleEditText = findViewById(R.id.title_edit_text);
         amountEditText = findViewById(R.id.amount_edit_text);
         descriptionEditText = findViewById(R.id.notes_edit_text);
         titleInputLayout = findViewById(R.id.title_input_layout);
         amountInputLayout = findViewById(R.id.amount_input_layout);
-        findViewById(R.id.notes_input_layout);
         categoryButton = findViewById(R.id.category_spinner);
         uploadIcon = findViewById(R.id.uploadIcon);
         skipButton = findViewById(R.id.skip_btn);
+        uploadImageLayout = findViewById(R.id.uploadImageLayout);
         nextButton = findViewById(R.id.next_button);
         progressBar = findViewById(R.id.progressBar);
-
-        // Cache spinners
-        spinnerPaidBy = findViewById(R.id.spinner_paid_by);
-        spinnerSplitBy = findViewById(R.id.spinner_split_by);
-    }
-
-    private void initializeSpinners() {
-        List<String> paidByList = List.of("Me", "Friend 1", "Friend 2");
-        ArrayAdapter<String> paidByAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, paidByList);
-        paidByAdapter.setDropDownViewResource(R.layout.spinner_dropdown_list);
-        spinnerPaidBy.setAdapter(paidByAdapter);
-
-        List<String> splitByList = List.of("Equally", "By Amount", "Custom");
-        ArrayAdapter<String> splitByAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, splitByList);
-        splitByAdapter.setDropDownViewResource(R.layout.spinner_dropdown_list);
-        spinnerSplitBy.setAdapter(splitByAdapter);
+        paidByButton = findViewById(R.id.spinner_paid_by); // Replace spinner_paid_by with a TextView/Button in layout
     }
 
     private void setupListeners() {
         backButton.setOnClickListener(v -> onBackPressed());
         skipButton.setOnClickListener(v -> finish());
 
+        uploadImageLayout.setOnClickListener(v -> openImagePicker());
+
         nextButton.setOnClickListener(v -> {
             if (validateFields()) {
                 progressBar.setVisibility(View.VISIBLE);
                 nextButton.setVisibility(View.GONE);
-                if (imageUri != null) {
-                    uploadImageToCloudinary(imageUri);
+                if (selectedImageUri != null) {
+                    uploadImageToCloudinary(selectedImageUri);
                 } else {
-                    saveExpense(null); // Save expense without image
+                    saveExpense(null);
                 }
             }
         });
 
         uploadIcon.setOnClickListener(v -> openImagePicker());
         categoryButton.setOnClickListener(v -> showCategoryDialog());
+        paidByButton.setOnClickListener(v -> showPayerSelectionDialog());
+    }
+
+    private void loadGroupMembers() {
+        firestore.collection("groups").document(groupId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> memberIds = (List<String>) documentSnapshot.get("memberIds");
+                        if (memberIds != null) {
+                            groupMembers.clear();
+                            for (String memberId : memberIds) {
+                                // Fetch member details (optional, or use UID directly)
+                                firestore.collection("users").document(memberId)
+                                        .get()
+                                        .addOnSuccessListener(userDoc -> {
+                                            if (userDoc.exists()) {
+                                                String uid = userDoc.getString("uid");
+                                                String email = userDoc.getString("email");
+                                                String fname = userDoc.getString("fname");
+                                                String lname = userDoc.getString("lname");
+                                                String profilePicture = userDoc.getString("profile_picture");
+                                                Friend member = new Friend(uid, email, fname, lname, profilePicture);
+                                                groupMembers.add(member);
+                                                // Removed automatic selection of current user
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> Log.e("AddExpenseActivity", "Error fetching member: " + e.getMessage()));
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load group members: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void showPayerSelectionDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_category, null); // Create this layout
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullScreenDialog);
+        builder.setView(dialogView);
+
+        RecyclerView rvParticipants = dialogView.findViewById(R.id.recyclerViewCategories);
+        TextView tvTitle = dialogView.findViewById(R.id.category_dialog_title);
+        tvTitle.setText("Payer");
+
+        rvParticipants.setLayoutManager(new LinearLayoutManager(this));
+        List<Friend> tempSelected = new ArrayList<>(); // Start with an empty list, no pre-selection
+
+        // Initialize the adapter here
+        adapter = new ContactsAdapter(groupMembers, tempSelected, friend -> {
+            tempSelected.clear();
+            tempSelected.add(friend);
+            // After modifying the list, notify the adapter that the data has changed
+            adapter.notifyDataSetChanged();
+        });
+
+        rvParticipants.setAdapter(adapter); // Set the adapter after it's initialized
+
+        Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+        Button okButton = dialogView.findViewById(R.id.ok_button);
+        AlertDialog dialog = builder.create();
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        okButton.setOnClickListener(v -> {
+            if (!tempSelected.isEmpty()) {
+                selectPayer(tempSelected.get(0)); // Set the selected payer
+                dialog.dismiss();
+            } else {
+                Toast.makeText(this, "Please select a payer", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void selectPayer(Friend payer) {
+        selectedPayer = payer;
+        paidByButton.setText(payer.getFullName()); // Display payer's name
     }
 
     private boolean validateFields() {
@@ -154,6 +225,11 @@ public class AddExpenseActivity extends BaseActivity {
             Toast.makeText(this, "Please select at least one category", Toast.LENGTH_SHORT).show();
             return false;
         }
+
+        if (selectedPayer == null) {
+            Toast.makeText(this, "Please select who paid", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         return true;
     }
 
@@ -162,17 +238,18 @@ public class AddExpenseActivity extends BaseActivity {
         String amount = amountEditText.getText().toString().trim();
         String description = descriptionEditText.getText().toString().trim();
 
-        String paidBy = spinnerPaidBy.getSelectedItem().toString();
-        String splitBy = spinnerSplitBy.getSelectedItem().toString();
+        // Format the date
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        String formattedDate = dateFormat.format(new Date());
 
         Map<String, Object> expenseData = new HashMap<>();
         expenseData.put("title", title);
         expenseData.put("amount", amount);
         expenseData.put("notes", description);
         expenseData.put("categories", selectedCategories);
-        expenseData.put("paidBy", paidBy);
-        expenseData.put("splitBy", splitBy);
-        expenseData.put("date", System.currentTimeMillis());
+        expenseData.put("paidBy", selectedPayer.getUid()); // Store payer's UID
+        expenseData.put("splitBy", "Equally"); // Hardcoded for now; expand later if needed
+        expenseData.put("date", formattedDate); // Store the formatted date
 
         if (imageUrl != null) {
             expenseData.put("imageUrl", imageUrl);
@@ -184,16 +261,15 @@ public class AddExpenseActivity extends BaseActivity {
                 .add(expenseData)
                 .addOnSuccessListener(documentReference -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(AddExpenseActivity.this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Expense saved successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(AddExpenseActivity.this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to save expense: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     Log.e(getClass().getSimpleName(), "Failed to save expense: " + e.getMessage());
                 });
     }
-
     private void uploadImageToCloudinary(Uri imageUri) {
         try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
             if (inputStream != null) {
@@ -204,31 +280,21 @@ public class AddExpenseActivity extends BaseActivity {
                 MediaManager.get().upload(imageBytes)
                         .callback(new UploadCallback() {
                             @Override
-                            public void onStart(String requestId) {
-                                // Upload started
-                            }
-
+                            public void onStart(String requestId) {}
                             @Override
-                            public void onProgress(String requestId, long bytes, long totalBytes) {
-                                // Optionally update progress
-                            }
-
+                            public void onProgress(String requestId, long bytes, long totalBytes) {}
                             @Override
                             public void onSuccess(String requestId, Map resultData) {
                                 String imageUrl = (String) resultData.get("url");
                                 saveExpense(imageUrl);
                             }
-
                             @Override
                             public void onError(String requestId, ErrorInfo error) {
                                 Toast.makeText(AddExpenseActivity.this, "Image upload failed: " + error.getDescription(), Toast.LENGTH_SHORT).show();
                                 progressBar.setVisibility(View.GONE);
                             }
-
                             @Override
-                            public void onReschedule(String requestId, ErrorInfo error) {
-                                // Retry logic if needed
-                            }
+                            public void onReschedule(String requestId, ErrorInfo error) {}
                         })
                         .dispatch();
             }
@@ -250,19 +316,20 @@ public class AddExpenseActivity extends BaseActivity {
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        startActivityForResult(intent, 100);
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePickerLauncher.launch(intent);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            imagePreview.setImageURI(imageUri);
-            imagePreview.setVisibility(View.VISIBLE);
-        }
+    private void setupImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                if (data != null) {
+                    selectedImageUri = data.getData();
+                    uploadIcon.setImageURI(selectedImageUri);
+                }
+            }
+        });
     }
 
     private void showCategoryDialog() {
@@ -283,7 +350,6 @@ public class AddExpenseActivity extends BaseActivity {
         okButton.setOnClickListener(v -> {
             if (!selectedCategories.isEmpty()) {
                 String selectedCategoriesString = String.join(", ", selectedCategories);
-                Toast.makeText(this, "Selected categories: " + selectedCategoriesString, Toast.LENGTH_SHORT).show();
                 categoryButton.setText(selectedCategoriesString);
                 dialog.dismiss();
             } else {

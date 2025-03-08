@@ -234,7 +234,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
                 android:hint="FIRST NAME"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color">
 
@@ -254,7 +253,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
                 android:hint="LAST NAME"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color">
 
@@ -274,7 +272,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
                 android:hint="EMAIL ID"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color">
 
@@ -294,7 +291,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"
                 android:hint="PASSWORD"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:textColorHint="@color/black"
                 app:boxStrokeColor="@color/f_pass_color"
                 app:endIconMode="password_toggle">
@@ -310,7 +306,6 @@
             <!-- Confirm Password Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/confirm_password1_input_layout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_margin"

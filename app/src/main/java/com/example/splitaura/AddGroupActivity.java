@@ -287,6 +287,8 @@ public class AddGroupActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 continueButton.setEnabled(true);
 
+
+
                 Toast.makeText(AddGroupActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Upload error: " + t.getMessage());
             }

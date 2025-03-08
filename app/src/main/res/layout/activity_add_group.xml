@@ -67,17 +67,6 @@
                 android:background="@drawable/border_rectangle"
                 android:padding="16dp">
 
-                <ImageView
-                    android:id="@+id/uploadedImagePreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="uploaded_image"
-                    android:scaleType="centerCrop"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:id="@+id/uploadLayout"

@@ -84,7 +84,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             CardView cardView = itemView.findViewById(R.id.cardView);
             if (cardView != null) {
                 // Use the default card color (e.g., Color.WHITE) or your theme's background color
-                cardView.setCardBackgroundColor(isSelected ? Color.LTGRAY : Color.WHITE);
+                cardView.setCardBackgroundColor(isSelected ? Color.parseColor("#2196F3") : Color.WHITE);
             } else {
                 itemView.setBackgroundColor(isSelected ? Color.LTGRAY : Color.TRANSPARENT);
             }

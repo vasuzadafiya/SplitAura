@@ -1,26 +1,33 @@
 package com.example.splitaura.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.splitaura.R;
 import com.example.splitaura.models.Balance;
+import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceViewHolder> {
-
     private List<Balance> balances;
+    private final Map<String, String> userNamesCache = new HashMap<>(); // Cache for user names
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public BalanceAdapter(List<Balance> balances) {
-        this.balances = balances;
+        this.balances = balances != null ? new ArrayList<>(balances) : new ArrayList<>();
+        fetchUserNames(); // Pre-fetch user names
     }
 
     @NonNull
@@ -33,14 +40,23 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
     @Override
     public void onBindViewHolder(@NonNull BalanceViewHolder holder, int position) {
         Balance balance = balances.get(position);
-        holder.nameTextView.setText(balance.getName());
+        String userId = balance.getName();
 
-        // Format the balance amount
-        String amountText = String.format("%.2f rs", Math.abs(balance.getAmount()));
+        // Display "Loading..." or a placeholder until the user name is fetched
+        String displayName = userNamesCache.getOrDefault(userId, "Loading...");
+        holder.nameTextView.setText(displayName);
+
+        // Format the balance amount with currency symbol and sign
+        String amountText;
+        if (balance.getAmount() >= 0) {
+            amountText = String.format("+ ₹%.2f", balance.getAmount()); // Add plus sign for positive amounts
+        } else {
+            amountText = String.format("- ₹%.2f", Math.abs(balance.getAmount())); // Add minus sign for negative amounts
+        }
         holder.amountTextView.setText(amountText);
         holder.amountTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
 
-        // Get the ConstraintLayout.LayoutParams for the name and amount TextViews
+        // Configure layout based on balance sign
         ConstraintLayout.LayoutParams nameParams = (ConstraintLayout.LayoutParams) holder.nameTextView.getLayoutParams();
         ConstraintLayout.LayoutParams amountParams = (ConstraintLayout.LayoutParams) holder.amountTextView.getLayoutParams();
 
@@ -52,41 +68,26 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
         amountParams.endToStart = ConstraintLayout.LayoutParams.UNSET;
 
         if (balance.getAmount() >= 0) {
-            // Positive balance: name on the left, amount on the right (green)
             holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_green));
-
-            // Align name to the left
             nameParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
             nameParams.endToStart = holder.amountTextView.getId();
-            nameParams.horizontalBias = 0.5f; // Centered horizontally
-
-            // Align amount to the right
             amountParams.startToEnd = holder.nameTextView.getId();
             amountParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
-            amountParams.horizontalBias = 0.5f; // Centered horizontally
         } else {
-            // Negative balance: name on the right, amount on the left (red)
             holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_red));
-
-            // Align name to the right
             nameParams.startToEnd = holder.amountTextView.getId();
             nameParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
-            nameParams.horizontalBias = 0.5f; // Centered horizontally
-
-            // Align amount to the left
             amountParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
             amountParams.endToStart = holder.nameTextView.getId();
-            amountParams.horizontalBias = 0.5f; // Centered horizontally
         }
 
-        // Apply the updated layout parameters
         holder.nameTextView.setLayoutParams(nameParams);
         holder.amountTextView.setLayoutParams(amountParams);
     }
 
     @Override
     public int getItemCount() {
-        return balances != null ? balances.size() : 0;
+        return balances.size();
     }
 
     public static class BalanceViewHolder extends RecyclerView.ViewHolder {
@@ -100,7 +101,38 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
     }
 
     public void updateBalances(List<Balance> newBalances) {
-        balances = newBalances;
+        this.balances.clear();
+        this.balances.addAll(newBalances != null ? newBalances : new ArrayList<>());
+        fetchUserNames(); // Refresh names
         notifyDataSetChanged();
+    }
+
+    private void fetchUserNames() {
+        if (balances.isEmpty()) return;
+
+        List<String> userIds = new ArrayList<>();
+        for (Balance balance : balances) {
+            String userId = balance.getName();
+            if (!userNamesCache.containsKey(userId)) {
+                userIds.add(userId);
+            }
+        }
+
+        if (userIds.isEmpty()) return;
+
+        db.collection("users").whereIn(FieldPath.documentId(), userIds)
+                .get()
+                .addOnSuccessListener(query -> {
+                    for (QueryDocumentSnapshot doc : query) {
+                        String fullName = (doc.getString("fname") != null ? doc.getString("fname") : "") + " " +
+                                (doc.getString("lname") != null ? doc.getString("lname") : "");
+                        userNamesCache.put(doc.getId(), fullName.trim());
+                    }
+                    notifyDataSetChanged(); // Refresh UI with updated names
+                })
+                .addOnFailureListener(e -> {
+                    // Handle failure (e.g., log the error)
+                    Log.e("BalanceAdapter", "Failed to fetch user names", e);
+                });
     }
 }

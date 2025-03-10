@@ -8,6 +8,7 @@
     android:layout_height="match_parent"
     android:background="@color/white"
     tools:context=".AddExpenseActivity">
+
     <ScrollView
         android:id="@+id/scrollview"
         android:layout_width="match_parent"
@@ -191,6 +192,8 @@
                 android:layout_marginTop="4dp"
                 android:background="@drawable/spinner_background"
                 android:padding="12dp"
+                android:prompt="@string/split_by_prompt"
+                android:entries="@array/split_by_options"
                 android:spinnerMode="dropdown" />
 
             <!-- Upload Cover Image Section (Simplified to LinearLayout) -->
@@ -206,7 +209,7 @@
                 <LinearLayout
                     android:id="@+id/uploadLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:visibility="visible"

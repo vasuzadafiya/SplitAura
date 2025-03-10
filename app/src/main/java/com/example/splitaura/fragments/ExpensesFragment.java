@@ -7,23 +7,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.splitaura.AddExpenseActivity;
+import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.ExpenseAdapter;
-import com.example.splitaura.models.Expense;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -32,157 +28,124 @@ import java.util.List;
 import java.util.Map;
 
 public class ExpensesFragment extends Fragment {
-
+    private static final String TAG = "ExpensesFragment";
     private RecyclerView recyclerView;
     private ExpenseAdapter expenseAdapter;
-    private final List<Expense> expenseList = new ArrayList<>();
-    private FirebaseFirestore db;
+    private ExpenseManager expenseManager;
     private LinearLayout placeholder;
-    private final Map<String, String> userNamesCache = new HashMap<>(); // Cache for user names
-
-    // Field to store the group ID
+    private ProgressBar progressBar;
+    private final Map<String, String> userNamesCache = new HashMap<>();
     private String groupId;
+    private FirebaseFirestore db;
+    private boolean userNamesFetched = false; // Track if names are loaded
 
-    // Firestore listener for real-time updates
-    private ListenerRegistration expensesListener;
-
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
 
-        // Retrieve groupId from the parent Activity's intent
-        if (getActivity() != null && getActivity().getIntent() != null) {
-            groupId = getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID);
+        groupId = getActivity() != null && getActivity().getIntent() != null
+                ? getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID)
+                : null;
+
+        if (groupId == null || groupId.isEmpty()) {
+            Log.e(TAG, "Group ID is null or empty");
+            Toast.makeText(getContext(), "Invalid Group ID", Toast.LENGTH_SHORT).show();
+            return view;
         }
+
+        expenseManager = new ExpenseManager(groupId);
+        db = FirebaseFirestore.getInstance();
 
         recyclerView = view.findViewById(R.id.recycler_view_expenses);
         ExtendedFloatingActionButton fabAddExpense = view.findViewById(R.id.fab_add_expense);
         placeholder = view.findViewById(R.id.placeholder);
 
-        // Initialize RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        expenseAdapter = new ExpenseAdapter(expenseList);
+        expenseAdapter = new ExpenseAdapter(new ArrayList<>());
         recyclerView.setAdapter(expenseAdapter);
 
-        db = FirebaseFirestore.getInstance();
-
-        // Set up FAB click listener
         fabAddExpense.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), AddExpenseActivity.class);
+            Intent intent = new Intent(getContext(), AddExpenseActivity.class);
             intent.putExtra(GroupExpensesActivity.GROUP_ID, groupId);
-            v.getContext().startActivity(intent);
+            startActivity(intent);
         });
+
+        fetchUserNames(); // Fetch names first, then observe expenses
 
         return view;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        fetchExpenses();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        // Remove Firestore listener to avoid memory leaks
-        if (expensesListener != null) {
-            expensesListener.remove();
-            expensesListener = null;
-        }
-    }
-
-    private void fetchExpenses() {
-        if (groupId == null || groupId.isEmpty()) {
-            Toast.makeText(getContext(), "Invalid Group ID", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Fetch group members and cache their names
-        db.collection("groups")
-                .document(groupId)
-                .get()
-                .addOnSuccessListener(groupDocument -> {
-                    if (groupDocument.exists()) {
-                        List<String> memberIds = (List<String>) groupDocument.get("memberIds");
-                        if (memberIds != null && !memberIds.isEmpty()) {
-                            fetchUserNames(memberIds, this::fetchExpensesWithUserNames);
-                        } else {
-                            Toast.makeText(getContext(), "No members found in the group", Toast.LENGTH_SHORT).show();
-                        }
+    private void fetchUserNames() {
+        db.collection("groups").document(groupId).get()
+                .addOnSuccessListener(doc -> {
+                    List<String> memberIds = (List<String>) doc.get("memberIds");
+                    if (memberIds != null && !memberIds.isEmpty()) {
+                        db.collection("users").whereIn(FieldPath.documentId(), memberIds)
+                                .get()
+                                .addOnSuccessListener(query -> {
+                                    userNamesCache.clear();
+                                    for (QueryDocumentSnapshot userDoc : query) {
+                                        String fullName = (userDoc.getString("fname") != null ? userDoc.getString("fname") : "") + " " +
+                                                (userDoc.getString("lname") != null ? userDoc.getString("lname") : "");
+                                        userNamesCache.put(userDoc.getId(), fullName.trim());
+                                    }
+                                    Log.d(TAG, "Fetched " + userNamesCache.size() + " user names");
+                                    userNamesFetched = true;
+                                    observeExpenses(); // Start observing only after names are fetched
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to fetch user names", e);
+                                    userNamesFetched = true; // Proceed even if failed
+                                    observeExpenses(); // Fallback to UIDs if names fail
+                                });
                     } else {
-                        Toast.makeText(getContext(), "Group not found", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "No memberIds found for group: " + groupId);
+                        userNamesFetched = true;
+                        observeExpenses();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to load group details", Toast.LENGTH_SHORT).show();
-                    Log.e("ExpensesFragment", "Error fetching group details", e);
+                    Log.e(TAG, "Failed to fetch group members", e);
+                    userNamesFetched = true; // Proceed with empty cache
+                    observeExpenses();
                 });
     }
 
-    private void fetchUserNames(List<String> memberIds, Runnable onComplete) {
-        db.collection("users")
-                .whereIn(FieldPath.documentId(), memberIds)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        userNamesCache.clear(); // Clear the cache before populating
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String userId = document.getId();
-                            String fname = document.getString("fname");
-                            String lname = document.getString("lname");
+    private void observeExpenses() {
+        if (!userNamesFetched) {
+            Log.d(TAG, "Waiting for user names before observing expenses");
+            return; // Wait until names are fetched
+        }
 
-                            // Concatenate fname and lname to form the full name
-                            String fullName = (fname != null ? fname : "") + " " + (lname != null ? lname : "");
-                            userNamesCache.put(userId, fullName.trim()); // Trim to remove extra spaces
-                        }
-                        onComplete.run(); // Execute the callback
-                    } else {
-                        Toast.makeText(getContext(), "Failed to fetch user names", Toast.LENGTH_SHORT).show();
-                        Log.e("ExpensesFragment", "Error fetching user names", task.getException());
-                    }
-                });
+        expenseManager.getExpenses().observe(getViewLifecycleOwner(), expenses -> {
+            Log.d(TAG, "Observed expense update with " + (expenses != null ? expenses.size() : 0) + " items");
+
+            if (expenses == null || expenses.isEmpty()) {
+                Log.w(TAG, "No expenses available for group: " + groupId);
+                expenseAdapter.updateExpenses(new ArrayList<>());
+                recyclerView.setVisibility(View.GONE);
+                placeholder.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            List<ExpenseManager.Expense> updatedExpenses = new ArrayList<>();
+            for (ExpenseManager.Expense expense : expenses) {
+                String payerName = userNamesCache.getOrDefault(expense.getPaidBy(), expense.getPaidBy());
+                expense.setPaidBy(payerName); // Set full name before passing to adapter
+                updatedExpenses.add(expense);
+            }
+
+            expenseAdapter.updateExpenses(updatedExpenses);
+            recyclerView.setVisibility(View.VISIBLE);
+            placeholder.setVisibility(View.GONE);
+        });
     }
 
-    private void fetchExpensesWithUserNames() {
-        expensesListener = db.collection("groups")
-                .document(groupId)
-                .collection("expenses")
-                .addSnapshotListener((querySnapshot, e) -> {
-                    if (e != null) {
-                        Toast.makeText(getContext(), "Failed to load expenses", Toast.LENGTH_SHORT).show();
-                        Log.e("ExpensesFragment", "Error fetching expenses", e);
-                        return;
-                    }
-
-                    if (querySnapshot != null) {
-                        expenseList.clear();
-                        for (QueryDocumentSnapshot document : querySnapshot) {
-                            Expense expense = document.toObject(Expense.class);
-
-                            // Replace the paidBy ID with the cached user name
-                            String payerName = userNamesCache.get(expense.getPaidBy());
-                            if (payerName != null) {
-                                expense.setPaidBy(payerName); // Update the paidBy field with the user's name
-                            }
-
-                            expenseList.add(expense);
-                        }
-
-                        // Notify adapter of data changes
-                        expenseAdapter.notifyDataSetChanged();
-
-                        // Show/hide placeholder based on data availability
-                        if (expenseList.isEmpty()) {
-                            recyclerView.setVisibility(View.GONE);
-                            placeholder.setVisibility(View.VISIBLE);
-                        } else {
-                            recyclerView.setVisibility(View.VISIBLE);
-                            placeholder.setVisibility(View.GONE);
-                        }
-                    }
-                });
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (expenseManager != null) {
+            expenseManager.removeListener();
+        }
     }
 }

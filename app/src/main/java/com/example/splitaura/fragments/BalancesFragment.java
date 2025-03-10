@@ -1,78 +1,106 @@
 package com.example.splitaura.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.example.splitaura.ExpenseManager;
+import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.BalanceAdapter;
 import com.example.splitaura.adapters.OweAdapter;
 import com.example.splitaura.models.Balance;
 import com.example.splitaura.models.OweRelationship;
-
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class BalancesFragment extends Fragment {
-
+    private static final String TAG = "BalancesFragment";
     private RecyclerView recyclerViewBalances, recyclerViewOwing;
     private BalanceAdapter balanceAdapter;
     private OweAdapter oweAdapter;
+    private ExpenseManager expenseManager;
+    private String groupId;
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_balances, container, false);
 
-        // Initialize RecyclerViews
+        // Retrieve groupId and validate
+        groupId = getActivity() != null && getActivity().getIntent() != null
+                ? getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID)
+                : null;
+
+        if (groupId == null || groupId.isEmpty()) {
+            Log.e(TAG, "Group ID is null or empty");
+            Toast.makeText(getContext(), "Invalid Group ID", Toast.LENGTH_SHORT).show();
+            return view; // Early return to avoid crashes
+        }
+
+        // Initialize ExpenseManager
+        expenseManager = new ExpenseManager(groupId);
+
+        // Set up RecyclerViews
         recyclerViewBalances = view.findViewById(R.id.recycler_view_balances);
         recyclerViewOwing = view.findViewById(R.id.recycler_view_owing);
 
-        // Set up LayoutManagers
         recyclerViewBalances.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerViewOwing.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Initialize adapters with static data
-        balanceAdapter = new BalanceAdapter(getStaticBalances());
-        oweAdapter = new OweAdapter(getStaticOweRelationships());
-
+        // Initialize adapters with empty lists
+        balanceAdapter = new BalanceAdapter(new ArrayList<>());
+        oweAdapter = new OweAdapter(new ArrayList<>());
         recyclerViewBalances.setAdapter(balanceAdapter);
         recyclerViewOwing.setAdapter(oweAdapter);
+
+        // Start observing balances
+        observeBalances();
 
         return view;
     }
 
-    // Static data for balances (positive/negative)
-    private List<Balance> getStaticBalances() {
-        return Arrays.asList(
-                new Balance("Laila Ainsley", 249.90),   // Positive balance (blue)
-                new Balance("Charlotte Hanlin", -349.90), // Negative balance (red)
-                new Balance("Darron Kulikowski", -323.89), // Negative balance (red)
-                new Balance("Joseph Thomas", 4567.90),   // Positive balance (blue)
-                new Balance("Kristan Watson", 768.21),   // Positive balance (blue)
-                new Balance("Maryland Winkles", -6426.5) // Negative balance (red)
-        );
+    private void observeBalances() {
+        expenseManager.getUserExpenseData().observe(getViewLifecycleOwner(), data -> {
+            if (data == null || data.isEmpty()) {
+                Log.w(TAG, "No expense data available for group: " + groupId);
+                balanceAdapter.updateBalances(new ArrayList<>());
+                oweAdapter.updateOweRelationships(new ArrayList<>());
+                return;
+            }
+
+            List<Balance> balances = new ArrayList<>();
+            List<OweRelationship> oweRelationships = new ArrayList<>();
+
+            for (Map.Entry<String, ExpenseManager.UserExpenseData> entry : data.entrySet()) {
+                String userId = entry.getKey();
+                ExpenseManager.UserExpenseData userData = entry.getValue();
+
+                // Add balance for each user
+                balances.add(new Balance(userId, userData.netBalance));
+
+                // Add owe relationships for debts
+                for (Map.Entry<String, Double> debt : userData.debts.entrySet()) {
+                    oweRelationships.add(new OweRelationship(userId, debt.getKey(), debt.getValue()));
+                }
+            }
+
+            // Update adapters with new data
+            balanceAdapter.updateBalances(balances);
+            oweAdapter.updateOweRelationships(oweRelationships);
+        });
     }
 
-    // Static data for owe relationships
-    private List<OweRelationship> getStaticOweRelationships() {
-        return Arrays.asList(
-                new OweRelationship("Laila Ainsley", "Vasu Zadaiya (You)", 349.90),
-                new OweRelationship("Darron Kulikowski", "Vasu Zadaiya (You)", 768.21),
-                new OweRelationship("Kristan Watson", "Vasu Zadaiya (You)", 768.21),
-                new OweRelationship("Charlotte Hanlin", "Vasu Zadaiya (You)", 500.00),
-                new OweRelationship("Joseph Thomas", "Vasu Zadaiya (You)", 1200.50),
-                new OweRelationship("Maryland Winkles", "Vasu Zadaiya (You)", 1500.75),
-                new OweRelationship("Vasu Zadaiya (You)", "Laila Ainsley", 200.30), // You owe Laila
-                new OweRelationship("Vasu Zadaiya (You)", "Darron Kulikowski", 450.80), // You owe Darron
-                new OweRelationship("Vasu Zadaiya (You)", "Charlotte Hanlin", 300.25)
-        );
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (expenseManager != null) {
+            expenseManager.removeListener();
+        }
     }
 }

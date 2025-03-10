@@ -4,19 +4,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="4dp"
     android:background="@color/white">
 
     <!-- Name (Left or Right) -->
     <TextView
         android:id="@+id/balance_name"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:text="User Name"
         android:textSize="16sp"
         android:textColor="@color/black"
-        android:padding="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/balance_amount"
         app:layout_constraintHorizontal_weight="1"
@@ -26,10 +28,9 @@
     <TextView
         android:id="@+id/balance_amount"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:text="0.00 rs"
         android:textSize="16sp"
-        android:padding="12dp"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

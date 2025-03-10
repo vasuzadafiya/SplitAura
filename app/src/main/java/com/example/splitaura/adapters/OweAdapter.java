@@ -7,22 +7,30 @@ import android.view.ViewGroup;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.splitaura.R;
 import com.example.splitaura.models.OweRelationship;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
-
     private List<OweRelationship> oweRelationships;
-    private String currentUserName = "Vasu Zadaiya (You)"; // Hardcoded for simplicity; make dynamic if needed
+    private final String currentUserId;
+    private final Map<String, String> userNamesCache = new HashMap<>();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public OweAdapter(List<OweRelationship> oweRelationships) {
-        this.oweRelationships = oweRelationships;
+        this.oweRelationships = oweRelationships != null ? new ArrayList<>(oweRelationships) : new ArrayList<>();
+        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        fetchUserNames(); // Pre-fetch user names
     }
 
     @NonNull
@@ -35,17 +43,22 @@ public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull OweViewHolder holder, int position) {
         OweRelationship owe = oweRelationships.get(position);
-        holder.debtorName.setText(owe.getDebtor());
-        holder.creditorText.setText(owe.getCreditor());
+        String debtorId = owe.getDebtor();
+        String creditorId = owe.getCreditor();
+
+        String debtorName = userNamesCache.getOrDefault(debtorId, debtorId.equals(currentUserId) ? "You" : debtorId);
+        String creditorName = userNamesCache.getOrDefault(creditorId, creditorId.equals(currentUserId) ? "You" : creditorId);
+
+        holder.debtorName.setText(debtorName);
+        holder.creditorText.setText(creditorName);
         holder.oweAmount.setText(String.format("₹%.2f", owe.getAmount()));
 
-        // Set up three-dot menu click listener
         holder.menuDots.setOnClickListener(v -> showPopupMenu(v, owe, position));
     }
 
     @Override
     public int getItemCount() {
-        return oweRelationships != null ? oweRelationships.size() : 0;
+        return oweRelationships.size();
     }
 
     public static class OweViewHolder extends RecyclerView.ViewHolder {
@@ -58,46 +71,75 @@ public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
             creditorText = itemView.findViewById(R.id.creditor_text);
             oweAmount = itemView.findViewById(R.id.owe_amount);
             menuDots = itemView.findViewById(R.id.menu_dots);
-
-            // Handle three-dot menu clicks (already handled in onBindViewHolder via showPopupMenu)
         }
     }
 
     public void updateOweRelationships(List<OweRelationship> newOweRelationships) {
-        oweRelationships = newOweRelationships;
+        this.oweRelationships.clear();
+        this.oweRelationships.addAll(newOweRelationships != null ? newOweRelationships : new ArrayList<>());
+        fetchUserNames(); // Refresh names
         notifyDataSetChanged();
+    }
+
+    private void fetchUserNames() {
+        if (oweRelationships.isEmpty()) return;
+
+        List<String> userIds = new ArrayList<>();
+        for (OweRelationship owe : oweRelationships) {
+            if (!userNamesCache.containsKey(owe.getDebtor())) userIds.add(owe.getDebtor());
+            if (!userNamesCache.containsKey(owe.getCreditor())) userIds.add(owe.getCreditor());
+        }
+
+        if (userIds.isEmpty()) return;
+
+        db.collection("users").whereIn(FieldPath.documentId(), userIds)
+                .get()
+                .addOnSuccessListener(query -> {
+                    for (QueryDocumentSnapshot doc : query) {
+                        String fullName = (doc.getString("fname") != null ? doc.getString("fname") : "") + " " +
+                                (doc.getString("lname") != null ? doc.getString("lname") : "");
+                        userNamesCache.put(doc.getId(), fullName.trim());
+                    }
+                    notifyDataSetChanged(); // Refresh UI with updated names
+                });
     }
 
     private void showPopupMenu(View view, OweRelationship owe, int position) {
         PopupMenu popup = new PopupMenu(view.getContext(), view);
-        String debtor = owe.getDebtor();
-        String creditor = owe.getCreditor();
+        String debtorId = owe.getDebtor();
+        String creditorId = owe.getCreditor();
+        String debtorName = userNamesCache.getOrDefault(debtorId, debtorId);
+        String creditorName = userNamesCache.getOrDefault(creditorId, creditorId);
 
-        // Determine if the current user owes or is owed
-        if (debtor.equals(currentUserName)) {
-            // Current user owes money (debtor)
+        if (debtorId.equals(currentUserId)) {
             popup.getMenu().add("Pay Now");
-        } else if (creditor.equals(currentUserName)) {
-            // Someone owes the current user (creditor)
+            popup.getMenu().add("Mark as Paid");
+        } else if (creditorId.equals(currentUserId)) {
             popup.getMenu().add("Request Payment");
+            popup.getMenu().add("Mark as Settled");
         }
 
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                String action = item.getTitle().toString();
-                switch (action) {
-                    case "Pay Now":
-                        Toast.makeText(view.getContext(), "Pay Now clicked for " + debtor + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
-                        // Add logic to handle payment (e.g., navigate to payment screen, update balance)
-                        break;
-                    case "Request Payment":
-                        Toast.makeText(view.getContext(), "Request Payment clicked for " + creditor + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
-                        // Add logic to handle payment request (e.g., send notification, show dialog)
-                        break;
-                }
-                return true;
+        popup.setOnMenuItemClickListener(item -> {
+            String action = item.getTitle().toString();
+            switch (action) {
+                case "Pay Now":
+                    Toast.makeText(view.getContext(), "Pay Now clicked for " + debtorName + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
+                    // TODO: Implement payment logic
+                    break;
+                case "Mark as Paid":
+                    Toast.makeText(view.getContext(), "Marked as Paid: " + debtorName + " to " + creditorName, Toast.LENGTH_SHORT).show();
+                    // TODO: Add logic to update Firestore (e.g., remove debt from calculation)
+                    break;
+                case "Request Payment":
+                    Toast.makeText(view.getContext(), "Request Payment clicked for " + debtorName + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
+                    // TODO: Implement notification/request logic
+                    break;
+                case "Mark as Settled":
+                    Toast.makeText(view.getContext(), "Marked as Settled: " + debtorName + " to " + creditorName, Toast.LENGTH_SHORT).show();
+                    // TODO: Add logic to update Firestore (e.g., remove credit from calculation)
+                    break;
             }
+            return true;
         });
 
         popup.show();

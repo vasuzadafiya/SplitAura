@@ -91,4 +91,9 @@
     <string name="caution">*this will not reset password for google login\n</string>
     <string name="family">Family 👨‍👩‍👧‍👦</string>
 
+    <string name="split_by_prompt">Choose how to split the expense</string>
+    <string-array name="split_by_options">
+        <item>Equally</item>
+        <item>Custom</item>
+    </string-array>
 </resources>

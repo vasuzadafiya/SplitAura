@@ -12,9 +12,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.models.GroupItem;
@@ -26,6 +29,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     private final Context context;
     private List<GroupItem> groupList;
     private final Random random = new Random();
+    private ExpenseManager expenseManager;
 
     // Define a static array for the background colors.
     private static final int[] COLORS = {
@@ -56,20 +60,24 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         holder.groupDate.setText(group.getDate());
         holder.groupAmount.setText("₹ " + String.format("%.2f", group.getAmount()));
 
-        // Load group image from URL using Glide
+        // Load group image dynamically using Glide
         Glide.with(context)
                 .load(group.getGroupImageUrl())
-                .placeholder(R.drawable.ic_group)
+                .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
+                .placeholder(R.drawable.ic_group) // Placeholder while loading
+                .error(R.drawable.ic_group) // Fallback if the image fails to load
                 .circleCrop()
                 .into(holder.groupImage);
 
-        // Load member images dynamically using Glide from URLs
+        // Load member images dynamically using Glide
         List<String> memberImages = group.getMemberImagesUrls();
         if (!memberImages.isEmpty()) {
             holder.member1.setVisibility(View.VISIBLE);
             Glide.with(context)
                     .load(memberImages.get(0))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.obsmallmen2)
+                    .error(R.drawable.obsmallmen2)
                     .circleCrop()
                     .into(holder.member1);
         }
@@ -77,7 +85,9 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.member2.setVisibility(View.VISIBLE);
             Glide.with(context)
                     .load(memberImages.get(1))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.obwomens)
+                    .error(R.drawable.obwomens)
                     .circleCrop()
                     .into(holder.member2);
         }
@@ -85,7 +95,9 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.member3.setVisibility(View.VISIBLE);
             Glide.with(context)
                     .load(memberImages.get(2))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.obwomensmall)
+                    .error(R.drawable.obwomensmall)
                     .circleCrop()
                     .into(holder.member3);
         }
@@ -94,10 +106,11 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
         }
 
+        // Set random background color for the card
         int randomColor = COLORS[random.nextInt(COLORS.length)];
         holder.cardView.setCardBackgroundColor(randomColor);
 
-        // Handle "View Details" button click to show a Toast with the group ID
+        // Handle "View Details" button click
         holder.viewDetails.setOnClickListener(v -> {
             Intent intent = new Intent(context, GroupExpensesActivity.class);
             intent.putExtra("groupId", group.getGroupId());

@@ -94,6 +94,7 @@
     <string name="split_by_prompt">Choose how to split the expense</string>
     <string name="payment_method">Payment Method</string>
     <string name="btn_add">Add</string>
+    <string name="category">Category</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

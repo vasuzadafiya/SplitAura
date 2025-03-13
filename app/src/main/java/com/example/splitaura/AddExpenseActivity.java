@@ -29,7 +29,6 @@ import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.models.Friend;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -47,17 +46,22 @@ import java.util.Map;
 public class AddExpenseActivity extends BaseActivity {
     private static final String TAG = "AddExpenseActivity";
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-    private FirebaseAuth auth = FirebaseAuth.getInstance();
     private ExpenseManager expenseManager; // Declared but needs initialization
 
     // UI Elements
-    private ImageView backButton, uploadIcon;
+    private ImageView backButton;
+    private ImageView uploadIcon;
     private Spinner splitBySpinner;
-    private TextView categoryButton, paidByButton;
+    private TextView categoryButton;
+    private TextView paidByButton;
     private View uploadImageLayout;
-    private TextInputEditText titleEditText, amountEditText, descriptionEditText;
-    private TextInputLayout titleInputLayout, amountInputLayout;
-    private Button skipButton, nextButton;
+    private TextInputEditText titleEditText;
+    private TextInputEditText amountEditText;
+    private TextInputEditText descriptionEditText;
+    private TextInputLayout titleInputLayout;
+    private TextInputLayout amountInputLayout;
+    private Button skipButton;
+    private Button nextButton;
     private ProgressBar progressBar;
     private ContactsAdapter adapter;
 
@@ -147,45 +151,33 @@ public class AddExpenseActivity extends BaseActivity {
     }
 
     private void loadGroupMembers() {
-        firestore.collection("groups").document(groupId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> memberIds = (List<String>) documentSnapshot.get("memberIds");
-                        if (memberIds != null) {
-                            groupMembers.clear();
-                            for (String memberId : memberIds) {
-                                Friend cachedFriend = friendCache.get(memberId);
-                                if (cachedFriend != null) {
-                                    groupMembers.add(cachedFriend);
-                                } else {
-                                    firestore.collection("users").document(memberId)
-                                            .get()
-                                            .addOnSuccessListener(userDoc -> {
-                                                if (userDoc.exists()) {
-                                                    Friend friend = new Friend(
-                                                            userDoc.getString("uid"),
-                                                            userDoc.getString("email"),
-                                                            userDoc.getString("fname"),
-                                                            userDoc.getString("lname"),
-                                                            userDoc.getString("profile_picture")
-                                                    );
-                                                    friendCache.put(memberId, friend);
-                                                    groupMembers.add(friend);
-                                                    Log.d(TAG, "Loaded group member: " + friend.getFullName());
-                                                }
-                                            })
-                                            .addOnFailureListener(e -> Log.e(TAG, "Failed to load user " + memberId, e));
+        firestore.collection("groups").document(groupId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> memberIds = (List<String>) documentSnapshot.get("memberIds");
+                if (memberIds != null) {
+                    groupMembers.clear();
+                    for (String memberId : memberIds) {
+                        Friend cachedFriend = friendCache.get(memberId);
+                        if (cachedFriend != null) {
+                            groupMembers.add(cachedFriend);
+                        } else {
+                            firestore.collection("users").document(memberId).get().addOnSuccessListener(userDoc -> {
+                                if (userDoc.exists()) {
+                                    Friend friend = new Friend(userDoc.getString("uid"), userDoc.getString("email"), userDoc.getString("fname"), userDoc.getString("lname"), userDoc.getString("profile_picture"));
+                                    friendCache.put(memberId, friend);
+                                    groupMembers.add(friend);
+                                    Log.d(TAG, "Loaded group member: " + friend.getFullName());
                                 }
-                            }
-                            Log.d(TAG, "Loaded " + groupMembers.size() + " group members");
+                            }).addOnFailureListener(e -> Log.e(TAG, "Failed to load user " + memberId, e));
                         }
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to load group members", e);
-                    Toast.makeText(this, "Failed to load group members", Toast.LENGTH_SHORT).show();
-                });
+                    Log.d(TAG, "Loaded " + groupMembers.size() + " group members");
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Failed to load group members", e);
+            Toast.makeText(this, "Failed to load group members", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void showPayerSelectionDialog() {
@@ -341,19 +333,17 @@ public class AddExpenseActivity extends BaseActivity {
         }
 
         Log.d(TAG, "Saving expense: " + expenseData);
-        expenseManager.addExpense(expenseData,
-                () -> {
-                    Log.d(TAG, "Expense saved successfully");
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Expense saved!", Toast.LENGTH_SHORT).show();
-                    finish();
-                },
-                () -> {
-                    Log.e(TAG, "Failed to save expense");
-                    progressBar.setVisibility(View.GONE);
-                    nextButton.setVisibility(View.VISIBLE);
-                    Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show();
-                });
+        expenseManager.addExpense(expenseData, () -> {
+            Log.d(TAG, "Expense saved successfully");
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, "Expense saved!", Toast.LENGTH_SHORT).show();
+            finish();
+        }, () -> {
+            Log.e(TAG, "Failed to save expense");
+            progressBar.setVisibility(View.GONE);
+            nextButton.setVisibility(View.VISIBLE);
+            Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
@@ -368,30 +358,36 @@ public class AddExpenseActivity extends BaseActivity {
         try (InputStream inputStream = getContentResolver().openInputStream(imageUri)) {
             if (inputStream != null) {
                 byte[] imageBytes = getBytesFromInputStream(inputStream);
-                MediaManager.get().upload(imageBytes)
-                        .callback(new UploadCallback() {
-                            @Override
-                            public void onStart(String requestId) {
-                                Log.d(TAG, "Image upload started: " + requestId);
-                            }
-                            @Override
-                            public void onProgress(String requestId, long bytes, long totalBytes) {}
-                            @Override
-                            public void onSuccess(String requestId, Map resultData) {
-                                Log.d(TAG, "Image uploaded successfully: " + resultData.get("url"));
-                                saveExpense((String) resultData.get("url"));
-                            }
-                            @Override
-                            public void onError(String requestId, ErrorInfo error) {
-                                Log.e(TAG, "Image upload failed: " + error.getDescription());
-                                Toast.makeText(AddExpenseActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                                progressBar.setVisibility(View.GONE);
-                                nextButton.setVisibility(View.VISIBLE);
-                            }
-                            @Override
-                            public void onReschedule(String requestId, ErrorInfo error) {}
-                        })
-                        .dispatch();
+                MediaManager.get().upload(imageBytes).callback(new UploadCallback() {
+                    @Override
+                    public void onStart(String requestId) {
+                        Log.d(TAG, "Image upload started: " + requestId);
+                    }
+
+                    @Override
+                    public void onProgress(String requestId, long bytes, long totalBytes) {
+//                                not used
+                    }
+
+                    @Override
+                    public void onSuccess(String requestId, Map resultData) {
+                        Log.d(TAG, "Image uploaded successfully: " + resultData.get("url"));
+                        saveExpense((String) resultData.get("url"));
+                    }
+
+                    @Override
+                    public void onError(String requestId, ErrorInfo error) {
+                        Log.e(TAG, "Image upload failed: " + error.getDescription());
+                        Toast.makeText(AddExpenseActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
+                        nextButton.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onReschedule(String requestId, ErrorInfo error) {
+//                                not used
+                    }
+                }).dispatch();
             }
         } catch (IOException e) {
             Log.e(TAG, "File error during image upload", e);

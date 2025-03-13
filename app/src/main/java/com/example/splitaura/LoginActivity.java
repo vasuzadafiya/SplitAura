@@ -128,7 +128,6 @@ public class LoginActivity extends BaseActivity {
         EditText emailEditText = dialogView.findViewById(R.id.edit_email);
         Button sendMail = dialogView.findViewById(R.id.btn_forget);
         ImageButton back = dialogView.findViewById(R.id.back_navigation);
-        TextView warningText = dialogView.findViewById(R.id.tv_warning);
 
         sendMail.setOnClickListener(view -> {
             String email = emailEditText.getText().toString().trim().toLowerCase();
@@ -290,7 +289,6 @@ public class LoginActivity extends BaseActivity {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
                 Utill.showToast(this, "Login Successful");
-//                createDialoge(LoginActivity.this, true);
                 navigateToHomepage(this);
             } else {
                 Utill.showToast(this, "User Not Found : " + task.getException());
@@ -362,7 +360,6 @@ public class LoginActivity extends BaseActivity {
                     if (task1.isSuccessful()) {
                         Utill.showToast(this, "User Profile Updated");
                         saveUserToFirestore(user.getUid(), fname, lname, email, password, defaultImageURL, false);
-//                        createDialoge(LoginActivity.this, false);
                         navigateToHomepage(this);
                     } else {
                         Utill.showToast(this, "User Profile Update Failed");

@@ -92,8 +92,19 @@
     <string name="family">Family 👨‍👩‍👧‍👦</string>
 
     <string name="split_by_prompt">Choose how to split the expense</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="btn_add">Add</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>
     </string-array>
+
+
+    <string-array name="filter_options">
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+    </string-array>
+
 </resources>

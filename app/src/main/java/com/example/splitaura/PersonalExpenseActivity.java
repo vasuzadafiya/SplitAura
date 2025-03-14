@@ -14,23 +14,24 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.example.splitaura.adapters.PersonalExpenseAdapter;
+import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.models.PersonalExpense;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -46,16 +47,21 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
-public class PersonalExpenseActivity extends AppCompatActivity {
+public class PersonalExpenseActivity extends BaseActivity {
+    private static final String EXPENSE = "expenses";
+    private static final String USERS = "users";
+    private static final String TIME_STAMP = "timestamp";
+    private static final String GENERAL = "General";
+    private static final String USER_ID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
     private TextView categorySelector;
     private Spinner paymentMethod;
     private final List<String> selectedCategories = new ArrayList<>();
     private String selectedMethod; // Payment method selection
     private EditText searchBox;
-    private TextView chartButton;
 
     //    You have to calculate and show total amount dynamically to the user
     private TextView totalAmount;
@@ -74,6 +80,7 @@ public class PersonalExpenseActivity extends AppCompatActivity {
 
         // Setup RecyclerView and adapter
         RecyclerView recyclerView;
+        TextView chartButton;
         recyclerView = findViewById(R.id.recycler_view);
         chartButton = findViewById(R.id.chart_button);
 
@@ -123,12 +130,7 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         addExpenseButton.setOnClickListener(view -> addExpense());
         totalAmount = findViewById(R.id.totalTextView);
 
-        chartButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewCharts();
-            }
-        });
+        chartButton.setOnClickListener(v -> showChart());
     }
 
 
@@ -143,37 +145,99 @@ public class PersonalExpenseActivity extends AppCompatActivity {
     }
 
     // Applies the date filter based on spinner selection
+// 1. Update applyDateFilter() to handle "Custom" selection
     private void applyDateFilter(String filterOption) {
         long currentTime = System.currentTimeMillis();
         Date cutoffDate;
         switch (filterOption) {
             case "7 days":
                 cutoffDate = new Date(currentTime - (7L * 24 * 60 * 60 * 1000));
+                fetchFilteredExpenses(cutoffDate);
                 break;
             case "15 days":
                 cutoffDate = new Date(currentTime - (15L * 24 * 60 * 60 * 1000));
+                fetchFilteredExpenses(cutoffDate);
                 break;
             case "30 days":
                 cutoffDate = new Date(currentTime - (30L * 24 * 60 * 60 * 1000));
+                fetchFilteredExpenses(cutoffDate);
+                break;
+            case "Custom":
+                // Show date range selector dialog.
+                showCustomDateRangePicker();
                 break;
             case "All":
             default:
-                cutoffDate = null; // No date restriction
+                fetchFilteredExpenses(null);
                 break;
         }
-        fetchFilteredExpenses(cutoffDate);
     }
+
+    // 2. Add a method to show custom date range picker dialogs
+    private void showCustomDateRangePicker() {
+        MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
+        builder.setTitleText("Select Date Range");
+        MaterialDatePicker<Pair<Long, Long>> dateRangePicker = builder.build();
+
+        dateRangePicker.show(getSupportFragmentManager(), "DATE_RANGE_PICKER");
+
+        dateRangePicker.addOnPositiveButtonClickListener(selection -> {
+            // selection.first and selection.second are the start and end in milliseconds.
+            Date startDate = new Date(selection.first);
+            Date endDate = new Date(selection.second);
+            fetchFilteredExpenses(startDate, endDate);
+        });
+    }
+
+    // 3. Overload fetchFilteredExpenses to handle a custom date range.
+    private void fetchFilteredExpenses(Date startDate, Date endDate) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
+
+        // Build Firestore query with both start and end date restrictions.
+        Query query = db.collection(USERS).document(userId).collection(EXPENSE)
+                .whereGreaterThanOrEqualTo(TIME_STAMP, new Timestamp(startDate))
+                .whereLessThanOrEqualTo(TIME_STAMP, new Timestamp(endDate));
+
+        // Remove any existing listener
+        if (expenseListenerRegistration != null) {
+            expenseListenerRegistration.remove();
+        }
+
+        // Attach realtime listener for the custom range
+        expenseListenerRegistration = query.addSnapshotListener((QuerySnapshot queryDocumentSnapshots,
+                                                                 com.google.firebase.firestore.FirebaseFirestoreException error) -> {
+            if (error != null) {
+                Toast.makeText(PersonalExpenseActivity.this, "Error fetching expenses", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Error fetching expenses: " + error.getMessage());
+                return;
+            }
+            List<PersonalExpense> expenses = new ArrayList<>();
+            assert queryDocumentSnapshots != null;
+            for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                PersonalExpense expense = doc.toObject(PersonalExpense.class);
+                if (expense != null) {
+                    expense.setDocumentId(doc.getId());
+                    expenses.add(expense);
+                }
+            }
+            // Save full list for search filtering
+            allExpenses = expenses;
+            filterExpenses(searchBox.getText().toString());
+        });
+    }
+
 
     // Fetches expenses from Firestore with an optional date cutoff
     private void fetchFilteredExpenses(Date cutoffDate) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         // Build Firestore query
-        Query query = db.collection("users").document(userId).collection("expenses");
+        Query query = db.collection(USERS).document(userId).collection(EXPENSE);
         if (cutoffDate != null) {
             Timestamp cutoffTimestamp = new Timestamp(cutoffDate);
-            query = query.whereGreaterThanOrEqualTo("timestamp", cutoffTimestamp);
+            query = query.whereGreaterThanOrEqualTo(TIME_STAMP, cutoffTimestamp);
         }
 
         // Remove any existing listener
@@ -189,6 +253,7 @@ public class PersonalExpenseActivity extends AppCompatActivity {
                 return;
             }
             List<PersonalExpense> expenses = new ArrayList<>();
+            assert queryDocumentSnapshots != null;
             for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                 PersonalExpense expense = doc.toObject(PersonalExpense.class);
                 if (expense != null) {
@@ -222,7 +287,8 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         for (PersonalExpense expense : filteredList) {
             total += expense.getAmount();
         }
-        totalAmount.setText("Total: " + String.format("%.2f", total));
+        String totals = "Total: ".concat(String.format("%.2f", total));
+        totalAmount.setText(totals);
     }
 
     private void addExpense() {
@@ -276,7 +342,6 @@ public class PersonalExpenseActivity extends AppCompatActivity {
                 return;
             }
 
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             // Create expense object with required fields and optional notes/categories
@@ -286,14 +351,14 @@ public class PersonalExpenseActivity extends AppCompatActivity {
             if (!notesText.isEmpty()) {
                 expense.put("notes", notesText);
             }
-            expense.put("timestamp", Timestamp.now());
+            expense.put(TIME_STAMP, Timestamp.now());
             expense.put("paymentMethod", selectedMethod);
             if (!selectedCategories.isEmpty()) {
                 expense.put("categories", new ArrayList<>(selectedCategories));
             }
 
             // Write expense to Firestore under user's expenses subcollection
-            db.collection("users").document(userId).collection("expenses").add(expense).addOnSuccessListener(documentReference -> {
+            db.collection(USERS).document(USER_ID).collection(EXPENSE).add(expense).addOnSuccessListener(documentReference -> {
                 Toast.makeText(PersonalExpenseActivity.this, "Expense added successfully", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }).addOnFailureListener(e -> {
@@ -303,7 +368,7 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         });
     }
 
-    private void viewCharts() {
+    private void showChart() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.charts, null);
 
@@ -315,40 +380,96 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         }
         dialog.show();
 
-        // Get chart views from layout
-        PieChart paymentMethodChart = dialogView.findViewById(R.id.pieChartPaymentMethod);
-        PieChart categoryChart = dialogView.findViewById(R.id.pieChartCategory);
-        BarChart datewiseChart = dialogView.findViewById(R.id.barChartDatewise);
+        categoryChart(dialogView);
+        paymentMethodChart(dialogView);
+        datewiseChart(dialogView);
 
-        /*
-         * 1. Payment Method Chart: Count occurrences for each method (Cash, Credit Card, Debit Card, UPI, Net Banking)
-         */
+    }
+
+    private void datewiseChart(View dialogView) {
+        BarChart datewiseChart = dialogView.findViewById(R.id.barChartDatewise);
+        Map<Date, Double> dateSpending = new TreeMap<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
+
+        // Aggregate spending by day (truncating the time component)
+        for (PersonalExpense expense : allExpenses) {
+            Date dateOnly = truncateDate(expense.getTimestamp().toDate());
+            dateSpending.merge(dateOnly, expense.getAmount(), Double::sum);
+        }
+
+        // Prepare BarEntries and X-axis labels from the sorted map
+        List<com.github.mikephil.charting.data.BarEntry> barEntries = new ArrayList<>();
+        List<String> dateLabels = new ArrayList<>();
+        int index = 0;
+        for (Map.Entry<Date, Double> entry : dateSpending.entrySet()) {
+            barEntries.add(new com.github.mikephil.charting.data.BarEntry(index, entry.getValue().floatValue()));
+            dateLabels.add(sdf.format(entry.getKey()));
+            index++;
+        }
+
+        com.github.mikephil.charting.data.BarDataSet barDataSet =
+                new com.github.mikephil.charting.data.BarDataSet(barEntries, "Datewise Spending");
+        int color = ContextCompat.getColor(this, R.color.f_pass_color);
+        barDataSet.setColor(color);
+
+        datewiseChart.setData(new com.github.mikephil.charting.data.BarData(barDataSet));
+        datewiseChart.getDescription().setEnabled(false);
+        datewiseChart.animateY(1000);
+
+        // Configure X-axis with date labels
+        com.github.mikephil.charting.components.XAxis xAxis = datewiseChart.getXAxis();
+        xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(dateLabels));
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+        xAxis.setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setTextSize(12f);
+
+        // Configure left Y-axis and disable right Y-axis
+        com.github.mikephil.charting.components.YAxis leftAxis = datewiseChart.getAxisLeft();
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setTextSize(12f);
+        leftAxis.setAxisMinimum(0f);
+        datewiseChart.getAxisRight().setEnabled(false);
+
+        datewiseChart.getLegend().setEnabled(false);
+        datewiseChart.setVisibleXRangeMaximum(5f);
+        datewiseChart.setDragEnabled(true);
+        datewiseChart.moveViewToX(barEntries.size() > 5 ? barEntries.size() - 5f : 0f);
+        datewiseChart.invalidate();
+    }
+
+    private void paymentMethodChart(View dialogView) {
+        PieChart paymentMethodChart = dialogView.findViewById(R.id.pieChartPaymentMethod);
         Map<String, Integer> paymentMethodCount = new HashMap<>();
-        String[] paymentMethods = {"Cash", "Credit Card", "Debit Card", "UPI", "Net Banking"};
+        String[] methods = {"Cash", "Credit Card", "Debit Card", "UPI", "Net Banking"};
+
         // Initialize counts
-        for (String method : paymentMethods) {
+        for (String method : methods) {
             paymentMethodCount.put(method, 0);
         }
-        // Aggregate counts from all expenses
+
+        // Aggregate counts from all expenses using merge
         for (PersonalExpense expense : allExpenses) {
             String method = expense.getPaymentMethod();
             if (method != null && paymentMethodCount.containsKey(method)) {
-                paymentMethodCount.put(method, paymentMethodCount.get(method) + 1);
+                paymentMethodCount.merge(method, 1, Integer::sum);
             }
         }
+
         // Create PieEntries for non-zero counts
         List<com.github.mikephil.charting.data.PieEntry> paymentEntries = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : paymentMethodCount.entrySet()) {
-            if (entry.getValue() > 0) {
-                paymentEntries.add(new com.github.mikephil.charting.data.PieEntry(entry.getValue(), entry.getKey()));
+        paymentMethodCount.forEach((key, value) -> {
+            if (value > 0) {
+                paymentEntries.add(new com.github.mikephil.charting.data.PieEntry(value, key));
             }
-        }
-        com.github.mikephil.charting.data.PieDataSet paymentDataSet = new com.github.mikephil.charting.data.PieDataSet(paymentEntries, "Payment Methods");
-        paymentDataSet.setColors(com.github.mikephil.charting.utils.ColorTemplate.MATERIAL_COLORS);
-        com.github.mikephil.charting.data.PieData paymentData = new com.github.mikephil.charting.data.PieData(paymentDataSet);
-        paymentMethodChart.setData(paymentData);
+        });
 
-        // Formatting Payment Method Chart
+        com.github.mikephil.charting.data.PieDataSet paymentDataSet =
+                new com.github.mikephil.charting.data.PieDataSet(paymentEntries, "Payment Methods");
+        paymentDataSet.setColors(com.github.mikephil.charting.utils.ColorTemplate.MATERIAL_COLORS);
+
+        paymentMethodChart.setData(new com.github.mikephil.charting.data.PieData(paymentDataSet));
         paymentMethodChart.getDescription().setEnabled(false);
         paymentMethodChart.setDrawEntryLabels(true);
         paymentMethodChart.setEntryLabelColor(Color.BLACK);
@@ -356,50 +477,49 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         paymentMethodChart.setCenterText("Methods");
         paymentMethodChart.setCenterTextSize(16f);
         paymentMethodChart.animateY(1000);
-        paymentMethodChart.invalidate(); // refresh
         paymentMethodChart.getLegend().setEnabled(false);
+        paymentMethodChart.invalidate();
+    }
 
-        /*
-         * 2. Category Spending Chart: Sum total amount spent per category.
-         * Expected categories: "General", "Games", "Sports", "Music", "Movies", "Food", "Liquor", "Grocery", "Shop"
-         * If an expense does not have any category, it will be added to "General".
-         */
+    private void categoryChart(View dialogView) {
+        PieChart categoryChart = dialogView.findViewById(R.id.pieChartCategory);
         Map<String, Double> categorySpending = new HashMap<>();
-        String[] categories = {"General", "Games", "Sports", "Music", "Movies", "Food", "Liquor", "Grocery", "Shop"};
-        // Initialize spending with 0 for each category
+        String[] categories = {GENERAL, "Games", "Sports", "Music", "Movies", "Food", "Liquor", "Grocery", "Shop"};
+
+        // Prepopulate each expected category with 0 spending
         for (String cat : categories) {
             categorySpending.put(cat, 0.0);
         }
-        // Aggregate spending from all expenses
+
+        // Aggregate spending; if an expense's category doesn't match, add its amount to GENERAL.
         for (PersonalExpense expense : allExpenses) {
-            List<String> cats = expense.getCategories();
-            if (cats != null && !cats.isEmpty()) {
-                for (String cat : cats) {
+            List<String> expCats = expense.getCategories();
+            if (expCats != null && !expCats.isEmpty()) {
+                for (String cat : expCats) {
                     if (categorySpending.containsKey(cat)) {
-                        categorySpending.put(cat, categorySpending.get(cat) + expense.getAmount());
+                        categorySpending.merge(cat, expense.getAmount(), Double::sum);
                     } else {
-                        // If category doesn't match expected ones, add its amount to "General"
-                        categorySpending.put("General", categorySpending.get("General") + expense.getAmount());
+                        categorySpending.merge(GENERAL, expense.getAmount(), Double::sum);
                     }
                 }
             } else {
-                // No category provided, add to "Other" (or General based on your needs)
-                categorySpending.put("General", categorySpending.get("General") + expense.getAmount());
+                categorySpending.merge(GENERAL, expense.getAmount(), Double::sum);
             }
         }
+
         // Create PieEntries for categories with spending > 0
         List<com.github.mikephil.charting.data.PieEntry> categoryEntries = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : categorySpending.entrySet()) {
-            if (entry.getValue() > 0) {
-                categoryEntries.add(new com.github.mikephil.charting.data.PieEntry(entry.getValue().floatValue(), entry.getKey()));
+        categorySpending.forEach((key, value) -> {
+            if (value > 0) {
+                categoryEntries.add(new com.github.mikephil.charting.data.PieEntry(value.floatValue(), key));
             }
-        }
-        com.github.mikephil.charting.data.PieDataSet categoryDataSet = new com.github.mikephil.charting.data.PieDataSet(categoryEntries, "Category Spending");
-        categoryDataSet.setColors(com.github.mikephil.charting.utils.ColorTemplate.COLORFUL_COLORS);
-        com.github.mikephil.charting.data.PieData categoryData = new com.github.mikephil.charting.data.PieData(categoryDataSet);
-        categoryChart.setData(categoryData);
+        });
 
-        // Formatting Category Chart
+        com.github.mikephil.charting.data.PieDataSet categoryDataSet =
+                new com.github.mikephil.charting.data.PieDataSet(categoryEntries, "Category Spending");
+        categoryDataSet.setColors(com.github.mikephil.charting.utils.ColorTemplate.COLORFUL_COLORS);
+
+        categoryChart.setData(new com.github.mikephil.charting.data.PieData(categoryDataSet));
         categoryChart.getDescription().setEnabled(false);
         categoryChart.setDrawEntryLabels(true);
         categoryChart.setEntryLabelColor(Color.BLACK);
@@ -409,94 +529,19 @@ public class PersonalExpenseActivity extends AppCompatActivity {
         categoryChart.animateY(1000);
         categoryChart.getLegend().setEnabled(false);
         categoryChart.invalidate();
-
-
-        // Use a TreeMap with Date as key for proper chronological sorting.
-// If you want to group by day only, consider truncating the time component.
-        Map<Date, Double> dateSpending = new TreeMap<>();
-
-// SimpleDateFormat for display purpose.
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy");
-
-        for (PersonalExpense expense : allExpenses) {
-            // Convert Firebase Timestamp to Date
-            Date fullDate = expense.getTimestamp().toDate();
-
-            // Optional: Truncate the time portion so that expenses on the same day are grouped together.
-            // This can be done using Calendar:
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(fullDate);
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-            Date dateOnly = cal.getTime();
-
-            // Sum up spending for each day
-            Double currentAmount = dateSpending.get(dateOnly);
-            if (currentAmount == null) {
-                dateSpending.put(dateOnly, expense.getAmount());
-            } else {
-                dateSpending.put(dateOnly, currentAmount + expense.getAmount());
-            }
-        }
-
-// Prepare BarEntries and X-axis labels from the sorted TreeMap
-        List<com.github.mikephil.charting.data.BarEntry> barEntries = new ArrayList<>();
-        List<String> dateLabels = new ArrayList<>();
-        int index = 0;
-        for (Map.Entry<Date, Double> entry : dateSpending.entrySet()) {
-            barEntries.add(new com.github.mikephil.charting.data.BarEntry(index, entry.getValue().floatValue()));
-            // Format the Date object into a label.
-            dateLabels.add(sdf.format(entry.getKey()));
-            index++;
-        }
-
-        com.github.mikephil.charting.data.BarDataSet barDataSet = new com.github.mikephil.charting.data.BarDataSet(barEntries, "Datewise Spending");
-        int color = ContextCompat.getColor(this, R.color.f_pass_color);
-        barDataSet.setColor(color);
-
-        com.github.mikephil.charting.data.BarData barData = new com.github.mikephil.charting.data.BarData(barDataSet);
-        datewiseChart.setData(barData);
-
-// Formatting Datewise Chart
-        datewiseChart.getDescription().setEnabled(false);
-        datewiseChart.animateY(1000);
-
-// Set up the X-axis formatter with the date labels
-        com.github.mikephil.charting.components.XAxis xAxis = datewiseChart.getXAxis();
-        xAxis.setValueFormatter(new com.github.mikephil.charting.formatter.IndexAxisValueFormatter(dateLabels));
-        xAxis.setGranularity(1f);
-        xAxis.setGranularityEnabled(true);
-        xAxis.setPosition(com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawGridLines(false);
-        xAxis.setTextSize(12f);
-
-// Format the left Y-axis and disable the right Y-axis
-        com.github.mikephil.charting.components.YAxis leftAxis = datewiseChart.getAxisLeft();
-        leftAxis.setDrawGridLines(false);
-        leftAxis.setTextSize(12f);
-        leftAxis.setAxisMinimum(0f);
-        com.github.mikephil.charting.components.YAxis rightAxis = datewiseChart.getAxisRight();
-        rightAxis.setEnabled(false);
-
-        datewiseChart.getLegend().setEnabled(false);
-
-// Set visible range to 5 bars and enable dragging
-        datewiseChart.setVisibleXRangeMaximum(5f);
-        datewiseChart.setDragEnabled(true);
-
-// Scroll the view to show the last 5 (most recent) data points
-        if (barEntries.size() > 5) {
-            datewiseChart.moveViewToX(barEntries.size() - 5);
-        } else {
-            datewiseChart.moveViewToX(0f);
-        }
-
-        datewiseChart.invalidate();
-
     }
 
+
+    // Helper method to truncate the time portion from a Date.
+    private Date truncateDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
 
     private void showCategoryDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_category, null);

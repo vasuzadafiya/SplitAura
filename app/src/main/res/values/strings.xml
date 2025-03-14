@@ -106,6 +106,7 @@
         <item>15 days</item>
         <item>30 days</item>
         <item>All</item>
+        <item>Custom</item>
     </string-array>
 
 </resources>

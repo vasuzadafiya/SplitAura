@@ -62,8 +62,8 @@
             android:layout_marginStart="60dp"
             android:gravity="center_vertical"
             android:text="@string/Totals"
-            android:textSize="22sp"
             android:textColor="@color/black"
+            android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -73,7 +73,7 @@
         <TextView
             android:id="@+id/chart_button"
             android:layout_width="wrap_content"
-            android:layout_height="60dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="16dp"
             android:drawableStart="@drawable/baseline_chart"
             android:gravity="bottom"
@@ -88,6 +88,8 @@
             app:layout_constraintVertical_bias="0.615" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- FloatingActionButton to add new expense -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="0dp"
@@ -95,16 +97,16 @@
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linear" />
+        app:layout_constraintTop_toBottomOf="@+id/linear"
+        app:layout_constraintVertical_bias="1.0" />
 
-    <!-- FloatingActionButton to add new expense -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fab_add_expense"
         style="@style/ToggleButtonStyle"
         android:layout_width="180dp"
         android:layout_height="55dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginBottom="60dp"
         android:backgroundTint="@color/f_pass_color"
         android:gravity="center"

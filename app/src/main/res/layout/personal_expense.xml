@@ -38,13 +38,55 @@
         <Spinner
             android:id="@+id/filter_spinner"
             style="@style/CustomSpinner"
-            android:background="@drawable/spinner_background"
-            android:layout_width="140dp"
+            android:layout_width="110dp"
             android:layout_height="50dp"
             android:layout_marginStart="8dp"
-            android:gravity="center"
-            android:entries="@array/filter_options" />
+            android:background="@drawable/spinner_background"
+            android:entries="@array/filter_options"
+            android:gravity="center" />
     </LinearLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/search_filter_container"
+        tools:layout_editor_absoluteX="26dp">
+
+        <TextView
+            android:id="@+id/totalTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_marginStart="60dp"
+            android:gravity="center_vertical"
+            android:text="@string/Totals"
+            android:textSize="22sp"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <TextView
+            android:id="@+id/chart_button"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_marginEnd="16dp"
+            android:drawableStart="@drawable/baseline_chart"
+            android:gravity="bottom"
+            android:background="@drawable/border_greyish"
+            android:text="View Chart"
+            android:padding="16dp"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.615" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
@@ -54,7 +96,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/search_filter_container" />
+        app:layout_constraintTop_toBottomOf="@+id/linear" />
 
     <!-- FloatingActionButton to add new expense -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

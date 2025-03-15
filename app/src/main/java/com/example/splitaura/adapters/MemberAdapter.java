@@ -1,6 +1,7 @@
-
 package com.example.splitaura.adapters;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,20 +12,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
+import com.example.splitaura.fragments.ProfileFragment;
 import com.example.splitaura.models.Friend;
 
 import java.util.List;
 
 public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberViewHolder> {
-
     private List<Friend> membersList;
+    private Context context;
+    private FragmentManager fragmentManager;
+    private ViewPager2 viewPager;
 
-    public MemberAdapter(List<Friend> membersList) {
+    public MemberAdapter(List<Friend> membersList, Context context, FragmentManager fragmentManager, ViewPager2 viewPager) {
         this.membersList = membersList;
+        this.context = context;
+        this.fragmentManager = fragmentManager;
+        this.viewPager = viewPager;
     }
 
     @NonNull
@@ -41,7 +50,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         holder.friendEmailTextView.setText(friend.getEmail());
         holder.menuDots.setOnClickListener(v -> showPopupMenu(v, friend, position));
 
-        Glide.with(holder.itemView.getContext())
+        Glide.with(context)
                 .load(friend.getProfile_picture())
                 .circleCrop()
                 .into(holder.friendProfileImageView);
@@ -63,7 +72,6 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         TextView friendEmailTextView;
         TextView menuDots;
 
-
         public MemberViewHolder(@NonNull View itemView) {
             super(itemView);
             friendProfileImageView = itemView.findViewById(R.id.ivProfile);
@@ -79,22 +87,41 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         popup.getMenu().add("View Profile");
         popup.getMenu().add("Remove Member");
 
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                String action = item.getTitle().toString();
-                switch (action) {
-                    case "View Profile":
-                        Toast.makeText(view.getContext(), "View Profile for " + friend.getFname(), Toast.LENGTH_SHORT).show();
-                        break;
-                    case "Remove Member":
-                        Toast.makeText(view.getContext(), "Remove Member " + friend.getFname(), Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                return true;
+        popup.setOnMenuItemClickListener(item -> {
+            String action = item.getTitle().toString();
+            switch (action) {
+                case "View Profile":
+                    navigateToProfile(friend.getUid());
+                    break;
+                case "Remove Member":
+                    Toast.makeText(context, "Remove Member " + friend.getFname(), Toast.LENGTH_SHORT).show();
+                    break;
             }
+            return true;
         });
 
         popup.show();
+    }
+
+    private void navigateToProfile(String userUid) {
+        if (fragmentManager != null && userUid != null) {
+            ProfileFragment profileFragment = ProfileFragment.newInstance(userUid);
+            fragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, profileFragment)
+                    .addToBackStack(null)
+                    .commit();
+            Log.d("ProfileFragment", "UserUid: " + userUid);
+
+            // Hide the ViewPager2 and show the fragment container
+            viewPager.setVisibility(View.GONE);
+            View fragmentContainer = viewPager.getRootView().findViewById(R.id.fragment_container);
+            if (fragmentContainer != null) {
+                fragmentContainer.setVisibility(View.VISIBLE);
+            }
+
+            Toast.makeText(context, "Viewing profile of " + userUid, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(context, "Unable to view profile", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -12,16 +12,15 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.models.GroupItem;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -29,7 +28,6 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
     private final Context context;
     private List<GroupItem> groupList;
     private final Random random = new Random();
-    private ExpenseManager expenseManager;
 
     // Define a static array for the background colors.
     private static final int[] COLORS = {
@@ -42,7 +40,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     public GroupAdapter(Context context, List<GroupItem> groupList) {
         this.context = context;
-        this.groupList = groupList;
+        this.groupList = groupList != null ? groupList : new ArrayList<>();
     }
 
     @NonNull
@@ -54,81 +52,93 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     @Override
     public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
-        GroupItem group = groupList.get(position);
+        if (groupList.isEmpty()) {
+            // Show placeholder
+            holder.placeholderText.setVisibility(View.VISIBLE);
+            holder.cardView.setVisibility(View.GONE);
+        } else {
+            // Show group item
+            holder.placeholderText.setVisibility(View.GONE);
+            holder.cardView.setVisibility(View.VISIBLE);
 
-        holder.groupName.setText(group.getGroupName());
-        holder.groupDate.setText(group.getDate());
-        holder.groupAmount.setText("₹ " + String.format("%.2f", group.getAmount()));
+            GroupItem group = groupList.get(position);
 
-        // Load group image dynamically using Glide
-        Glide.with(context)
-                .load(group.getGroupImageUrl())
-                .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
-                .placeholder(R.drawable.ic_group) // Placeholder while loading
-                .error(R.drawable.ic_group) // Fallback if the image fails to load
-                .circleCrop()
-                .into(holder.groupImage);
+            holder.groupName.setText(group.getGroupName());
+            holder.groupDate.setText(group.getDate());
+            holder.groupAmount.setText("₹ " + String.format("%.2f", group.getAmount()));
 
-        // Load member images dynamically using Glide
-        List<String> memberImages = group.getMemberImagesUrls();
-        if (!memberImages.isEmpty()) {
-            holder.member1.setVisibility(View.VISIBLE);
+            // Load group image dynamically using Glide
             Glide.with(context)
-                    .load(memberImages.get(0))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.obsmallmen2)
-                    .error(R.drawable.obsmallmen2)
+                    .load(group.getGroupImageUrl())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache the image
+                    .placeholder(R.drawable.ic_group) // Placeholder while loading
+                    .error(R.drawable.ic_group) // Fallback if the image fails to load
                     .circleCrop()
-                    .into(holder.member1);
-        }
-        if (memberImages.size() > 1) {
-            holder.member2.setVisibility(View.VISIBLE);
-            Glide.with(context)
-                    .load(memberImages.get(1))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.obwomens)
-                    .error(R.drawable.obwomens)
-                    .circleCrop()
-                    .into(holder.member2);
-        }
-        if (memberImages.size() > 2) {
-            holder.member3.setVisibility(View.VISIBLE);
-            Glide.with(context)
-                    .load(memberImages.get(2))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.obwomensmall)
-                    .error(R.drawable.obwomensmall)
-                    .circleCrop()
-                    .into(holder.member3);
-        }
-        if (group.getMoreMembersCount() > 0) {
-            holder.moreMembers.setVisibility(View.VISIBLE);
-            holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
-        }
+                    .into(holder.groupImage);
 
-        // Set random background color for the card
-        int randomColor = COLORS[random.nextInt(COLORS.length)];
-        holder.cardView.setCardBackgroundColor(randomColor);
+            // Load member images dynamically using Glide
+            List<String> memberImages = group.getMemberImagesUrls();
+            if (!memberImages.isEmpty()) {
+                holder.member1.setVisibility(View.VISIBLE);
+                Glide.with(context)
+                        .load(memberImages.get(0))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(R.drawable.obsmallmen2)
+                        .error(R.drawable.obsmallmen2)
+                        .circleCrop()
+                        .into(holder.member1);
+            }
+            if (memberImages.size() > 1) {
+                holder.member2.setVisibility(View.VISIBLE);
+                Glide.with(context)
+                        .load(memberImages.get(1))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(R.drawable.obwomens)
+                        .error(R.drawable.obwomens)
+                        .circleCrop()
+                        .into(holder.member2);
+            }
+            if (memberImages.size() > 2) {
+                holder.member3.setVisibility(View.VISIBLE);
+                Glide.with(context)
+                        .load(memberImages.get(2))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .placeholder(R.drawable.obwomensmall)
+                        .error(R.drawable.obwomensmall)
+                        .circleCrop()
+                        .into(holder.member3);
+            }
+            if (group.getMoreMembersCount() > 0) {
+                holder.moreMembers.setVisibility(View.VISIBLE);
+                holder.moreMembers.setText("+" + group.getMoreMembersCount() + " more");
+            }
 
-        // Handle "View Details" button click
-        holder.viewDetails.setOnClickListener(v -> {
-            Intent intent = new Intent(context, GroupExpensesActivity.class);
-            intent.putExtra("groupId", group.getGroupId());
-            context.startActivity(intent);
-        });
+            // Set random background color for the card
+            int randomColor = COLORS[random.nextInt(COLORS.length)];
+            holder.cardView.setCardBackgroundColor(randomColor);
+
+            // Handle "View Details" button click
+            holder.viewDetails.setOnClickListener(v -> {
+                Intent intent = new Intent(context, GroupExpensesActivity.class);
+                intent.putExtra("groupId", group.getGroupId());
+                context.startActivity(intent);
+            });
+        }
     }
 
     @Override
     public int getItemCount() {
-        return groupList.size();
+        // If the group list is empty, return 1 to show the placeholder
+        return groupList.isEmpty() ? 1 : groupList.size();
     }
 
     // Setter method to update the list
     public void setGroupList(List<GroupItem> groupList) {
-        this.groupList = groupList;
-        notifyDataSetChanged();
+        this.groupList = groupList != null ? groupList : new ArrayList<>();
+        notifyDataSetChanged(); // Notify adapter of data changes
     }
 
+    // ViewHolder for group items and placeholder
     public static class GroupViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
         TextView groupName;
@@ -140,6 +150,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
         ImageView member2;
         ImageView member3;
         Button viewDetails;
+        TextView placeholderText;
 
         public GroupViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -153,6 +164,7 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
             member3 = itemView.findViewById(R.id.member3);
             moreMembers = itemView.findViewById(R.id.more_members);
             viewDetails = itemView.findViewById(R.id.view_details_btn);
+            placeholderText = itemView.findViewById(R.id.placeholder_text);
         }
     }
 }

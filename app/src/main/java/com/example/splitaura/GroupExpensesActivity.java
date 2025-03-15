@@ -38,6 +38,7 @@ public class GroupExpensesActivity extends BaseActivity {
     private MaterialButton btnExpenses, btnBalances, btnTotals, btnGroups;
     private ImageView backButton;
     private ViewPager2 viewPager;
+    private View fragmentContainer;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
@@ -61,6 +62,14 @@ public class GroupExpensesActivity extends BaseActivity {
         setupButtonListeners();
         btnExpenses.setChecked(true);
         updateButtonStyles(btnExpenses);
+
+        // Add back stack listener to restore ViewPager2 visibility
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                viewPager.setVisibility(View.VISIBLE);
+                fragmentContainer.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void initViews() {
@@ -73,6 +82,7 @@ public class GroupExpensesActivity extends BaseActivity {
         btnTotals = findViewById(R.id.btn_totals);
         btnGroups = findViewById(R.id.btn_groups);
         viewPager = findViewById(R.id.viewPager);
+        fragmentContainer = findViewById(R.id.fragment_container);
         viewPager.setUserInputEnabled(false);
     }
 
@@ -87,7 +97,7 @@ public class GroupExpensesActivity extends BaseActivity {
 
     private void setupViewPager() {
         // Set up the adapter for ViewPager2.
-        GroupExpensesPagerAdapter adapter = new GroupExpensesPagerAdapter(this);
+        GroupExpensesPagerAdapter adapter = new GroupExpensesPagerAdapter(this, viewPager);
         viewPager.setAdapter(adapter);
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -178,12 +188,13 @@ public class GroupExpensesActivity extends BaseActivity {
         }).addOnFailureListener(e -> Utill.showToast(this, e.getMessage()));
     }
 
-
     // ViewPager2 adapter class for fragments.
     private static class GroupExpensesPagerAdapter extends FragmentStateAdapter {
+        private ViewPager2 viewPager;
 
-        GroupExpensesPagerAdapter(AppCompatActivity activity) {
+        GroupExpensesPagerAdapter(AppCompatActivity activity, ViewPager2 viewPager) {
             super(activity);
+            this.viewPager = viewPager;
         }
 
         @Override
@@ -194,7 +205,7 @@ public class GroupExpensesActivity extends BaseActivity {
                 case 2:
                     return new TotalsFragment();
                 case 3:
-                    return new GroupInfoFragment();
+                    return new GroupInfoFragment(viewPager); // Pass ViewPager2 to GroupInfoFragment
                 default:
                     return new ExpensesFragment();
             }

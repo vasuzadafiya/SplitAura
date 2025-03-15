@@ -156,13 +156,11 @@ public class Homepage extends BaseActivity {
     }
 
     private void openPersonalActivity() {
-//        startActivity(new Intent(this, AddExpenseActivity.class));
-        Utill.showToast(this,"Coming Soon");
+        startActivity(new Intent(this, PersonalExpenseActivity.class));
         hideCurvedBracket();
     }
 
     private void openGroupActivity() {
-//        startActivity(new Intent(this, GroupExpensesActivity.class));
         Utill.showToast(this,"Coming Soon");
         hideCurvedBracket();
     }

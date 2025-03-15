@@ -51,11 +51,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:19.1.0'
 
 //    Animation and UI Dependency
-//    implementation libs.material.v170
     implementation libs.lottie
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'com.google.code.gson:gson:2.10.1'
-//    implementation(libs.material.v1100)
 
 //    Firebase Database Dependency
     implementation libs.firebase.storage
@@ -83,8 +80,10 @@ dependencies {
     implementation libs.fragment
 
 //    image uploading api
-    // Retrofit for REST API calls
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
+//    chart api
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
 }

@@ -4,8 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
         android:name=".MyApplication"
@@ -19,22 +19,25 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
+            android:name=".PersonalExpenseActivity"
+            android:exported="false" />
+        <activity
             android:name=".GroupExpensesActivity"
             android:exported="false" />
-        <activity android:name=".SelectGroupMembers"
-            android:exported="true" />
+        <activity
+            android:name=".SelectGroupMembers"
+            android:exported="false" />
         <activity
             android:name=".ManageFriends"
             android:exported="false" />
         <activity
             android:name=".AddExpenseActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".AddGroupActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"
-            />
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".Homepage"
             android:exported="false" />
@@ -44,7 +47,7 @@
         <activity
             android:name=".LoginActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".OnboardingScreen"
             android:exported="false" />

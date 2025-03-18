@@ -37,7 +37,7 @@ Here's a detailed template for your **SplitAura** repository's README on GitHub.
 
 ## Technologies Used
 
-- **Kotlin**: Primary language for Android app development.
+- **java**: Primary language for Android app development.
 - **Firebase**: Used for authentication, real-time database, and storage.
   - Firestore: For managing user and group data.
   - Firebase Authentication: For secure login and registration.

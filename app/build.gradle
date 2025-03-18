@@ -73,6 +73,10 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
 
+    // for upi payment
+    implementation 'com.razorpay:checkout:1.6.26'
+    implementation 'com.itextpdf:itext7-core:7.2.5' // iText for PDF generation
+
 
     platform(libs.firebase.bom)
     implementation(libs.google.firebase.auth)

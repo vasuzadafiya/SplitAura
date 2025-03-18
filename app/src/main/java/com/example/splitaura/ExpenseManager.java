@@ -1,5 +1,7 @@
 package com.example.splitaura;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -96,12 +98,16 @@ public class ExpenseManager {
         firestore.collection("groups").document(groupId).get()
                 .addOnSuccessListener(doc -> {
                     List<String> ids = (List<String>) doc.get("memberIds");
-                    if (ids != null) {
+                    if (ids != null && !ids.isEmpty()) {
                         memberIds = ids;
+                    } else {
+                        Log.w(TAG, "No memberIds found for group: " + groupId);
+                        memberIds = new ArrayList<>();
                     }
                     setupExpenseListener();
                 })
                 .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to fetch group members for group: " + groupId, e);
                     memberIds = new ArrayList<>();
                     setupExpenseListener();
                 });
@@ -111,6 +117,7 @@ public class ExpenseManager {
         expenseListener = firestore.collection("groups").document(groupId).collection("expenses")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) {
+                        Log.e(TAG, "Error fetching expenses or snapshots null: ", e);
                         userExpenseData.setValue(new HashMap<>());
                         expenses.setValue(new ArrayList<>());
                         return;
@@ -137,12 +144,16 @@ public class ExpenseManager {
             String amountStr = expense.getAmount();
             Map<String, Double> participants = expense.getParticipants();
 
-            if (paidBy == null || amountStr == null || participants == null) continue;
+            if (paidBy == null || amountStr == null || participants == null) {
+                Log.w(TAG, "Invalid expense data in document: " + doc.getId());
+                continue;
+            }
 
             double amount;
             try {
                 amount = Double.parseDouble(amountStr);
             } catch (NumberFormatException e) {
+                Log.w(TAG, "Invalid amount format in document: " + doc.getId(), e);
                 continue;
             }
 
@@ -162,7 +173,7 @@ public class ExpenseManager {
             // Process each participant's share
             for (Map.Entry<String, Double> participant : participants.entrySet()) {
                 String userId = participant.getKey();
-                double share = participant.getValue() > 0 ? participant.getValue() : equalShare;
+                double share = participant.getValue() != null && participant.getValue() > 0 ? participant.getValue() : equalShare;
 
                 if (!data.containsKey(userId)) {
                     data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
@@ -183,8 +194,6 @@ public class ExpenseManager {
         // Calculate net balances
         for (String userId : data.keySet()) {
             UserExpenseData userData = data.get(userId);
-
-            // Net balance = total spent minus total share they should have paid
             userData.netBalance = userData.totalSpent - userData.totalShare;
         }
 
@@ -204,20 +213,20 @@ public class ExpenseManager {
                             try {
                                 totalSpending += Double.parseDouble(amountStr);
                             } catch (NumberFormatException e) {
-                                // Skip invalid amounts
+                                Log.w(TAG, "Invalid amount format in document: " + doc.getId(), e);
                             }
                         }
                     }
                     updateTotalSpending(totalSpending);
                 })
-                .addOnFailureListener(e -> Log.e("ExpenseManager", "Failed to calculate total spending", e));
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to calculate total spending", e));
     }
 
     private void updateTotalSpending(double totalSpending) {
         firestore.collection("groups").document(groupId)
-                .update("amount", totalSpending)
-                .addOnSuccessListener(aVoid -> Log.d("ExpenseManager", "Total spending updated successfully: " + totalSpending))
-                .addOnFailureListener(e -> Log.e("ExpenseManager", "Failed to update total spending", e));
+                .update("totalSpending", totalSpending) // Changed from "amount" to "totalSpending"
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Total spending updated successfully: " + totalSpending))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update total spending", e));
     }
 
     public void removeListener() {

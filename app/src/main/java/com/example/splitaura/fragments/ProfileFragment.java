@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -33,8 +32,11 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProfileFragment extends Fragment {
     private static final String TAG = "ProfileFragment";
@@ -51,8 +53,6 @@ public class ProfileFragment extends Fragment {
     private Button editProfileButton, logoutButton, addFriendButton;
     private ImageView profileImage;
     private TextView userName, userEmail, userMobile, userGender, userUpi, friendsCount, groupsCount;
-
-    // In-memory cache
     private final Map<String, Friend> friendCache = new HashMap<>();
     private final List<Friend> friendsList = new ArrayList<>();
     private final Map<String, String> groupCache = new HashMap<>();
@@ -92,13 +92,14 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         editProfileButton = view.findViewById(R.id.editProfileButton);
         logoutButton = view.findViewById(R.id.logoutButton);
-        addFriendButton = view.findViewById(R.id.addFriendButton); // Add this ID to your layout
+        addFriendButton = view.findViewById(R.id.addFriendButton);
         profileImage = view.findViewById(R.id.profileImage);
         userName = view.findViewById(R.id.userName);
         userEmail = view.findViewById(R.id.userEmail);
@@ -129,19 +130,14 @@ public class ProfileFragment extends Fragment {
         groupsCount.setText("Loading...");
     }
 
-    /**
-     * Refresh the fragment data
-     */
     public void refreshData() {
-        // Clear in-memory caches
         friendCache.clear();
         friendsList.clear();
         groupCache.clear();
         groupsList.clear();
 
-        // Clear shared preferences cache and reload
         cachePrefs.edit().clear().apply();
-        setLoadingPlaceholders(); // Show "Loading..." while refreshing
+        setLoadingPlaceholders();
         loadCachedData();
     }
 
@@ -150,7 +146,6 @@ public class ProfileFragment extends Fragment {
         long currentTime = System.currentTimeMillis();
 
         if (currentTime - lastCacheTime < CACHE_DURATION_MS && targetUid.equals(currentUserUid)) {
-            // Cache is valid only for the current user's profile
             String userDataJson = cachePrefs.getString(USER_DATA_KEY, null);
             String friendsListJson = cachePrefs.getString(FRIENDS_LIST_KEY, null);
             String groupsListJson = cachePrefs.getString(GROUPS_LIST_KEY, null);
@@ -199,7 +194,6 @@ public class ProfileFragment extends Fragment {
                 return;
             }
         } else {
-            // Cache is expired or viewing another user's profile, fetch from Firestore
             fetchUserData();
         }
     }
@@ -242,7 +236,6 @@ public class ProfileFragment extends Fragment {
                         profileImage.setImageResource(R.drawable.obsmallmen2);
                     }
 
-                    // Cache user data only for the current user
                     if (targetUid.equals(currentUserUid)) {
                         Map<String, String> userData = new HashMap<>();
                         userData.put("fullName", fullName.trim().isEmpty() ? "Unknown User" : fullName.trim());
@@ -253,8 +246,9 @@ public class ProfileFragment extends Fragment {
                         userData.put("profilePicture", profilePicture != null ? profilePicture : "");
                         String userDataJson = gson.toJson(userData);
                         cachePrefs.edit().putString(USER_DATA_KEY, userDataJson).apply();
-                        fetchFriendsAndGroups(targetUid);
                     }
+
+                    fetchFriendsAndGroups(targetUid);
                 } else {
                     Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
                 }
@@ -262,16 +256,15 @@ public class ProfileFragment extends Fragment {
                 Exception e = task.getException();
                 Toast.makeText(getContext(), "Failed to load profile: " + (e != null ? e.getMessage() : "Unknown error"), Toast.LENGTH_SHORT).show();
             }
-            updateButtonVisibility(); // Update buttons after data is loaded
+            updateButtonVisibility();
         });
     }
 
     private void fetchFriendsAndGroups(String uid) {
-        if (!uid.equals(currentUserUid)) return; // Only fetch friends and groups for current user
-
-        final int[] friendQueriesCompleted = {0};
-        final int totalFriendQueries = 2;
-        final int[] friendDetailsFetched = {0};
+        // Fetch friends
+        final AtomicInteger friendQueriesCompleted = new AtomicInteger(0);
+        final AtomicInteger totalFriendQueries = new AtomicInteger(0);
+        final AtomicInteger friendDetailsFetched = new AtomicInteger(0);
 
         Query friendQuery1 = db.collection("friend_requests")
                 .whereEqualTo("sender_uid", uid)
@@ -282,78 +275,154 @@ public class ProfileFragment extends Fragment {
 
         friendQuery1.get().addOnSuccessListener(queryDocumentSnapshots -> {
             Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " friend requests as sender");
-            friendsList.clear();
             if (!queryDocumentSnapshots.isEmpty()) {
+                totalFriendQueries.addAndGet(queryDocumentSnapshots.size());
                 for (DocumentSnapshot doc : queryDocumentSnapshots) {
                     String friendId = doc.getString("receiver_uid");
                     Log.d(TAG, "Sender friend ID: " + friendId);
                     if (friendId != null && !friendId.equals(uid)) {
-                        fetchFriendDetails(friendId, friendDetailsFetched, totalFriendQueries);
+                        fetchFriendDetails(friendId, friendDetailsFetched, totalFriendQueries.get());
                     }
                 }
             }
-            friendQueriesCompleted[0]++;
-            checkFriendsCountUpdate(friendQueriesCompleted[0], friendDetailsFetched[0], totalFriendQueries);
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         }).addOnFailureListener(e -> {
-            Log.e(TAG, "Failed to load friends (sender): " + e.getMessage());
-            friendQueriesCompleted[0]++;
-            checkFriendsCountUpdate(friendQueriesCompleted[0], friendDetailsFetched[0], totalFriendQueries);
+            Log.e(TAG, "Failed to load friends (sender): " + e.getMessage(), e);
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         });
 
         friendQuery2.get().addOnSuccessListener(queryDocumentSnapshots -> {
             Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " friend requests as receiver");
             if (!queryDocumentSnapshots.isEmpty()) {
+                totalFriendQueries.addAndGet(queryDocumentSnapshots.size());
                 for (DocumentSnapshot doc : queryDocumentSnapshots) {
                     String friendId = doc.getString("sender_uid");
                     Log.d(TAG, "Receiver friend ID: " + friendId);
                     if (friendId != null && !friendId.equals(uid)) {
-                        fetchFriendDetails(friendId, friendDetailsFetched, totalFriendQueries);
+                        fetchFriendDetails(friendId, friendDetailsFetched, totalFriendQueries.get());
                     }
                 }
             }
-            friendQueriesCompleted[0]++;
-            checkFriendsCountUpdate(friendQueriesCompleted[0], friendDetailsFetched[0], totalFriendQueries);
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         }).addOnFailureListener(e -> {
-            Log.e(TAG, "Failed to load friends (receiver): " + e.getMessage());
-            friendQueriesCompleted[0]++;
-            checkFriendsCountUpdate(friendQueriesCompleted[0], friendDetailsFetched[0], totalFriendQueries);
+            Log.e(TAG, "Failed to load friends (receiver): " + e.getMessage(), e);
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         });
 
+        // Fetch groups (split into two queries to comply with security rules)
+        Set<String> groupIds = new HashSet<>();
+        AtomicInteger groupQueriesCompleted = new AtomicInteger(0);
+        int totalGroupQueries = 2;
+
+        // Query 1: Groups where the user is the creator
+        db.collection("groups")
+                .whereEqualTo("createdBy", uid)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " groups where user is creator");
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        String groupId = doc.getId();
+                        groupIds.add(groupId);
+                    }
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to load groups where user is creator: " + e.getMessage(), e);
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
+                });
+
+        // Query 2: Groups where the user is in memberIds
         db.collection("groups")
                 .whereArrayContains("memberIds", uid)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " groups");
-                    groupsList.clear();
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            String groupId = doc.getId();
-                            String groupName = doc.getString("name");
-                            groupCache.put(groupId, groupName != null ? groupName : "Unknown Group");
-                            groupsList.add(groupId);
-                        }
+                    Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " groups where user is a member");
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        String groupId = doc.getId();
+                        groupIds.add(groupId);
                     }
-                    groupsCount.setText(String.valueOf(groupsList.size()));
-                    // Save groups list to cache
-                    String groupsListJson = gson.toJson(groupsList);
-                    cachePrefs.edit().putString(GROUPS_LIST_KEY, groupsListJson).apply();
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to load groups: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to load groups", Toast.LENGTH_SHORT).show();
-                    groupsCount.setText("0");
+                    Log.e(TAG, "Failed to load groups where user is a member: " + e.getMessage(), e);
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
                 });
     }
 
-    private void fetchFriendDetails(String friendId, int[] friendDetailsFetched, int totalFriendQueries) {
+    private void fetchGroupDetails(Set<String> groupIds) {
+        groupsList.clear();
+        groupCache.clear();
+
+        if (groupIds.isEmpty()) {
+            Log.d(TAG, "No groups found for user UID: " + targetUid);
+            Log.d(TAG, "User authenticated: " + (FirebaseAuth.getInstance().getCurrentUser() != null));
+            groupsCount.setText("0");
+            if (targetUid.equals(currentUserUid)) {
+                String groupsListJson = gson.toJson(groupsList);
+                cachePrefs.edit().putString(GROUPS_LIST_KEY, groupsListJson).apply();
+            }
+            return;
+        }
+
+        AtomicInteger groupsProcessed = new AtomicInteger(0);
+        for (String groupId : groupIds) {
+            db.collection("groups").document(groupId).get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            String groupName = doc.getString("name");
+                            List<String> memberIds = (List<String>) doc.get("memberIds");
+                            Log.d(TAG, "Group ID: " + groupId + ", Name: " + groupName + ", Member IDs: " + (memberIds != null ? memberIds.toString() : "null"));
+                            groupCache.put(groupId, groupName != null ? groupName : "Unknown Group");
+                            groupsList.add(groupId);
+                        }
+                        if (groupsProcessed.incrementAndGet() == groupIds.size()) {
+                            groupsCount.setText(String.valueOf(groupsList.size()));
+                            Log.d(TAG, "Updated groupsCount to: " + groupsList.size());
+                            if (targetUid.equals(currentUserUid)) {
+                                String groupsListJson = gson.toJson(groupsList);
+                                cachePrefs.edit().putString(GROUPS_LIST_KEY, groupsListJson).apply();
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to fetch group details for " + groupId + ": " + e.getMessage(), e);
+                        if (groupsProcessed.incrementAndGet() == groupIds.size()) {
+                            groupsCount.setText(String.valueOf(groupsList.size()));
+                            Log.d(TAG, "Updated groupsCount to: " + groupsList.size());
+                            if (targetUid.equals(currentUserUid)) {
+                                String groupsListJson = gson.toJson(groupsList);
+                                cachePrefs.edit().putString(GROUPS_LIST_KEY, groupsListJson).apply();
+                            }
+                        }
+                    });
+        }
+    }
+
+    private void fetchFriendDetails(String friendId, AtomicInteger friendDetailsFetched, int totalFriendQueries) {
         Friend cachedFriend = friendCache.get(friendId);
         if (cachedFriend != null) {
             if (!friendsList.contains(cachedFriend)) {
                 friendsList.add(cachedFriend);
             }
             Log.d(TAG, "Cached friend added: " + cachedFriend.getFullName());
-            friendDetailsFetched[0]++;
-            checkFriendsCountUpdate(2, friendDetailsFetched[0], totalFriendQueries);
+            friendDetailsFetched.incrementAndGet();
+            checkFriendsCountUpdate(2, friendDetailsFetched.get(), totalFriendQueries);
         } else {
             db.collection("users").document(friendId)
                     .get()
@@ -374,40 +443,38 @@ public class ProfileFragment extends Fragment {
                         } else {
                             Log.w(TAG, "Friend user not found: " + friendId);
                         }
-                        friendDetailsFetched[0]++;
-                        checkFriendsCountUpdate(2, friendDetailsFetched[0], totalFriendQueries);
+                        friendDetailsFetched.incrementAndGet();
+                        checkFriendsCountUpdate(2, friendDetailsFetched.get(), totalFriendQueries);
                     })
                     .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to load friend details for " + friendId + ": " + e.getMessage());
+                        Log.e(TAG, "Failed to load friend details for " + friendId + ": " + e.getMessage(), e);
                         Toast.makeText(getContext(), "Failed to load friend: " + friendId, Toast.LENGTH_SHORT).show();
-                        friendDetailsFetched[0]++;
-                        checkFriendsCountUpdate(2, friendDetailsFetched[0], totalFriendQueries);
+                        friendDetailsFetched.incrementAndGet();
+                        checkFriendsCountUpdate(2, friendDetailsFetched.get(), totalFriendQueries);
                     });
         }
     }
 
     private void checkFriendsCountUpdate(int completedQueries, int friendDetailsFetched, int totalFriendQueries) {
         Log.d(TAG, "Completed Queries: " + completedQueries + ", Friend Details Fetched: " + friendDetailsFetched + ", Total: " + totalFriendQueries);
-        if (completedQueries == 2 && friendDetailsFetched >= totalFriendQueries) {
+        if (completedQueries == 2 && (totalFriendQueries == 0 || friendDetailsFetched >= totalFriendQueries)) {
             friendsCount.setText(String.valueOf(friendsList.size()));
             Log.d(TAG, "Final friends count: " + friendsList.size());
-            // Save friends list to cache
-            String friendsListJson = gson.toJson(friendsList);
-            cachePrefs.edit().putString(FRIENDS_LIST_KEY, friendsListJson).apply();
-            // Update cache timestamp
-            cachePrefs.edit().putLong(CACHE_TIMESTAMP, System.currentTimeMillis()).apply();
+            if (targetUid.equals(currentUserUid)) {
+                String friendsListJson = gson.toJson(friendsList);
+                cachePrefs.edit().putString(FRIENDS_LIST_KEY, friendsListJson).apply();
+                cachePrefs.edit().putLong(CACHE_TIMESTAMP, System.currentTimeMillis()).apply();
+            }
         }
     }
 
     private void setupButtons() {
         if (targetUid != null && currentUserUid != null) {
             if (targetUid.equals(currentUserUid)) {
-                // Current user's profile
                 editProfileButton.setVisibility(View.VISIBLE);
                 logoutButton.setVisibility(View.VISIBLE);
                 addFriendButton.setVisibility(View.GONE);
             } else {
-                // Another user's profile
                 editProfileButton.setVisibility(View.GONE);
                 logoutButton.setVisibility(View.GONE);
                 addFriendButton.setVisibility(View.VISIBLE);
@@ -444,14 +511,12 @@ public class ProfileFragment extends Fragment {
             return;
         }
 
-        // Check if a friend request already exists
         db.collection("friend_requests")
                 .whereEqualTo("sender_uid", currentUserUid)
                 .whereEqualTo("receiver_uid", targetUid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (querySnapshot.isEmpty()) {
-                        // No existing request, create a new one
                         Map<String, Object> friendRequest = new HashMap<>();
                         friendRequest.put("sender_uid", currentUserUid);
                         friendRequest.put("receiver_uid", targetUid);
@@ -462,7 +527,7 @@ public class ProfileFragment extends Fragment {
                                 .add(friendRequest)
                                 .addOnSuccessListener(documentReference -> {
                                     Toast.makeText(getContext(), "Friend request sent!", Toast.LENGTH_SHORT).show();
-                                    addFriendButton.setEnabled(false); // Disable button after sending
+                                    addFriendButton.setEnabled(false);
                                     addFriendButton.setText("Request Sent");
                                 })
                                 .addOnFailureListener(e -> {
@@ -480,7 +545,7 @@ public class ProfileFragment extends Fragment {
     private void logout() {
         SharedPreferences prefs = requireContext().getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE);
         prefs.edit().clear().apply();
-        cachePrefs.edit().clear().apply(); // Clear cache on logout
+        cachePrefs.edit().clear().apply();
         mAuth.signOut();
         navigateToLogin();
     }

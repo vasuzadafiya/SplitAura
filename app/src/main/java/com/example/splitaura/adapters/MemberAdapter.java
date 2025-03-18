@@ -18,15 +18,15 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
-import com.example.splitaura.fragments.ProfileFragment;
+import com.example.splitaura.fragments.ProfileBottomSheetDialog;
 import com.example.splitaura.models.Friend;
 
 import java.util.List;
 
 public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberViewHolder> {
     private List<Friend> membersList;
-    private Context context;
-    private FragmentManager fragmentManager;
+    private final Context context;
+    private final FragmentManager fragmentManager;
     private ViewPager2 viewPager;
 
     public MemberAdapter(List<Friend> membersList, Context context, FragmentManager fragmentManager, ViewPager2 viewPager) {
@@ -105,20 +105,8 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
 
     private void navigateToProfile(String userUid) {
         if (fragmentManager != null && userUid != null) {
-            ProfileFragment profileFragment = ProfileFragment.newInstance(userUid);
-            fragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, profileFragment)
-                    .addToBackStack(null)
-                    .commit();
-            Log.d("ProfileFragment", "UserUid: " + userUid);
-
-            // Hide the ViewPager2 and show the fragment container
-            viewPager.setVisibility(View.GONE);
-            View fragmentContainer = viewPager.getRootView().findViewById(R.id.fragment_container);
-            if (fragmentContainer != null) {
-                fragmentContainer.setVisibility(View.VISIBLE);
-            }
-
+            ProfileBottomSheetDialog bottomSheetDialog = ProfileBottomSheetDialog.newInstance(userUid);
+            bottomSheetDialog.show(fragmentManager, "ProfileBottomSheetDialog");
             Toast.makeText(context, "Viewing profile of " + userUid, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "Unable to view profile", Toast.LENGTH_SHORT).show();

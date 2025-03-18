@@ -4,10 +4,12 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +25,7 @@ public class ExpenseManager {
 
     public ExpenseManager(String groupId) {
         this.groupId = groupId;
-        fetchGroupMembersAndSetupListener(); // Combined fetch and setup
+        fetchGroupMembersAndSetupListener();
     }
 
     public static class Expense {
@@ -97,11 +99,11 @@ public class ExpenseManager {
                     if (ids != null) {
                         memberIds = ids;
                     }
-                    setupExpenseListener(); // Setup listener after members are fetched
+                    setupExpenseListener();
                 })
                 .addOnFailureListener(e -> {
-                    memberIds = new ArrayList<>(); // Fallback to empty list
-                    setupExpenseListener(); // Proceed with empty list
+                    memberIds = new ArrayList<>();
+                    setupExpenseListener();
                 });
     }
 
@@ -120,7 +122,7 @@ public class ExpenseManager {
     private void calculateExpenseData(QuerySnapshot snapshots) {
         Map<String, UserExpenseData> data = new HashMap<>();
         List<Expense> expenseList = new ArrayList<>();
-        double totalSpending = 0.0; // Track total spending for the group
+        double totalSpending = 0.0;
 
         // Initialize data for all known members
         for (String userId : memberIds) {
@@ -141,11 +143,10 @@ public class ExpenseManager {
             try {
                 amount = Double.parseDouble(amountStr);
             } catch (NumberFormatException e) {
-                continue; // Skip invalid amounts
+                continue;
             }
 
-            // Add to total spending
-            totalSpending += amount;
+            totalSpending += amount; // Accumulate total spending
 
             // Ensure payer is in the data map
             if (!data.containsKey(paidBy)) {
@@ -154,37 +155,42 @@ public class ExpenseManager {
             UserExpenseData payerData = data.get(paidBy);
             payerData.totalSpent += amount;
 
+            // Calculate equal share if participants map doesn't specify shares
+            int participantCount = participants.size();
+            double equalShare = amount / participantCount;
+
+            // Process each participant's share
             for (Map.Entry<String, Double> participant : participants.entrySet()) {
                 String userId = participant.getKey();
-                double share = participant.getValue();
+                double share = participant.getValue() > 0 ? participant.getValue() : equalShare;
 
-                // Ensure participant is in the data map
                 if (!data.containsKey(userId)) {
                     data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
                 }
                 UserExpenseData userData = data.get(userId);
+
+                // Add this user's share to their totalShare (what they should have paid)
                 userData.totalShare += share;
 
-                if (!userId.equals(paidBy)) {
+                // If the user is not the payer, they owe their share to the payer
+                if (!userId.equals(paidBy) && share > 0) {
                     userData.debts.put(paidBy, userData.debts.getOrDefault(paidBy, 0.0) + share);
                     payerData.credits.put(userId, payerData.credits.getOrDefault(userId, 0.0) + share);
                 }
             }
         }
 
-        // Calculate net balances for all users in data
+        // Calculate net balances
         for (String userId : data.keySet()) {
             UserExpenseData userData = data.get(userId);
-            double totalCredits = userData.credits.values().stream().mapToDouble(Double::doubleValue).sum();
-            double totalDebts = userData.debts.values().stream().mapToDouble(Double::doubleValue).sum();
-            userData.netBalance = userData.totalSpent - userData.totalShare + totalCredits - totalDebts;
+
+            // Net balance = total spent minus total share they should have paid
+            userData.netBalance = userData.totalSpent - userData.totalShare;
         }
 
         userExpenseData.setValue(data);
         expenses.setValue(expenseList);
-
-        // Update the total spending in the group document
-        updateTotalSpending(totalSpending);
+        updateTotalSpending(totalSpending); // Update total spending in Firestore
     }
 
     private void calculateAndUpdateTotalSpending() {
@@ -203,13 +209,14 @@ public class ExpenseManager {
                         }
                     }
                     updateTotalSpending(totalSpending);
-                });
+                })
+                .addOnFailureListener(e -> Log.e("ExpenseManager", "Failed to calculate total spending", e));
     }
 
     private void updateTotalSpending(double totalSpending) {
         firestore.collection("groups").document(groupId)
                 .update("amount", totalSpending)
-                .addOnSuccessListener(aVoid -> Log.d("ExpenseManager", "Total spending updated successfully"))
+                .addOnSuccessListener(aVoid -> Log.d("ExpenseManager", "Total spending updated successfully: " + totalSpending))
                 .addOnFailureListener(e -> Log.e("ExpenseManager", "Failed to update total spending", e));
     }
 

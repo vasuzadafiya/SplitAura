@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E6EFF6">
+    android:background="@drawable/top_curve_gradient">
 
     <!-- ScrollView to handle overflow content -->
     <ScrollView
@@ -80,7 +80,7 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -115,7 +115,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -163,7 +163,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <TextView
                         android:id="@+id/userEmail"
@@ -182,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <TextView
                         android:id="@+id/userMobile"
@@ -201,7 +201,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <TextView
                         android:id="@+id/userGender"
@@ -219,7 +219,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardElevation="0dp">
 
                     <TextView
                         android:id="@+id/userUpi"
@@ -248,27 +248,28 @@
                 app:layout_constraintEnd_toEndOf="parent">
 
                 <!-- Edit Profile Button -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/editProfileButton"
                     android:layout_width="0dp"
-                    android:layout_height="50dp"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
                     android:text="Edit Profile"
                     android:textSize="16sp"
                     android:textColor="@color/black"
-                    android:background="@drawable/btn_bg_transparent"
+                    android:backgroundTint="#C0D8BF"
                     android:layout_marginEnd="8dp" />
 
                 <!-- Logout Button -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/logoutButton"
                     android:layout_width="0dp"
-                    android:layout_height="50dp"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_height="60dp"
                     android:layout_weight="1"
                     android:text="Logout"
                     android:textSize="16sp"
-                    android:textColor="@color/black"
-                    android:background="@drawable/btn_bg_transparent"
+                    android:backgroundTint="@color/red"
+                    android:textColor="@color/white"
                     android:layout_marginStart="8dp" />
             </LinearLayout>
             <Button
@@ -283,6 +284,7 @@
                 app:layout_constraintTop_toBottomOf="@id/buttonsContainer"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

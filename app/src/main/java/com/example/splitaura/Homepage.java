@@ -6,10 +6,15 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import com.razorpay.PaymentResultListener;
+import com.example.splitaura.fragments.PaymentResultCallback;
 
 import androidx.fragment.app.Fragment;
 
@@ -21,10 +26,11 @@ import com.example.splitaura.fragments.ProfileFragment;
 import com.example.splitaura.utils.Utill;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class Homepage extends BaseActivity {
+public class Homepage extends BaseActivity implements PaymentResultCallback {
 
     private FrameLayout curvedBracketContainer;
     private View shadowOverlay;
+    private PaymentResultCallback paymentResultCallback;
     private boolean isCurvedBarVisible = false;
     // Declare bottomNavigationView as a field so it can be used in other methods.
     private BottomNavigationView bottomNavigationView;
@@ -174,6 +180,34 @@ public class Homepage extends BaseActivity {
     public void navigateToAddFriendFragment() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_groups);
+        }
+    }
+
+    public void setPaymentResultCallback(PaymentResultCallback callback) {
+        this.paymentResultCallback = callback;
+    }
+
+    @Override
+    public void onPaymentSuccess(String paymentId) {
+        Log.d("Homepage", "onPaymentSuccess: Received paymentId: " + paymentId);
+        Toast.makeText(this, "MainActivity: Payment success, ID: " + paymentId, Toast.LENGTH_LONG).show();
+        if (paymentResultCallback != null) {
+            paymentResultCallback.onPaymentSuccess(paymentId);
+        } else {
+            Log.w("Homepage", "onPaymentSuccess: paymentResultCallback is null");
+            Toast.makeText(this, "Callback not set", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onPaymentError(int code, String response) {
+        Log.d("Homepage", "onPaymentError: Code: " + code + ", Response: " + response);
+        Toast.makeText(this, "MainActivity: Payment error, Code: " + code, Toast.LENGTH_LONG).show();
+        if (paymentResultCallback != null) {
+            paymentResultCallback.onPaymentError(code, response);
+        } else {
+            Log.w("Homepage", "onPaymentError: paymentResultCallback is null");
+            Toast.makeText(this, "Callback not set", Toast.LENGTH_SHORT).show();
         }
     }
 }

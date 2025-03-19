@@ -47,4 +47,7 @@ public class LoadingDialog {
         }
     }
 
+    public boolean isShowing() {
+        return dialog != null && dialog.isShowing();
+    }
 }

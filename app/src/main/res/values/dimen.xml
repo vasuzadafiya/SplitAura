@@ -14,4 +14,43 @@
     <dimen name="icon_margin">12dp</dimen>
     <dimen name="curved_container_width">260dp</dimen>
     <dimen name="curved_container_height">100dp</dimen>
+
+
+    <dimen name="fragment_padding">24dp</dimen>
+    <dimen name="card_margin_top">24dp</dimen>
+    <dimen name="section_title_margin_top">16dp</dimen>
+    <dimen name="edittext_margin_top">16dp</dimen>
+    <dimen name="button_layout_margin_top">20dp</dimen>
+    <dimen name="button_margin_top">20dp</dimen>
+    <dimen name="button_margin_end">12dp</dimen>
+
+    <!-- CardView -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="card_internal_padding">16dp</dimen>
+    <dimen name="card_margin_horizontal">8dp</dimen>
+    <dimen name="card_margin_vertical">4dp</dimen>
+
+    <!-- TextView -->
+    <dimen name="text_padding_bottom">16dp</dimen>
+    <dimen name="text_margin_top">4dp</dimen>
+
+    <!-- Buttons -->
+    <dimen name="button_padding">12dp</dimen>
+    <dimen name="button_corner_radius">8dp</dimen>
+
+    <!-- Spinner -->
+    <dimen name="spinner_padding">12dp</dimen>
+
+    <!-- EditText -->
+    <dimen name="edittext_padding">16dp</dimen>
+
+
+    <!-- RecyclerView -->
+    <dimen name="recycler_padding">8dp</dimen>
+
+    <dimen name="status_padding_horizontal">8dp</dimen>
+    <dimen name="status_padding_vertical">4dp</dimen>
+    <dimen name="status_corner_radius">8dp</dimen>
+
 </resources>

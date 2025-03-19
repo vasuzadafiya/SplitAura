@@ -14,7 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +25,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -38,7 +37,6 @@ import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Transaction;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -49,7 +47,6 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.razorpay.Checkout;
-import com.razorpay.PaymentResultListener;
 
 import org.json.JSONObject;
 
@@ -66,16 +63,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class PaymentFragment extends Fragment implements PaymentResultListener {
+public class PaymentFragment extends Fragment {
     private static final String TAG = "PaymentFragment";
     private static final int STORAGE_PERMISSION_CODE = 100;
-    private static final String RAZORPAY_TEST_KEY = "rzp_test_1DP5mmOlF5G5ag"; // Replace with your test key
+    private static final String RAZORPAY_TEST_KEY = "rzp_test_1DP5mmOlF5G5ag";
 
-    private TextView tvBalanceSummary, tvTestModeNotice;
+    private TextView tvBalanceSummary;
     private Spinner spinnerFriends;
     private EditText etAmount;
     private MaterialButton btnPay, btnPayQr, btnGeneratePdf;
-    private ProgressBar progressBar;
     private RecyclerView rvTransactions;
     private TransactionPaymentAdapter transactionAdapter;
 
@@ -90,6 +86,9 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
     private Set<String> uniqueFriendIds;
     private Map<String, ExpenseManager> expenseManagers;
 
+    private PaymentResultCallback paymentResultCallback;
+    private boolean hasLoadedDummyData = false;
+
     public PaymentFragment() {
         // Required empty public constructor
     }
@@ -97,7 +96,17 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Checkout.preload(getContext()); // Preload Razorpay SDK
+        Checkout.preload(getContext());
+    }
+
+    @Override
+    public void onAttach(@NonNull android.content.Context context) {
+        super.onAttach(context);
+        if (context instanceof PaymentResultCallback) {
+            paymentResultCallback = (PaymentResultCallback) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement PaymentResultCallback");
+        }
     }
 
     @Override
@@ -113,14 +122,12 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
             return view;
         }
 
-//        tvTestModeNotice = view.findViewById(R.id.tv_test_mode_notice);
         tvBalanceSummary = view.findViewById(R.id.tv_balance_summary);
         spinnerFriends = view.findViewById(R.id.spinner_friends);
         etAmount = view.findViewById(R.id.et_amount);
         btnPay = view.findViewById(R.id.btn_pay);
         btnPayQr = view.findViewById(R.id.btn_pay_qr);
         btnGeneratePdf = view.findViewById(R.id.btn_generate_pdf);
-        progressBar = view.findViewById(R.id.progress_bar);
         rvTransactions = view.findViewById(R.id.rv_transactions);
 
         friendsList = new ArrayList<>();
@@ -130,11 +137,13 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
         uniqueFriendIds = new HashSet<>();
         expenseManagers = new HashMap<>();
 
+        // Initialize RecyclerView
         rvTransactions.setLayoutManager(new LinearLayoutManager(getContext()));
         transactionAdapter = new TransactionPaymentAdapter(getContext());
         rvTransactions.setAdapter(transactionAdapter);
 
         loadAllGroupsAndFriends();
+        addDummyTransactions();
         setupTransactionListener();
 
         btnPay.setOnClickListener(v -> initiatePayment());
@@ -147,7 +156,6 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Set up observer for selected friend balance
         spinnerFriends.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -164,9 +172,7 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
     }
 
     private void redirectToLogin() {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), "User not authenticated. Please log in.", Toast.LENGTH_LONG).show();
-        }
+        Toast.makeText(getContext(), "User not authenticated. Please log in.", Toast.LENGTH_LONG).show();
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -176,7 +182,6 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
     }
 
     private void loadAllGroupsAndFriends() {
-        progressBar.setVisibility(View.VISIBLE);
         db.collection("groups")
                 .whereArrayContains("memberIds", currentUserId)
                 .get()
@@ -202,13 +207,11 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
 
                     if (uniqueFriendIds.isEmpty()) {
                         showErrorAndNavigateBack("No friends or groups found");
-                        progressBar.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching groups: ", e);
                     showErrorAndNavigateBack("Error loading groups: " + e.getMessage());
-                    progressBar.setVisibility(View.GONE);
                 });
     }
 
@@ -227,14 +230,12 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
                     }
                     if (friendsList.size() == uniqueFriendIds.size()) {
                         setupFriendsSpinner();
-                        progressBar.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching friend details for " + friendId + ": ", e);
                     if (friendsList.size() == uniqueFriendIds.size()) {
                         setupFriendsSpinner();
-                        progressBar.setVisibility(View.GONE);
                     }
                 });
     }
@@ -255,7 +256,7 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
                     if (currentUserData != null && friendData != null) {
                         double currentNetBalance = currentUserData.netBalance;
                         double friendNetBalance = friendData.netBalance;
-                        totalBalance[0] = currentNetBalance - friendNetBalance; // Update total balance
+                        totalBalance[0] = currentNetBalance - friendNetBalance;
                         balancesMap.put(selectedFriend.getUid(), totalBalance[0]);
                         updateBalanceSummary(totalBalance[0]);
                     }
@@ -315,7 +316,6 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
         double amount = Double.parseDouble(etAmount.getText().toString());
         int amountInPaise = (int) (amount * 100);
 
-        progressBar.setVisibility(View.VISIBLE);
         btnPay.setEnabled(false);
         btnPayQr.setEnabled(false);
 
@@ -334,9 +334,8 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
 
             checkout.open(requireActivity(), options);
         } catch (Exception e) {
-            Log.e(TAG, "Error in starting Razorpay Checkout", e);
+            Log.e(TAG, "initiatePayment: Error in starting Razorpay Checkout", e);
             Toast.makeText(getContext(), "Error initiating payment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
             btnPay.setEnabled(true);
             btnPayQr.setEnabled(true);
         }
@@ -348,32 +347,11 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
         double amount = Double.parseDouble(etAmount.getText().toString());
         int amountInPaise = (int) (amount * 100);
 
-        progressBar.setVisibility(View.VISIBLE);
         btnPay.setEnabled(false);
         btnPayQr.setEnabled(false);
 
-        try {
-            JSONObject qrRequest = new JSONObject();
-            qrRequest.put("type", "upi_qr");
-            qrRequest.put("name", "SplitAura_" + selectedFriend.getFname());
-            qrRequest.put("usage", "single_use");
-            qrRequest.put("fixed_amount", true);
-            qrRequest.put("payment_amount", amountInPaise);
-            qrRequest.put("description", "Payment to " + selectedFriend.getFname());
-            qrRequest.put("close_by", (System.currentTimeMillis() / 1000) + 3600);
-
-            JSONObject qrResponse = new JSONObject();
-            qrResponse.put("id", "qr_test_id");
-            qrResponse.put("image_url", "https://rzp.io/i/test_qr");
-
-            showQrCodeDialog(qrResponse.getString("image_url"), amount);
-        } catch (Exception e) {
-            Log.e(TAG, "Error creating QR code", e);
-            Toast.makeText(getContext(), "Error creating QR code: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
-            btnPay.setEnabled(true);
-            btnPayQr.setEnabled(true);
-        }
+        String dummyQrUrl = "https://via.placeholder.com/150?text=QR+Code+Test";
+        showQrCodeDialog(dummyQrUrl, amount);
     }
 
     private boolean validatePaymentInput() {
@@ -415,28 +393,56 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_qr_code, null);
+
+        if (dialogView == null) {
+            dialogView = new LinearLayout(getContext());
+            ((LinearLayout) dialogView).setOrientation(LinearLayout.VERTICAL);
+            dialogView.setPadding(16, 16, 16, 16);
+
+            TextView tvAmount = new TextView(getContext());
+            tvAmount.setId(View.generateViewId());
+            tvAmount.setText(String.format("Amount: ₹%.2f", amount));
+            tvAmount.setTextSize(16);
+            tvAmount.setPadding(0, 0, 0, 16);
+
+            ImageView ivQrCode = new ImageView(getContext());
+            ivQrCode.setId(View.generateViewId());
+            ivQrCode.setLayoutParams(new LinearLayout.LayoutParams(200, 200));
+
+            ((LinearLayout) dialogView).addView(tvAmount);
+            ((LinearLayout) dialogView).addView(ivQrCode);
+        }
+
         builder.setView(dialogView);
 
         ImageView ivQrCode = dialogView.findViewById(R.id.iv_qr_code);
         TextView tvAmount = dialogView.findViewById(R.id.tv_amount);
 
-        tvAmount.setText(String.format("Amount: ₹%.2f", amount));
+        if (tvAmount != null) {
+            tvAmount.setText(String.format("Amount: ₹%.2f", amount));
+        }
 
-        Glide.with(this)
-                .load(imageUrl)
-                .placeholder(R.drawable.ic_launcher_background)
-                .into(ivQrCode);
+        if (ivQrCode != null) {
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(ivQrCode);
+        } else {
+            Log.e(TAG, "showQrCodeDialog: ImageView iv_qr_code not found in dialog layout");
+        }
 
         builder.setTitle("Scan to Pay (Test Mode)")
                 .setPositiveButton("Done", (dialog, which) -> {
                     dialog.dismiss();
-                    progressBar.setVisibility(View.GONE);
                     btnPay.setEnabled(true);
                     btnPayQr.setEnabled(true);
-                    Toast.makeText(getContext(), "Use 'success@razorpay' to simulate payment", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "QR Payment Simulated Successfully", Toast.LENGTH_LONG).show();
+                    if (paymentResultCallback != null) {
+                        paymentResultCallback.onPaymentSuccess("test_payment_" + System.currentTimeMillis());
+                    }
                 })
                 .setOnCancelListener(dialog -> {
-                    progressBar.setVisibility(View.GONE);
                     btnPay.setEnabled(true);
                     btnPayQr.setEnabled(true);
                 });
@@ -447,8 +453,8 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
 
     private void setupTransactionListener() {
         if (auth.getCurrentUser() == null) {
-            Log.e(TAG, "User not authenticated. Cannot set up transaction listener.");
-            showToastSafely("User not authenticated. Please log in again.", Toast.LENGTH_LONG);
+            Log.e(TAG, "setupTransactionListener: User not authenticated");
+            Toast.makeText(getContext(), "User not authenticated. Please log in again.", Toast.LENGTH_LONG).show();
             redirectToLogin();
             return;
         }
@@ -459,20 +465,19 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(50);
 
-        // Store the listener to remove it later
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
-                Log.e(TAG, "Error listening to transactions: ", e);
+                Log.e(TAG, "setupTransactionListener: Error listening to transactions", e);
                 if (e instanceof com.google.firebase.firestore.FirebaseFirestoreException &&
                         ((com.google.firebase.firestore.FirebaseFirestoreException) e).getCode() == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
-                    showToastSafely("Permission denied to access transactions. Check Firestore rules.", Toast.LENGTH_LONG);
+                    Toast.makeText(getContext(), "Permission denied to access transactions. Check Firestore rules.", Toast.LENGTH_LONG).show();
                 } else {
-                    showToastSafely("Error loading transactions: " + e.getMessage(), Toast.LENGTH_SHORT);
+                    Toast.makeText(getContext(), "Error loading transactions: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
                 return;
             }
 
-            if (snapshots != null) {
+            if (snapshots != null && !snapshots.isEmpty()) {
                 transactionList.clear();
                 for (QueryDocumentSnapshot doc : snapshots) {
                     String friendId = doc.getString("friendId");
@@ -497,31 +502,33 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
                     transactionList.add(new Transaction(friendName, amount, date, status));
                 }
 
-                if (transactionList.isEmpty()) {
-                    showToastSafely("No transactions found yet.", Toast.LENGTH_SHORT);
-                    transactionAdapter.updateTransactions(transactionList);
-                    return;
-                }
-
                 transactionAdapter.updateTransactions(transactionList);
             } else {
-                showToastSafely("No transactions found yet.", Toast.LENGTH_SHORT);
-                transactionList.clear();
-                transactionAdapter.updateTransactions(transactionList);
+                if (!hasLoadedDummyData) {
+                    addDummyTransactions();
+                }
             }
         });
     }
 
-    // Add this helper method to safely show Toast
-    private void showToastSafely(String message, int duration) {
-        if (getContext() != null && !isDetached() && !isRemoving()) {
-            Toast.makeText(getContext(), message, duration).show();
-        } else {
-            Log.w(TAG, "Unable to show Toast: Context is null or fragment is detached. Message: " + message);
+    private void addDummyTransactions() {
+        transactionList.clear();
+
+        String[] friendNames = {"John Doe", "Tushar Chauhan", "Vasu Zadafiya"};
+        String[] statuses = {"SUCCESS", "FAILED", "PENDING"};
+        for (int i = 0; i < 10; i++) {
+            String friendName = friendNames[i % friendNames.length];
+            double amount = (Math.random() * 1000) + 100;
+            long timestamp = System.currentTimeMillis() - (i * 24 * 60 * 60 * 1000);
+            String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date(timestamp));
+            String status = statuses[i % statuses.length];
+            transactionList.add(new Transaction(friendName, amount, date, status));
         }
+
+        transactionAdapter.updateTransactions(transactionList);
+        hasLoadedDummyData = true;
     }
 
-    // Add a field to store the listener
     private ListenerRegistration listenerRegistration;
 
     @Override
@@ -536,25 +543,21 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
         }
     }
 
-    @Override
     public void onPaymentSuccess(String paymentId) {
-        progressBar.setVisibility(View.GONE);
+        Toast.makeText(getContext(), "Payment Successful! ID: " + paymentId, Toast.LENGTH_LONG).show();
         btnPay.setEnabled(true);
         btnPayQr.setEnabled(true);
 
-        Toast.makeText(getContext(), "Test Payment Successful! ID: " + paymentId, Toast.LENGTH_LONG).show();
         double paidAmount = Double.parseDouble(etAmount.getText().toString());
         logTransaction(paidAmount, "SUCCESS");
         createSettlementExpense(paidAmount);
     }
 
-    @Override
     public void onPaymentError(int code, String response) {
-        progressBar.setVisibility(View.GONE);
+        Toast.makeText(getContext(), "Payment Failed: Code: " + code, Toast.LENGTH_LONG).show();
         btnPay.setEnabled(true);
         btnPayQr.setEnabled(true);
 
-        Toast.makeText(getContext(), "Test Payment Failed: " + response, Toast.LENGTH_LONG).show();
         double paidAmount = Double.parseDouble(etAmount.getText().toString());
         logTransaction(paidAmount, "FAILED");
     }
@@ -576,8 +579,8 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
             ExpenseManager expenseManager = expenseManagers.get(groupId);
             if (expenseManager != null) {
                 expenseManager.addExpense(expenseData,
-                        () -> Log.d(TAG, "Settlement expense added successfully"),
-                        () -> Log.e(TAG, "Failed to add settlement expense"));
+                        () -> {},
+                        () -> Log.e(TAG, "createSettlementExpense: Failed to add settlement expense"));
             }
         }
     }
@@ -594,11 +597,9 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
                 .document(currentUserId)
                 .collection("transactions")
                 .add(transaction)
-                .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Transaction logged successfully with ID: " + documentReference.getId());
-                })
+                .addOnSuccessListener(documentReference -> {})
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error logging transaction: ", e);
+                    Log.e(TAG, "logTransaction: Error logging transaction", e);
                     if (e instanceof com.google.firebase.firestore.FirebaseFirestoreException &&
                             ((com.google.firebase.firestore.FirebaseFirestoreException) e).getCode() == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
                         Toast.makeText(getContext(), "Permission denied to log transaction. Check Firestore rules.", Toast.LENGTH_LONG).show();
@@ -617,112 +618,58 @@ public class PaymentFragment extends Fragment implements PaymentResultListener {
             return;
         }
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MONTH, -1);
-        long startTimestamp = calendar.getTimeInMillis();
-        long endTimestamp = System.currentTimeMillis();
+        if (transactionList.isEmpty()) {
+            Toast.makeText(getContext(), "No transactions available to generate PDF.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        progressBar.setVisibility(View.VISIBLE);
-        btnGeneratePdf.setEnabled(false);
+        try {
+            String fileName = "SplitAura_Transactions_" + System.currentTimeMillis() + ".pdf";
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+            PdfWriter writer = new PdfWriter(new FileOutputStream(file));
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
 
-        db.collection("users")
-                .document(currentUserId)
-                .collection("transactions")
-                .whereGreaterThanOrEqualTo("timestamp", startTimestamp)
-                .whereLessThanOrEqualTo("timestamp", endTimestamp)
-                .get()
-                .addOnSuccessListener(query -> {
-                    List<Transaction> pdfTransactions = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : query) {
-                        String friendId = doc.getString("friendId");
-                        Double amount = doc.getDouble("amount");
-                        Long timestamp = doc.getLong("timestamp");
-                        String status = doc.getString("status");
+            document.add(new Paragraph("SplitAura Transaction Report")
+                    .setBold()
+                    .setFontSize(18));
 
-                        if (friendId == null || amount == null || timestamp == null || status == null) {
-                            continue;
-                        }
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.MONTH, -1);
+            long startTimestamp = calendar.getTimeInMillis();
+            long endTimestamp = System.currentTimeMillis();
+            String dateRange = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                    .format(new Date(startTimestamp)) + " to " +
+                    new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+                            .format(new Date(endTimestamp));
+            document.add(new Paragraph("Period: " + dateRange)
+                    .setFontSize(12));
 
-                        String friendName = "Unknown";
-                        for (Friend friend : friendsList) {
-                            if (friend.getUid().equals(friendId)) {
-                                friendName = friend.getFname() + " " + friend.getLname();
-                                break;
-                            }
-                        }
+            Table table = new Table(new float[]{2, 2, 2, 1});
+            table.addHeaderCell("Friend");
+            table.addHeaderCell("Amount");
+            table.addHeaderCell("Date");
+            table.addHeaderCell("Status");
 
-                        String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-                                .format(new Date(timestamp));
-                        pdfTransactions.add(new Transaction(friendName, amount, date, status));
-                    }
+            for (Transaction transaction : transactionList) {
+                table.addCell(transaction.getFriendName());
+                table.addCell(String.format("₹%.2f", transaction.getAmount()));
+                table.addCell(transaction.getDate());
+                table.addCell(transaction.getStatus());
+            }
 
-                    if (pdfTransactions.isEmpty()) {
-                        Toast.makeText(getContext(), "No transactions found for the selected period.", Toast.LENGTH_LONG).show();
-                        progressBar.setVisibility(View.GONE);
-                        btnGeneratePdf.setEnabled(true);
-                        return;
-                    }
+            document.add(table);
+            document.close();
 
-                    try {
-                        String fileName = "SplitAura_Transactions_" + System.currentTimeMillis() + ".pdf";
-                        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
-                        PdfWriter writer = new PdfWriter(new FileOutputStream(file));
-                        PdfDocument pdf = new PdfDocument(writer);
-                        Document document = new Document(pdf);
-
-                        document.add(new Paragraph("SplitAura Transaction Report")
-                                .setBold()
-                                .setFontSize(18));
-
-                        String dateRange = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                                .format(new Date(startTimestamp)) + " to " +
-                                new SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                                        .format(new Date(endTimestamp));
-                        document.add(new Paragraph("Period: " + dateRange)
-                                .setFontSize(12));
-
-                        Table table = new Table(new float[]{2, 2, 2, 1});
-                        table.addHeaderCell("Friend");
-                        table.addHeaderCell("Amount");
-                        table.addHeaderCell("Date");
-                        table.addHeaderCell("Status");
-
-                        for (Transaction transaction : pdfTransactions) {
-                            table.addCell(transaction.getFriendName());
-                            table.addCell(String.format("₹%.2f", transaction.getAmount()));
-                            table.addCell(transaction.getDate());
-                            table.addCell(transaction.getStatus());
-                        }
-
-                        document.add(table);
-                        document.close();
-
-                        Toast.makeText(getContext(), "PDF generated: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error generating PDF: ", e);
-                        Toast.makeText(getContext(), "Error generating PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    } finally {
-                        progressBar.setVisibility(View.GONE);
-                        btnGeneratePdf.setEnabled(true);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching transactions for PDF: ", e);
-                    if (e instanceof com.google.firebase.firestore.FirebaseFirestoreException &&
-                            ((com.google.firebase.firestore.FirebaseFirestoreException) e).getCode() == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
-                        Toast.makeText(getContext(), "Permission denied to access transactions. Check Firestore rules.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getContext(), "Error fetching transactions: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                    progressBar.setVisibility(View.GONE);
-                    btnGeneratePdf.setEnabled(true);
-                });
+            Toast.makeText(getContext(), "PDF generated: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.e(TAG, "generateTransactionPdf: Error generating PDF", e);
+            Toast.makeText(getContext(), "Error generating PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void showErrorAndNavigateBack(String message) {
-        if (getContext() != null) {
-            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-        }
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
         if (getActivity() != null) {
             getActivity().onBackPressed();
         }

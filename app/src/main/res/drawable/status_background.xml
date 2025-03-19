@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/custom_green" /> <!-- Default to green for SUCCESS -->
+            <corners android:radius="@dimen/status_corner_radius" /> <!-- Rounded corners -->
+        </shape>
+    </item>
+</selector>

@@ -5,8 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +21,6 @@ import com.example.splitaura.models.Friend;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -31,8 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GroupInfoFragment extends Fragment {
+    private static final String TAG = "GroupInfoFragment";
+
     private ViewPager2 viewPager;
     private RecyclerView recyclerViewMembers;
+    private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent;
     private MemberAdapter memberAdapter;
     private String groupId;
     private FirebaseFirestore db;
@@ -51,6 +51,10 @@ public class GroupInfoFragment extends Fragment {
         groupId = getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID);
 
         // Initialize UI components
+        tvGroupTitle = view.findViewById(R.id.tv_group_title);
+        tvDescriptionContent = view.findViewById(R.id.tv_description_content);
+        tvCurrencyContent = view.findViewById(R.id.tv_currency_content);
+        tvCategoryContent = view.findViewById(R.id.tv_category_content);
         recyclerViewMembers = view.findViewById(R.id.recycler_view_members);
         recyclerViewMembers.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -66,21 +70,60 @@ public class GroupInfoFragment extends Fragment {
 
     private void observeGroupData() {
         if (groupId == null) {
-            Log.e("GroupInfoFragment", "Group ID is null");
+            Log.e(TAG, "Group ID is null");
+            Toast.makeText(getContext(), "Group ID not found", Toast.LENGTH_SHORT).show();
             return;
         }
 
         groupListener = db.collection("groups").document(groupId)
                 .addSnapshotListener((doc, e) -> {
                     if (e != null) {
-                        Log.e("GroupInfoFragment", "Error fetching group data: ", e);
+                        Log.e(TAG, "Error fetching group data: ", e);
+                        Toast.makeText(getContext(), "Error fetching group data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         return;
                     }
                     if (doc != null && doc.exists()) {
-                        List<String> memberIds = (List<String>) doc.get("memberIds");
-                        if (memberIds != null) {
-                            fetchGroupMembers(memberIds);
+                        // Fetch group details
+                        String title = doc.getString("title");
+                        String description = doc.getString("description");
+                        String currency = doc.getString("currency");
+                        String category = doc.getString("category");
+
+                        // Update UI with group details
+                        if (title != null) {
+                            tvGroupTitle.setText(title);
+                        } else {
+                            tvGroupTitle.setText("Untitled Group");
                         }
+
+                        if (description != null) {
+                            tvDescriptionContent.setText(description);
+                        } else {
+                            tvDescriptionContent.setText("No description available");
+                        }
+
+                        if (currency != null) {
+                            tvCurrencyContent.setText(currency);
+                        } else {
+                            tvCurrencyContent.setText("INR"); // Default currency
+                        }
+
+                        if (category != null) {
+                            tvCategoryContent.setText(category);
+                        } else {
+                            tvCategoryContent.setText("General");
+                        }
+
+                        // Fetch group members
+                        List<String> memberIds = (List<String>) doc.get("memberIds");
+                        if (memberIds != null && !memberIds.isEmpty()) {
+                            fetchGroupMembers(memberIds);
+                        } else {
+                            memberAdapter.updateData(new ArrayList<>());
+                            Toast.makeText(getContext(), "No members in this group", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Group not found", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -101,7 +144,10 @@ public class GroupInfoFragment extends Fragment {
                     }
                     memberAdapter.updateData(friends);
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error fetching members", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching members: ", e);
+                    Toast.makeText(getContext(), "Error fetching members: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override
@@ -109,6 +155,7 @@ public class GroupInfoFragment extends Fragment {
         super.onDestroyView();
         if (groupListener != null) {
             groupListener.remove();
+            groupListener = null;
         }
     }
 }

@@ -26,6 +26,7 @@ import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.example.splitaura.adapters.ContactsAdapter;
 import com.example.splitaura.admin.BaseActivity;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -46,7 +47,7 @@ import java.util.Map;
 public class AddExpenseActivity extends BaseActivity {
     private static final String TAG = "AddExpenseActivity";
     private final FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-    private ExpenseManager expenseManager; // Declared but needs initialization
+    private ExpenseManager expenseManager;
 
     // UI Elements
     private ImageView backButton;
@@ -77,6 +78,9 @@ public class AddExpenseActivity extends BaseActivity {
     private final List<Friend> groupMembers = new ArrayList<>();
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
+    // Loading Dialog
+    private LoadingDialog loadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +94,10 @@ public class AddExpenseActivity extends BaseActivity {
             return;
         }
 
-        expenseManager = new ExpenseManager(groupId); // Initialize here
+        // Initialize LoadingDialog
+        loadingDialog = new LoadingDialog(this);
+
+        expenseManager = new ExpenseManager(groupId);
         initViews();
         setupListeners();
         setupImagePickerLauncher();
@@ -120,7 +127,8 @@ public class AddExpenseActivity extends BaseActivity {
         uploadImageLayout.setOnClickListener(v -> openImagePicker());
         nextButton.setOnClickListener(v -> {
             if (validateFields()) {
-                progressBar.setVisibility(View.VISIBLE);
+                // Show loading dialog instead of progress bar
+                loadingDialog.show();
                 nextButton.setVisibility(View.GONE);
                 if (selectedImageUri != null) {
                     uploadImageToCloudinary(selectedImageUri);
@@ -306,7 +314,7 @@ public class AddExpenseActivity extends BaseActivity {
         if (splitBy.equals("Custom")) {
             if (selectedParticipants.isEmpty()) {
                 Toast.makeText(this, "No participants selected for custom split", Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
+                loadingDialog.hide();
                 nextButton.setVisibility(View.VISIBLE);
                 return;
             }
@@ -317,7 +325,7 @@ public class AddExpenseActivity extends BaseActivity {
         } else if (splitBy.equals("Equally")) {
             if (groupMembers.isEmpty()) {
                 Toast.makeText(this, "No group members available for equal split", Toast.LENGTH_SHORT).show();
-                progressBar.setVisibility(View.GONE);
+                loadingDialog.hide();
                 nextButton.setVisibility(View.VISIBLE);
                 return;
             }
@@ -335,12 +343,12 @@ public class AddExpenseActivity extends BaseActivity {
         Log.d(TAG, "Saving expense: " + expenseData);
         expenseManager.addExpense(expenseData, () -> {
             Log.d(TAG, "Expense saved successfully");
-            progressBar.setVisibility(View.GONE);
+            loadingDialog.hide();
             Toast.makeText(this, "Expense saved!", Toast.LENGTH_SHORT).show();
             finish();
         }, () -> {
             Log.e(TAG, "Failed to save expense");
-            progressBar.setVisibility(View.GONE);
+            loadingDialog.hide();
             nextButton.setVisibility(View.VISIBLE);
             Toast.makeText(this, "Failed to save expense", Toast.LENGTH_SHORT).show();
         });
@@ -351,6 +359,10 @@ public class AddExpenseActivity extends BaseActivity {
         super.onDestroy();
         if (expenseManager != null) {
             expenseManager.removeListener();
+        }
+        // Ensure loading dialog is dismissed to prevent memory leaks
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.hide();
         }
     }
 
@@ -366,7 +378,7 @@ public class AddExpenseActivity extends BaseActivity {
 
                     @Override
                     public void onProgress(String requestId, long bytes, long totalBytes) {
-//                                not used
+                        // Not used
                     }
 
                     @Override
@@ -379,20 +391,20 @@ public class AddExpenseActivity extends BaseActivity {
                     public void onError(String requestId, ErrorInfo error) {
                         Log.e(TAG, "Image upload failed: " + error.getDescription());
                         Toast.makeText(AddExpenseActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                        progressBar.setVisibility(View.GONE);
+                        loadingDialog.hide();
                         nextButton.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onReschedule(String requestId, ErrorInfo error) {
-//                                not used
+                        // Not used
                     }
                 }).dispatch();
             }
         } catch (IOException e) {
             Log.e(TAG, "File error during image upload", e);
             Toast.makeText(this, "File error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
+            loadingDialog.hide();
             nextButton.setVisibility(View.VISIBLE);
         }
     }

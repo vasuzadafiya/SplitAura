@@ -3,19 +3,11 @@
     <string name="title1">Seamless Payements,\n Effortless Splits</string>
     <string name="title2">Share Bills,\n Share Moments</string>
     <string name="title3">Stay Connected,\n Split Confidently</string>
-    <string name="desc12">With SplitAura, managing your Expenses is as easy as a tap. Your wallet is your gateway to hassle-free payments and smooth bill splits.</string>
     <string name="desc1">Our easy-to-use app helps you track and split your personal and group expenses effortlessly. Whether you\'re sharing meals with friends or managing household bills, SplitMate ensures that all payments are organized and fair for everyone involved</string>
-    <string name="desc22">Create a bill-sharing group with your frieds, and we will handle the rest. Stay organized and enjoy moment together!</string>
     <string name="desc2">track your expenses in real time, categorize them for better organization, and visualize your spending patterns. From calculating payment shares to monitoring overall spending, SplitMate simplifies managing your finances without the hassle of paper or complex calculations.</string>
-    <string name="desc33">Easily manage your Splits Friend, Add, Remove, and stay in the loop with who you\'re splitting with.</string>
     <string name="desc3">SplitAura gives you the flexibility to manage both personal and group expenses in one place. Create expense groups, add members, and SplitMate will automatically distribute and track payments—ensuring you never miss a detail when splitting costs with friends, family, or colleagues</string>
     <string name="or_divide">---------------Or---------------</string>
-    <string name="loginsuccesstitle">Login Success</string>
-    <string name="regestrationtitle">Regestration Success</string>
-    <string name="loginsuccessdesc">You have successfully login in SplitAura. \n you can start working in it</string>
-    <string name="regsuccessdesc">You have successfully registered in SplitAura. \n you can start working in it</string>
     <string name="default_web_client_id">689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com</string>
-    <string name="dash">-</string>
     <string name="no_ac">Don\'t have an Account?</string>
     <string name="log_in">Log In</string>
     <string name="email_id">EMAIL ID</string>
@@ -26,33 +18,23 @@
     <string name="no_internet_desc">There is no Internet connection\n Please check your Internet connection</string>
     <string name="retry">Retry</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Home Fragment</string>
-    <string name="group_fragment">Group Fragment</string>
-    <string name="payment_fragment">Payment Fragment</string>
     <string name="spotlight_fragment">Spotlight Fragment</string>
-    <string name="profile_fragment">Profile Fragment</string>
     <string name="home">Home</string>
     <string name="groups">Groups</string>
     <string name="group_info">Group Info</string>
     <string name="payment">Payment</string>
     <string name="profile">Profile</string>
     <string name="spotlight">spotlight</string>
-    <string name="home_title">Home</string>
     <string name="welcome_message">Hello \nManage your finance easily</string>
     <string name="balance_amount">₹9235.35</string>
     <string name="available_bal">Available Balance</string>
     <string name="view_all"><![CDATA[View All ->]]></string>
     <string name="friends">Friends</string>
-    <string name="total_group_spending">Total Group Spending</string>
-    <string name="total_you_paid_for">Total You Paid For</string>
-    <string name="your_total_share">Your Total Share</string>
     <string name="pay">pay</string>
     <string name="request">Request</string>
     <string name="top_up">Top-up</string>
     <string name="withdraw">Withdraw</string>
     <string name="history">History</string>
-    <string name="group_title">Title</string>
-    <string name="group_description">Description</string>
     <string name="trip_emoji">Trip 🧳</string>
     <string name="family_emoji">Family👨‍👩‍👧‍👦</string>
     <string name="project_emoji">Project💼</string>
@@ -68,13 +50,11 @@
     <string name="btn_cancel">Cancel</string>
     <string name="upload_cover_image">Upload Cover Image</string>
     <string name="new_group">New Group</string>
-    <string name="number_groups">You are in 0 groups</string>
     <string name="tv_amount">Amount ₹</string>
     <string name="tv_notes">Notes</string>
     <string name="new_expense">Add New Expense</string>
     <string name="tv_paidby">Paid By</string>
     <string name="tv_split_by">Split By</string>
-    <string name="add_yout_image">Add Your Image</string>
     <string name="friend_name">Friend Name</string>
     <string name="delete">Remove Friend</string>
     <string name="manage_friends">Manage Friends</string>
@@ -95,6 +75,8 @@
     <string name="payment_method">Payment Method</string>
     <string name="btn_add">Add</string>
     <string name="category">Category</string>
+    <string name="profile_picture">profile picture</string>
+    <string name="add_group">add group</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

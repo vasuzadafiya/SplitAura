@@ -22,13 +22,15 @@ import com.example.splitaura.adapters.GroupAdapter;
 import com.example.splitaura.models.GroupItem;
 import com.example.splitaura.viewmodels.GroupViewModel;
 import com.example.splitaura.viewmodels.HomeViewModel;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GroupFragment extends Fragment {
 
-    private Button addGroup;
+    private MaterialButton addGroup;
     private RecyclerView groupRecyclerView;
     private GroupAdapter groupAdapter;
     private List<GroupItem> groupList;

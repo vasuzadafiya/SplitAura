@@ -3,7 +3,6 @@ package com.example.splitaura.fragments;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +30,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.example.splitaura.R;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -54,7 +54,7 @@ public class EditProfileDialogFragment extends DialogFragment {
     private ImageView editProfileImage;
     private TextInputEditText editFirstNameEditText;
     private TextInputEditText editLastNameEditText;
-    private TextInputEditText editEmailEditText;
+    private TextInputEditText editUpiIdEditText; // New field for UPI ID
     private TextInputEditText editMobileEditText;
     private RadioGroup genderRadioGroup;
     private RadioButton radioMale, radioFemale, radioOther;
@@ -64,8 +64,10 @@ public class EditProfileDialogFragment extends DialogFragment {
     private ProgressBar saveProgressBar;
 
     private String currentProfilePictureUrl;
-    private SharedPreferences cachePrefs;
     private Uri selectedImageUri;
+
+    // Loading Dialog
+    private LoadingDialog loadingDialog;
 
     // ActivityResultLauncher for image selection
     private final ActivityResultLauncher<String> pickImageLauncher = registerForActivityResult(
@@ -89,7 +91,6 @@ public class EditProfileDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        cachePrefs = requireContext().getSharedPreferences("ProfileCache", Context.MODE_PRIVATE);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -99,7 +100,7 @@ public class EditProfileDialogFragment extends DialogFragment {
         editProfileImage = view.findViewById(R.id.editProfileImage);
         editFirstNameEditText = view.findViewById(R.id.editFirstNameEditText);
         editLastNameEditText = view.findViewById(R.id.editLastNameEditText);
-        editEmailEditText = view.findViewById(R.id.editEmailEditText);
+        editUpiIdEditText = view.findViewById(R.id.editEmailEditText); // Initialize UPI ID field
         editMobileEditText = view.findViewById(R.id.editMobileEditText);
         genderRadioGroup = view.findViewById(R.id.genderRadioGroup);
         radioMale = view.findViewById(R.id.radioMale);
@@ -109,6 +110,9 @@ public class EditProfileDialogFragment extends DialogFragment {
         saveProfileButton = view.findViewById(R.id.saveProfileButton);
         cancelButton = view.findViewById(R.id.cancelButton);
         saveProgressBar = view.findViewById(R.id.saveProgressBar);
+
+        // Initialize Loading Dialog
+        loadingDialog = new LoadingDialog(requireContext());
 
         // Set initial "Loading..." placeholder
         setLoadingPlaceholders();
@@ -128,9 +132,8 @@ public class EditProfileDialogFragment extends DialogFragment {
     private void setLoadingPlaceholders() {
         editFirstNameEditText.setText("Loading...");
         editLastNameEditText.setText("Loading...");
-        editEmailEditText.setText("Loading...");
+        editUpiIdEditText.setText("Loading..."); // Set placeholder for UPI ID
         editMobileEditText.setText("Loading...");
-        // No need to set placeholder for gender radio buttons as they will be unchecked initially
     }
 
     private void fetchUserData() {
@@ -149,18 +152,18 @@ public class EditProfileDialogFragment extends DialogFragment {
                 if (document != null && document.exists()) {
                     String firstName = document.getString("fname");
                     String lastName = document.getString("lname");
-                    String email = document.getString("email");
-                    String mobile = document.getString("mobile"); // Will be null initially
-                    String gender = document.getString("gender"); // Will be null initially
+                    String upiId = document.getString("upiId"); // Fetch UPI ID
+                    String mobile = document.getString("mobile");
+                    String gender = document.getString("gender");
                     String profilePicture = document.getString("profile_picture");
 
-                    // Update views with actual data, removing "Loading..." placeholders
+                    // Update views with actual data
                     editFirstNameEditText.setText(firstName != null ? firstName : "");
                     editLastNameEditText.setText(lastName != null ? lastName : "");
-                    editEmailEditText.setText(email != null ? email : "");
+                    editUpiIdEditText.setText(upiId != null ? upiId : ""); // Set UPI ID
                     editMobileEditText.setText(mobile != null ? mobile : "");
 
-                    // Set gender radio button based on current value
+                    // Set gender radio button
                     if (gender != null) {
                         if (gender.equalsIgnoreCase("Male")) {
                             radioMale.setChecked(true);
@@ -214,7 +217,7 @@ public class EditProfileDialogFragment extends DialogFragment {
     private void saveProfileChanges() {
         String firstName = editFirstNameEditText.getText().toString().trim();
         String lastName = editLastNameEditText.getText().toString().trim();
-        String email = editEmailEditText.getText().toString().trim();
+        String upiId = editUpiIdEditText.getText().toString().trim(); // Get UPI ID
         String mobile = editMobileEditText.getText().toString().trim();
         String gender = getSelectedGender();
 
@@ -235,22 +238,6 @@ public class EditProfileDialogFragment extends DialogFragment {
             return;
         }
 
-        if (TextUtils.isEmpty(email)) {
-            editEmailEditText.setError("Email is required");
-            editEmailEditText.requestFocus();
-            saveProgressBar.setVisibility(View.GONE); // Hide ProgressBar on error
-            saveProfileButton.setEnabled(true); // Re-enable save button
-            return;
-        }
-
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            editEmailEditText.setError("Enter a valid email address");
-            editEmailEditText.requestFocus();
-            saveProgressBar.setVisibility(View.GONE); // Hide ProgressBar on error
-            saveProfileButton.setEnabled(true); // Re-enable save button
-            return;
-        }
-
         if (!TextUtils.isEmpty(mobile) && !android.util.Patterns.PHONE.matcher(mobile).matches()) {
             editMobileEditText.setError("Enter a valid mobile number");
             editMobileEditText.requestFocus();
@@ -258,6 +245,9 @@ public class EditProfileDialogFragment extends DialogFragment {
             saveProfileButton.setEnabled(true); // Re-enable save button
             return;
         }
+
+        // Show Loading Dialog
+        loadingDialog.show();
 
         String uid = mAuth.getCurrentUser().getUid();
         DocumentReference userRef = db.collection("users").document(uid);
@@ -308,6 +298,7 @@ public class EditProfileDialogFragment extends DialogFragment {
 
                     @Override
                     public void onError(String requestId, ErrorInfo error) {
+                        loadingDialog.hide(); // Hide Loading Dialog on error
                         showSafeToast("Failed to upload image: " + error.getDescription());
                         saveProgressBar.setVisibility(View.GONE); // Hide ProgressBar on error
                         saveProfileButton.setEnabled(true); // Re-enable save button
@@ -323,7 +314,7 @@ public class EditProfileDialogFragment extends DialogFragment {
     private void updateUserData(DocumentReference userRef, String profilePictureUrl) {
         String firstName = editFirstNameEditText.getText().toString().trim();
         String lastName = editLastNameEditText.getText().toString().trim();
-        String email = editEmailEditText.getText().toString().trim();
+        String upiId = editUpiIdEditText.getText().toString().trim(); // Get UPI ID
         String mobile = editMobileEditText.getText().toString().trim();
         String gender = getSelectedGender();
 
@@ -331,29 +322,19 @@ public class EditProfileDialogFragment extends DialogFragment {
         Map<String, Object> updatedData = new HashMap<>();
         updatedData.put("fname", firstName);
         updatedData.put("lname", lastName);
-        updatedData.put("email", email);
-        updatedData.put("mobile", TextUtils.isEmpty(mobile) ? null : mobile); // Add mobile field
-        updatedData.put("gender", gender); // Use selected gender or null if none selected
+        updatedData.put("upiId", upiId); // Add UPI ID
+        updatedData.put("mobile", TextUtils.isEmpty(mobile) ? null : mobile);
+        updatedData.put("gender", gender);
         updatedData.put("profile_picture", profilePictureUrl);
 
         // Update Firestore
         userRef.update(updatedData).addOnCompleteListener(task -> {
-            saveProgressBar.setVisibility(View.GONE); // Hide ProgressBar when done
+            loadingDialog.hide(); // Hide Loading Dialog
+            saveProgressBar.setVisibility(View.GONE); // Hide ProgressBar
             saveProfileButton.setEnabled(true); // Re-enable save button
+
             if (task.isSuccessful()) {
                 showSafeToast("Profile updated successfully");
-
-                // Update Firebase Auth email if it has changed
-                if (!email.equals(mAuth.getCurrentUser().getEmail())) {
-                    mAuth.getCurrentUser().updateEmail(email).addOnCompleteListener(emailTask -> {
-                        if (emailTask.isSuccessful()) {
-                            Log.d(TAG, "User email updated in Firebase Auth");
-                        } else {
-                            Log.e(TAG, "Failed to update email in Firebase Auth: " + emailTask.getException().getMessage());
-                            showSafeToast("Failed to update email in authentication: " + emailTask.getException().getMessage());
-                        }
-                    });
-                }
 
                 // Update display name in Firebase Auth
                 String fullName = firstName + " " + lastName;
@@ -380,10 +361,6 @@ public class EditProfileDialogFragment extends DialogFragment {
         });
     }
 
-    /**
-     * Safely show a Toast by checking if the context is valid
-     * @param message The message to display
-     */
     private void showSafeToast(String message) {
         if (isAdded() && getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
@@ -392,9 +369,6 @@ public class EditProfileDialogFragment extends DialogFragment {
         }
     }
 
-    /**
-     * Refresh the parent ProfileFragment
-     */
     private void refreshParentFragment() {
         Fragment parentFragment = getParentFragment();
         if (parentFragment instanceof ProfileFragment) {
@@ -402,9 +376,6 @@ public class EditProfileDialogFragment extends DialogFragment {
         }
     }
 
-    /**
-     * Animate the dialog with a fade-out effect and ensure dismissal
-     */
     private void animateAndDismiss() {
         if (getDialog() == null || getDialog().getWindow() == null || getDialog().getWindow().getDecorView() == null) {
             dismiss(); // Fallback if view hierarchy is invalid
@@ -419,7 +390,6 @@ public class EditProfileDialogFragment extends DialogFragment {
 
             @Override
             public void onAnimationEnd(android.view.animation.Animation animation) {
-                // Dismiss the dialog when animation ends
                 if (isAdded()) {
                     dismiss();
                 }

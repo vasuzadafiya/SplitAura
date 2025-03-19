@@ -48,40 +48,31 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:gravity">center</item>
         <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">@dimen/padding_small</item>
     </style>
 
-    <!-- ImageButton style (size, background, margin) -->
+    <!-- Icon Tray ImageButton -->
     <style name="IconTrayImageButton">
-        <item name="android:layout_width">56dp</item>
-        <item name="android:layout_height">56dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:layout_width">@dimen/icon_tray_image_size</item>
+        <item name="android:layout_height">@dimen/icon_tray_image_size</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
         <item name="android:scaleType">centerInside</item>
     </style>
 
-    <!-- TextView style (color, size) -->
+    <!-- Icon Tray Text -->
     <style name="IconTrayText">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/icon_tray_spacing</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">@dimen/text_size_small</item>
+        <item name="android:gravity">center</item>
     </style>
 
     <style name="CircleImageViewStyle">
         <item name="cornerSize">50%</item>
     </style>
-
-    <style name="RoundButtonStyle" parent="Widget.MaterialComponents.Button">
-        <!-- Use a percentage value for the corners -->
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-        <!-- Optional: define default tint/icon tint -->
-        <item name="android:backgroundTint">@color/green</item>
-        <item name="iconTint">@android:color/white</item>
-    </style>
-
-
 
 </resources>

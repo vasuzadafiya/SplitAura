@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="IconTextStyle">
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/iconTint</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-    </style>
+
     <style name="CustomSpinner" parent="Widget.AppCompat.Spinner.Underlined">
         <item name="android:background">@android:color/transparent</item>
         <item name="android:spinnerMode">dropdown</item>
@@ -37,5 +33,23 @@
     <style name="CustomBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@android:color/white</item>
         <item name="android:backgroundTint">@android:color/white</item>
+    </style>
+
+
+    <style name="AddGroupButton">
+        <item name="android:layout_width">@dimen/add_button_width</item>
+        <item name="android:layout_height">@dimen/add_button_height</item>
+        <item name="android:backgroundTint">@android:color/transparent</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">@dimen/text_size_medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/padding_medium</item>
+        <item name="android:paddingEnd">@dimen/padding_medium</item>
+        <item name="cornerRadius">@dimen/add_button_corner_radius</item>
+        <item name="elevation">@dimen/add_button_elevation</item>
+        <item name="animation_enabled">@animator/button_elevation</item>
+        <item name="iconGravity">start</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconTint">@android:color/white</item>
     </style>
 </resources>

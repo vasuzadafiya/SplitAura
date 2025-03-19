@@ -39,7 +39,6 @@
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/curvedBackground"
             android:layout_width="300dp"
             android:layout_height="180dp"
             android:background="@drawable/curved_background">

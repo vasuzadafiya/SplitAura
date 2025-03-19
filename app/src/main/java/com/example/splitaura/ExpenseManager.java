@@ -224,7 +224,7 @@ public class ExpenseManager {
 
     private void updateTotalSpending(double totalSpending) {
         firestore.collection("groups").document(groupId)
-                .update("totalSpending", totalSpending) // Changed from "amount" to "totalSpending"
+                .update("amount", totalSpending) // Changed from "amount" to "totalSpending"
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Total spending updated successfully: " + totalSpending))
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to update total spending", e));
     }

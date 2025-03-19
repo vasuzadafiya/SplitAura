@@ -43,7 +43,6 @@
     <!-- Scrollable Content -->
 
     <ScrollView
-        android:id="@+id/scrollViewContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
@@ -136,7 +135,6 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/description_input_layout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,7 +182,6 @@
 
             <!-- Category Buttons -->
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/addGroupCategoryButtonsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp">

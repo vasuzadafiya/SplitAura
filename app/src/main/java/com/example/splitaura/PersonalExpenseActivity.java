@@ -2,6 +2,7 @@ package com.example.splitaura;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -10,6 +11,8 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +28,7 @@ import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.example.splitaura.adapters.PersonalExpenseAdapter;
 import com.example.splitaura.admin.BaseActivity;
@@ -72,11 +76,17 @@ public class PersonalExpenseActivity extends BaseActivity {
     // Store the Firestore listener registration
     private ListenerRegistration expenseListenerRegistration;
 
+    // Loading Dialog
+    private Dialog loadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.personal_expense);
+
+        // Initialize Loading Dialog
+        initLoadingDialog();
 
         // Setup RecyclerView and adapter
         RecyclerView recyclerView;
@@ -133,6 +143,37 @@ public class PersonalExpenseActivity extends BaseActivity {
         chartButton.setOnClickListener(v -> showChart());
     }
 
+    private void initLoadingDialog() {
+        loadingDialog = new Dialog(this, R.style.CustomLoadingDialog);
+        loadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        loadingDialog.setCancelable(false);
+        loadingDialog.setContentView(R.layout.loadingbar_layout);
+
+        LottieAnimationView animationView = loadingDialog.findViewById(R.id.animation_view);
+        animationView.playAnimation();
+
+        if (loadingDialog.getWindow() != null) {
+            loadingDialog.getWindow().setLayout(-1, -1);
+            loadingDialog.getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            );
+            loadingDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+    }
+
+    public void showLoadingDialog() {
+        if (loadingDialog != null && !loadingDialog.isShowing()) {
+            loadingDialog.show();
+        }
+    }
+
+    public void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+    }
 
     // Remove the listener when the activity stops (or you can call this when the user logs out)
     @Override

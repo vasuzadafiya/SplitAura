@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
 import com.example.splitaura.models.FriendBalance;
 
@@ -38,7 +39,13 @@ public class FriendBalanceAdapter extends RecyclerView.Adapter<FriendBalanceAdap
 
         holder.friendName.setText(friend.getName());
         holder.friendBalance.setText(String.format("₹%.2f", friend.getBalance()));
-        holder.profileImage.setImageResource(friend.getProfileImage());
+
+        // Load profile picture using Glide
+        Glide.with(context)
+                .load(friend.getProfilePictureUrl())
+                .placeholder(R.drawable.obsmallmen2) // Fallback image if URL is null or fails
+                .error(R.drawable.obsmallmen2) // Fallback image on error
+                .into(holder.profileImage);
 
         // Set color for negative balance (red) and positive balance (green)
         if (friend.getBalance() < 0) {
@@ -66,4 +73,3 @@ public class FriendBalanceAdapter extends RecyclerView.Adapter<FriendBalanceAdap
         }
     }
 }
-

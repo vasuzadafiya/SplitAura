@@ -19,6 +19,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.services.ImgurApiService;
 import com.example.splitaura.services.ImgurResponse;
 import com.google.android.material.textfield.TextInputEditText;
@@ -74,11 +75,17 @@ public class AddGroupActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
+    // Loading Dialog
+    private LoadingDialog loadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_group);
+
+        // Initialize LoadingDialog
+        loadingDialog = new LoadingDialog(this);
 
         // Initialize views and set up UI
         initializeViews();
@@ -218,9 +225,8 @@ public class AddGroupActivity extends AppCompatActivity {
             return;
         }
 
-        // Show progress and disable continue button during upload
-        progressBar.setVisibility(View.VISIBLE);
-        continueButton.setVisibility(View.GONE);
+        // Show loading dialog instead of progress bar
+        loadingDialog.show();
         continueButton.setEnabled(false);
 
         File imageFile = getFileFromUri(selectedImageUri);
@@ -228,12 +234,11 @@ public class AddGroupActivity extends AppCompatActivity {
             uploadImageToImgur(imageFile, title, description, selectedCurrency, selectedCategory);
         } else {
             Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
+            loadingDialog.hide();
             continueButton.setEnabled(true);
         }
     }
 
-    // Utility method to convert a content URI to a File using try-with-resources for efficient stream handling
     private File getFileFromUri(Uri uri) {
         File file = new File(getCacheDir(), "temp_image.jpg");
         try (InputStream inputStream = getContentResolver().openInputStream(uri);
@@ -250,7 +255,6 @@ public class AddGroupActivity extends AppCompatActivity {
         return file;
     }
 
-    // Method to upload image to Imgur using the reused Retrofit instance
     private void uploadImageToImgur(File imageFile, String title, String description, String currency, String category) {
         ImgurApiService apiService = retrofit.create(ImgurApiService.class);
 
@@ -261,7 +265,7 @@ public class AddGroupActivity extends AppCompatActivity {
         call.enqueue(new Callback<ImgurResponse>() {
             @Override
             public void onResponse(Call<ImgurResponse> call, Response<ImgurResponse> response) {
-                progressBar.setVisibility(View.GONE);
+                loadingDialog.hide();
                 continueButton.setEnabled(true);
                 if (response.isSuccessful() && response.body() != null) {
                     String imageUrl = response.body().data.link;
@@ -284,11 +288,8 @@ public class AddGroupActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ImgurResponse> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
+                loadingDialog.hide();
                 continueButton.setEnabled(true);
-
-
-
                 Toast.makeText(AddGroupActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Upload error: " + t.getMessage());
             }
@@ -304,5 +305,14 @@ public class AddGroupActivity extends AppCompatActivity {
         intent.putExtra("imageUrl", imageUrl);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Ensure loading dialog is dismissed to prevent memory leaks
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.hide();
+        }
     }
 }

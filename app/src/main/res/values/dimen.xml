@@ -7,14 +7,15 @@
     <dimen name="text_size_medium">14sp</dimen>
     <dimen name="text_size_large">22sp</dimen>
     <dimen name="default_corner_radius">6dp</dimen>
-    <dimen name="social_icon_size">60dp</dimen>
-    <dimen name="image_margin_top">40dp</dimen>
     <dimen name="credentials_margin_top">24dp</dimen>
-    <dimen name="icon_size">40dp</dimen>
-    <dimen name="icon_margin">12dp</dimen>
-    <dimen name="curved_container_width">260dp</dimen>
-    <dimen name="curved_container_height">100dp</dimen>
 
+    <!-- MaterialButton dimensions -->
+    <dimen name="add_button_width">200dp</dimen>
+    <dimen name="add_button_height">48dp</dimen>
+    <dimen name="add_button_corner_radius">24dp</dimen>
+    <dimen name="add_button_elevation">6dp</dimen>
+
+    <dimen name="fab_icon_size">24dp</dimen>
 
     <dimen name="fragment_padding">24dp</dimen>
     <dimen name="card_margin_top">24dp</dimen>
@@ -53,4 +54,24 @@
     <dimen name="status_padding_vertical">4dp</dimen>
     <dimen name="status_corner_radius">8dp</dimen>
 
+    <!-- General spacing -->
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">12dp</dimen>
+    <dimen name="margin_large">16dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">12dp</dimen>
+    <dimen name="padding_large">16dp</dimen>
+
+    <!-- Profile picture size -->
+    <dimen name="profile_picture_size">70dp</dimen>
+
+    <!-- Text sizes -->
+    <dimen name="text_size_extra_large">32sp</dimen>
+
+    <!-- CollapsingToolbar height -->
+    <dimen name="collapsing_toolbar_height">300dp</dimen>
+
+    <!-- Icon tray item dimensions -->
+    <dimen name="icon_tray_image_size">40dp</dimen>
+    <dimen name="icon_tray_spacing">8dp</dimen>
 </resources>

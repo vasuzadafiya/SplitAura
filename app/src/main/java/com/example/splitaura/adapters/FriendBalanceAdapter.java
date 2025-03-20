@@ -44,6 +44,7 @@ public class FriendBalanceAdapter extends RecyclerView.Adapter<FriendBalanceAdap
         Glide.with(context)
                 .load(friend.getProfilePictureUrl())
                 .placeholder(R.drawable.obsmallmen2) // Fallback image if URL is null or fails
+                .circleCrop()
                 .error(R.drawable.obsmallmen2) // Fallback image on error
                 .into(holder.profileImage);
 

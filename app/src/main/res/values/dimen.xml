@@ -63,7 +63,7 @@
     <dimen name="padding_large">16dp</dimen>
 
     <!-- Profile picture size -->
-    <dimen name="profile_picture_size">70dp</dimen>
+    <dimen name="profile_picture_size">55dp</dimen>
 
     <!-- Text sizes -->
     <dimen name="text_size_extra_large">32sp</dimen>

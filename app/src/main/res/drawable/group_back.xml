@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base Layer: Rich Radial Gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerColor="@color/f_pass_color"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:endColor="@color/f_pass_color"
+                android:gradientRadius="700dp"
+                android:startColor="@color/f_pass_color"
+                android:type="radial"
+                android:useLevel="false" />
+        </shape>
+    </item>
+    <!--    1750a3 light blue-->
+
+    <!-- Diagonal Linear Accent for Dynamic Movement -->
+    <item>
+        <rotate
+            android:fromDegrees="45"
+            android:toDegrees="45">
+            <shape android:shape="rectangle">
+                <gradient
+                    android:angle="45"
+                    android:centerColor="#22123977"
+                    android:endColor="#00123977"
+                    android:startColor="#33123977"
+                    android:type="linear"
+                    android:useLevel="false" />
+            </shape>
+        </rotate>
+    </item>
+
+    <!-- Subtle Texture Overlay for Organic Depth -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerColor="#0FFFFFFF"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="800dp"
+                android:startColor="#1AFFFFFF"
+                android:type="radial"
+                android:useLevel="false" />
+        </shape>
+    </item>
+
+    <!-- Vignette Overlay: Darkening the Edges -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="50%"
+                android:centerY="50%"
+                android:endColor="#AA000000"
+                android:gradientRadius="900dp"
+                android:startColor="#00000000"
+                android:type="radial"
+                android:useLevel="false" />
+        </shape>
+    </item>
+
+</layer-list>

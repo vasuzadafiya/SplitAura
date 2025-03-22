@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@color/background"
+    android:background="@drawable/group_back"
     android:layout_height="match_parent"
     tools:context=".OnboardingScreen">
 
@@ -49,7 +49,7 @@
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"
             android:text="Skip"
-            android:textColor="#42A5F5"
+            android:textColor="@color/white"
             android:fontFamily="@font/inter_bold"
             app:strokeColor="@android:color/white"
             app:strokeWidth="2dp"

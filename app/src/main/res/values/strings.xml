@@ -76,7 +76,7 @@
     <string name="btn_add">Add</string>
     <string name="category">Category</string>
     <string name="profile_picture">profile picture</string>
-    <string name="add_group">add group</string>
+    <string name="add_group">Create group</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

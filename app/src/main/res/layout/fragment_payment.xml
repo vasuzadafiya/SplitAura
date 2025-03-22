@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/fragment_padding"
-    android:background="@color/gray_100">
+    android:background="@color/f_pass_color">
 
     <!-- First CardView for Input Fields and Buttons -->
     <androidx.cardview.widget.CardView
@@ -27,7 +25,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="@dimen/card_internal_padding"
-            android:background="@color/light_teal"> <!-- Light accent background -->
+            android:background="@color/white"> <!-- Light accent background -->
 
             <TextView
                 android:id="@+id/tv_balance_summary"
@@ -37,7 +35,6 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:paddingBottom="@dimen/text_padding_bottom"
                 android:textColor="@color/black" />
 
             <Spinner
@@ -65,8 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="@dimen/button_layout_margin_top"
-                android:background="@color/gray_200"> <!-- Light accent background for buttons -->
+                android:layout_marginTop="@dimen/button_layout_margin_top"> <!-- Light accent background for buttons -->
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_pay"
@@ -75,10 +71,11 @@
                     android:layout_weight="1"
                     android:text="Pay Now"
                     android:textSize="14sp"
+                    android:backgroundTint="#A1E3F9"
                     android:padding="@dimen/button_padding"
                     app:cornerRadius="@dimen/button_corner_radius"
-                    android:backgroundTint="@color/teal_500"
-                    android:textColor="@color/white"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
                     android:layout_marginEnd="@dimen/button_margin_end" />
 
                 <com.google.android.material.button.MaterialButton
@@ -87,11 +84,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Pay via QR"
+                    android:backgroundTint="#A1E3F9"
                     android:textSize="14sp"
                     android:padding="@dimen/button_padding"
                     app:cornerRadius="@dimen/button_corner_radius"
-                    android:backgroundTint="@color/purple_500"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -102,44 +100,46 @@
                 android:textSize="14sp"
                 android:padding="@dimen/button_padding"
                 app:cornerRadius="@dimen/button_corner_radius"
-                android:backgroundTint="@color/blue_500"
-                android:textColor="@color/white"
+                android:backgroundTint="#D1F8EF"
+                android:textColor="@color/black"
                 android:layout_marginTop="@dimen/button_margin_top" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Second CardView for RecyclerView displaying past transactions -->
 
     <TextView
         android:id="@+id/trans_hist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="28dp"
         android:text="Transaction History"
-        app:layout_constraintTop_toBottomOf="@id/card_view"
-        android:layout_marginTop="@dimen/section_title_margin_top"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/white"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:textSize="16sp"
-        android:textColor="@color/black" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/card_view" />
 
-    <!-- Second CardView for RecyclerView displaying past transactions -->
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginTop="4dp"
         app:cardCornerRadius="@dimen/card_corner_radius"
         app:cardElevation="@dimen/card_elevation"
-        android:layout_marginTop="@dimen/card_margin_top"
-        app:layout_constraintTop_toBottomOf="@id/trans_hist"
+        app:cardBackgroundColor="@color/light_teal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:cardBackgroundColor="@color/light_teal"> <!-- Light accent background -->
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/trans_hist"> <!-- Light accent background -->
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_transactions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="@dimen/recycler_padding"
+            android:background="@color/white"
             android:clipToPadding="false"
-            android:background="@color/white" /> <!-- Contrasting white background for items -->
+            android:padding="@dimen/recycler_padding" /> <!-- Contrasting white background for items -->
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,8 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -80,6 +80,8 @@ public class HomeFragment extends Fragment {
     private List<ListenerRegistration> firestoreListeners;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean isDataFresh = false;
+    private CardView groupCardView;
+    private CardView friendCardView;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -126,8 +128,10 @@ public class HomeFragment extends Fragment {
 
     private void navigatetoManageFriends() {
         viewAllFriends.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), ManageFriends.class);
-            startActivity(intent);
+            manageFriends();
+        });
+        friendCardView.setOnClickListener(v -> {
+            manageFriends();
         });
     }
 
@@ -137,6 +141,16 @@ public class HomeFragment extends Fragment {
                 ((Homepage) getActivity()).navigateToAddFriendFragment();
             }
         });
+        groupCardView.setOnClickListener(v -> {
+            if (getActivity() instanceof Homepage) {
+                ((Homepage) getActivity()).navigateToAddFriendFragment();
+            }
+        });
+    }
+
+    private void manageFriends() {
+        Intent intent = new Intent(getActivity(), ManageFriends.class);
+        startActivity(intent);
     }
 
     private void initViews(View view) {
@@ -150,6 +164,8 @@ public class HomeFragment extends Fragment {
         profilePicture = view.findViewById(R.id.profile_picture);
         viewAllGroups = view.findViewById(R.id.view_all_groups);
         viewAllFriends = view.findViewById(R.id.btn_view_all_friends);
+        groupCardView = view.findViewById(R.id.group_cardview);
+        friendCardView = view.findViewById(R.id.friend_cardview);
     }
 
     private void initViewModels() {

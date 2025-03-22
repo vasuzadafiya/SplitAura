@@ -43,10 +43,10 @@
     <!-- Scrollable Content -->
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@+id/bottomButtons"
         app:layout_constraintTop_toBottomOf="@+id/header"
         tools:layout_editor_absoluteX="16dp">
 
@@ -166,8 +166,8 @@
                 style="@style/CustomSpinner"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@drawable/spinner_background"
                 android:layout_marginTop="8dp"
+                android:background="@drawable/spinner_background"
                 android:padding="12dp"
                 android:spinnerMode="dropdown" />
             <!-- Category Buttons -->
@@ -280,7 +280,10 @@
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scrollView2"
+        app:layout_constraintVertical_bias="1.0">
 
 
         <Button

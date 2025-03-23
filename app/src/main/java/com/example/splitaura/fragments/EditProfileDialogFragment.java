@@ -2,7 +2,6 @@ package com.example.splitaura.fragments;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,6 +27,9 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.cloudinary.android.MediaManager;
+import com.cloudinary.android.callback.ErrorInfo;
+import com.cloudinary.android.callback.UploadCallback;
 import com.example.splitaura.R;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.google.android.material.textfield.TextInputEditText;
@@ -36,9 +37,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.cloudinary.android.MediaManager;
-import com.cloudinary.android.callback.ErrorInfo;
-import com.cloudinary.android.callback.UploadCallback;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -152,7 +150,7 @@ public class EditProfileDialogFragment extends DialogFragment {
                 if (document != null && document.exists()) {
                     String firstName = document.getString("fname");
                     String lastName = document.getString("lname");
-                    String upiId = document.getString("upiId"); // Fetch UPI ID
+                    String upiId = document.getString("upi"); // Fetch UPI ID
                     String mobile = document.getString("mobile");
                     String gender = document.getString("gender");
                     String profilePicture = document.getString("profile_picture");
@@ -322,7 +320,7 @@ public class EditProfileDialogFragment extends DialogFragment {
         Map<String, Object> updatedData = new HashMap<>();
         updatedData.put("fname", firstName);
         updatedData.put("lname", lastName);
-        updatedData.put("upiId", upiId); // Add UPI ID
+        updatedData.put("upi", upiId); // Add UPI ID
         updatedData.put("mobile", TextUtils.isEmpty(mobile) ? null : mobile);
         updatedData.put("gender", gender);
         updatedData.put("profile_picture", profilePictureUrl);

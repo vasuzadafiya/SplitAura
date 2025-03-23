@@ -77,6 +77,7 @@
     <string name="category">Category</string>
     <string name="profile_picture">profile picture</string>
     <string name="add_group">Create group</string>
+    <string name="add_upi">Add UPI</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

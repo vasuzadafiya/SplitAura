@@ -14,11 +14,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.splitaura.Homepage;
 import com.example.splitaura.LoginActivity;
+import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
 import com.example.splitaura.models.Friend;
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,9 +61,11 @@ public class ProfileFragment extends Fragment {
     private final List<Friend> friendsList = new ArrayList<>();
     private final Map<String, String> groupCache = new HashMap<>();
     private final List<String> groupsList = new ArrayList<>();
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private CardView groupCard, friendCard;
 
     private SharedPreferences cachePrefs;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
     private String targetUid; // UID of the profile being displayed
     private String currentUserUid; // UID of the logged-in user
 
@@ -108,6 +114,9 @@ public class ProfileFragment extends Fragment {
         userUpi = view.findViewById(R.id.userUpi);
         friendsCount = view.findViewById(R.id.friendsCount);
         groupsCount = view.findViewById(R.id.groupsCount);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        groupCard = view.findViewById(R.id.group_cardview);
+        friendCard = view.findViewById(R.id.friend_cardview);
 
         // Set initial "Loading..." placeholders
         setLoadingPlaceholders();
@@ -116,8 +125,31 @@ public class ProfileFragment extends Fragment {
         loadCachedData();
 
         setupButtons();
+        setRefresh();
+        cardListener();
 
         return view;
+    }
+
+    private void cardListener() {
+        groupCard.setOnClickListener(v -> {
+            if (getActivity() instanceof Homepage) {
+                ((Homepage) getActivity()).navigateToAddFriendFragment();
+            }
+        });
+
+        friendCard.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ManageFriends.class);
+            startActivity(intent);
+        });
+    }
+
+    private void setRefresh() {
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            refreshData();
+
+            swipeRefreshLayout.setRefreshing(false);
+        });
     }
 
     private void setLoadingPlaceholders() {
@@ -151,7 +183,8 @@ public class ProfileFragment extends Fragment {
             String groupsListJson = cachePrefs.getString(GROUPS_LIST_KEY, null);
 
             if (userDataJson != null) {
-                Map<String, String> userData = gson.fromJson(userDataJson, new TypeToken<Map<String, String>>(){}.getType());
+                Map<String, String> userData = gson.fromJson(userDataJson, new TypeToken<Map<String, String>>() {
+                }.getType());
                 userName.setText(userData.getOrDefault("fullName", "Unknown User"));
                 userEmail.setText("Email: " + userData.getOrDefault("email", "Not provided"));
                 userMobile.setText("Mobile: " + userData.getOrDefault("mobile", "Not provided"));
@@ -175,7 +208,8 @@ public class ProfileFragment extends Fragment {
             }
 
             if (friendsListJson != null) {
-                Type friendListType = new TypeToken<List<Friend>>(){}.getType();
+                Type friendListType = new TypeToken<List<Friend>>() {
+                }.getType();
                 friendsList.clear();
                 friendsList.addAll(gson.fromJson(friendsListJson, friendListType));
                 friendsCount.setText(String.valueOf(friendsList.size()));
@@ -185,13 +219,13 @@ public class ProfileFragment extends Fragment {
             }
 
             if (groupsListJson != null) {
-                Type groupListType = new TypeToken<List<String>>(){}.getType();
+                Type groupListType = new TypeToken<List<String>>() {
+                }.getType();
                 groupsList.clear();
                 groupsList.addAll(gson.fromJson(groupsListJson, groupListType));
                 groupsCount.setText(String.valueOf(groupsList.size()));
             } else {
                 fetchUserData();
-                return;
             }
         } else {
             fetchUserData();
@@ -556,4 +590,6 @@ public class ProfileFragment extends Fragment {
         startActivity(intent);
         requireActivity().finish();
     }
+
+
 }

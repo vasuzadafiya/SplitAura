@@ -67,7 +67,7 @@ import java.util.Set;
 public class PaymentFragment extends Fragment {
     private static final String TAG = "PaymentFragment";
     private static final int STORAGE_PERMISSION_CODE = 100;
-    private static final String RAZORPAY_TEST_KEY = "rzp_test_1DP5mmOlF5G5ag";
+    private static final String RAZORPAY_TEST_KEY = "rzp_test_MpojoAgEENHh1v";
 
     private TextView tvBalanceSummary;
     private Spinner spinnerFriends;
@@ -109,7 +109,7 @@ public class PaymentFragment extends Fragment {
         if (context instanceof PaymentResultCallback) {
             paymentResultCallback = (PaymentResultCallback) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement PaymentResultCallback");
+            throw new RuntimeException(context + " must implement PaymentResultCallback");
         }
     }
 
@@ -598,7 +598,7 @@ public class PaymentFragment extends Fragment {
                     if (e != null) {
                         Log.e(TAG, "setupTransactionListener: Error listening to transactions", e);
                         if (e instanceof com.google.firebase.firestore.FirebaseFirestoreException &&
-                                ((com.google.firebase.firestore.FirebaseFirestoreException) e).getCode() == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                                e.getCode() == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
                             if (isAdded()) {
                                 Toast.makeText(getContext(), "Permission denied to access transactions. Check Firestore rules.", Toast.LENGTH_LONG).show();
                             }

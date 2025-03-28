@@ -54,8 +54,8 @@ public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
     private static final String PREFS_NAME = "FriendsCache";
     private static final String KEY_FRIENDS_DATA = "friends_data";
-    private static final int MAX_GROUPS_TO_DISPLAY = 2; // Limit to 2 groups
-    private static final int MAX_FRIENDS_TO_DISPLAY = 3; // Limit to 3 friends
+    private static final int MAX_GROUPS_TO_DISPLAY = 2;
+    private static final int MAX_FRIENDS_TO_DISPLAY = 3;
 
     private TextView username, viewAllGroups, viewAllFriends;
     private ImageView profilePicture;
@@ -92,7 +92,6 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Initialize Firestore and FirebaseAuth
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
@@ -102,10 +101,8 @@ public class HomeFragment extends Fragment {
             return view;
         }
 
-        // Initialize SharedPreferences for caching
         sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // Initialize collections
         groupIds = new ArrayList<>();
         expenseManagers = new HashMap<>();
         friendNames = new HashMap<>();
@@ -120,37 +117,8 @@ public class HomeFragment extends Fragment {
         fetchGroupData();
         loadCachedFriendsData();
         fetchFriendsData();
-        navigatetoGroupFragment();
-        navigatetoManageFriends();
 
         return view;
-    }
-
-    private void navigatetoManageFriends() {
-        viewAllFriends.setOnClickListener(v -> {
-            manageFriends();
-        });
-        friendCardView.setOnClickListener(v -> {
-            manageFriends();
-        });
-    }
-
-    private void navigatetoGroupFragment() {
-        viewAllGroups.setOnClickListener(v -> {
-            if (getActivity() instanceof Homepage) {
-                ((Homepage) getActivity()).navigateToAddFriendFragment();
-            }
-        });
-        groupCardView.setOnClickListener(v -> {
-            if (getActivity() instanceof Homepage) {
-                ((Homepage) getActivity()).navigateToAddFriendFragment();
-            }
-        });
-    }
-
-    private void manageFriends() {
-        Intent intent = new Intent(getActivity(), ManageFriends.class);
-        startActivity(intent);
     }
 
     private void initViews(View view) {
@@ -166,6 +134,22 @@ public class HomeFragment extends Fragment {
         viewAllFriends = view.findViewById(R.id.btn_view_all_friends);
         groupCardView = view.findViewById(R.id.group_cardview);
         friendCardView = view.findViewById(R.id.friend_cardview);
+
+        viewAllGroups.setOnClickListener(v -> navigateToGroupFragment());
+        groupCardView.setOnClickListener(v -> navigateToGroupFragment());
+        viewAllFriends.setOnClickListener(v -> navigateToManageFriends());
+        friendCardView.setOnClickListener(v -> navigateToManageFriends());
+    }
+
+    private void navigateToGroupFragment() {
+        if (getActivity() instanceof Homepage) {
+            ((Homepage) getActivity()).navigateToAddFriendFragment();
+        }
+    }
+
+    private void navigateToManageFriends() {
+        Intent intent = new Intent(getActivity(), ManageFriends.class);
+        startActivity(intent);
     }
 
     private void initViewModels() {
@@ -214,7 +198,6 @@ public class HomeFragment extends Fragment {
                 List<FriendBalance> cachedFriends = gson.fromJson(friendsJson, type);
                 if (cachedFriends != null) {
                     friendBalanceList.clear();
-                    // Limit to the first 3 friends from the cache
                     friendBalanceList.addAll(cachedFriends.subList(0, Math.min(cachedFriends.size(), MAX_FRIENDS_TO_DISPLAY)));
                     friendBalanceAdapter.notifyDataSetChanged();
                     Log.d(TAG, "Loaded friends data from cache (limited to " + MAX_FRIENDS_TO_DISPLAY + ")");
@@ -231,7 +214,6 @@ public class HomeFragment extends Fragment {
     private void cacheFriendsData() {
         try {
             Gson gson = new Gson();
-            // Cache only the first 3 friends
             List<FriendBalance> friendsToCache = new ArrayList<>(friendBalanceList.subList(0, Math.min(friendBalanceList.size(), MAX_FRIENDS_TO_DISPLAY)));
             String friendsJson = gson.toJson(friendsToCache);
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -244,172 +226,206 @@ public class HomeFragment extends Fragment {
     }
 
     private void fetchFriendsData() {
-        // Cancel any existing fetch task
         if (fetchGroupsTask != null && !fetchGroupsTask.isComplete()) {
-            fetchGroupsTask.isCanceled(); // Use cancel(true) instead of isCanceled()
+            fetchGroupsTask.isCanceled();
             Log.d(TAG, "Canceled previous fetchGroupsTask");
         }
 
-        try {
-            fetchGroupsTask = db.collection("groups")
-                    .whereArrayContains("memberIds", currentUserId)
-                    .get()
-                    .addOnSuccessListener(query -> {
-                        try {
-                            Set<String> uniqueFriendIds = new HashSet<>();
-                            groupIds.clear();
-                            expenseManagers.clear();
+        fetchGroupsTask = db.collection("groups")
+                .whereArrayContains("memberIds", currentUserId)
+                .get()
+                .addOnSuccessListener(query -> {
+                    Set<String> uniqueFriendIds = new HashSet<>();
+                    groupIds.clear();
+                    expenseManagers.clear();
 
-                            for (QueryDocumentSnapshot groupDoc : query) {
-                                String groupId = groupDoc.getId();
-                                groupIds.add(groupId);
-                                expenseManagers.put(groupId, new ExpenseManager(groupId));
+                    for (QueryDocumentSnapshot groupDoc : query) {
+                        String groupId = groupDoc.getId();
+                        groupIds.add(groupId);
+                        expenseManagers.put(groupId, new ExpenseManager(groupId));
 
-                                List<String> memberIds = (List<String>) groupDoc.get("memberIds");
-                                if (memberIds != null) {
-                                    for (String memberId : memberIds) {
-                                        if (!memberId.equals(currentUserId)) {
-                                            uniqueFriendIds.add(memberId);
-                                        }
-                                    }
+                        List<String> memberIds = (List<String>) groupDoc.get("memberIds");
+                        if (memberIds != null) {
+                            for (String memberId : memberIds) {
+                                if (!memberId.equals(currentUserId)) {
+                                    uniqueFriendIds.add(memberId);
                                 }
-                            }
-
-                            if (uniqueFriendIds.isEmpty()) {
-                                if (isAdded()) {
-                                    Toast.makeText(getContext(), "No friends found", Toast.LENGTH_SHORT).show();
-                                }
-                                friendBalanceList.clear();
-                                friendBalanceAdapter.notifyDataSetChanged();
-                                cacheFriendsData();
-                                return;
-                            }
-
-                            fetchFriendDetails(new ArrayList<>(uniqueFriendIds));
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error processing groups data: ", e);
-                            if (isAdded()) {
-                                Toast.makeText(getContext(), "Error processing friends data", Toast.LENGTH_SHORT).show();
                             }
                         }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching groups: ", e);
+                    }
+
+                    if (uniqueFriendIds.isEmpty()) {
                         if (isAdded()) {
-                            Toast.makeText(getContext(), "Error fetching friends: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "No friends found", Toast.LENGTH_SHORT).show();
                         }
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error initiating fetchFriendsData: ", e);
-            if (isAdded()) {
-                Toast.makeText(getContext(), "Error fetching friends", Toast.LENGTH_SHORT).show();
-            }
-        }
+                        friendBalanceList.clear();
+                        friendBalanceAdapter.notifyDataSetChanged();
+                        cacheFriendsData();
+                        calculateFriendBalances();
+                        return;
+                    }
+
+                    fetchFriendDetails(new ArrayList<>(uniqueFriendIds));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching groups: ", e);
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Error fetching friends: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void fetchFriendDetails(List<String> friendIds) {
-        // Cancel any existing fetch task
         if (fetchFriendsTask != null && !fetchFriendsTask.isComplete()) {
-            fetchFriendsTask.isCanceled(); // Use cancel(true) instead of isCanceled()
+            fetchFriendsTask.isCanceled();
             Log.d(TAG, "Canceled previous fetchFriendsTask");
         }
 
-        try {
-            fetchFriendsTask = db.collection("users")
-                    .whereIn("uid", friendIds)
-                    .get()
-                    .addOnSuccessListener(query -> {
-                        try {
-                            friendNames.clear();
-                            friendProfilePictures.clear();
-                            friendBalances.clear();
+        fetchFriendsTask = db.collection("users")
+                .whereIn("uid", friendIds)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (!isAdded() || getView() == null) {
+                        Log.d(TAG, "Skipping fetchFriendDetails callback: Fragment not active");
+                        return;
+                    }
 
-                            for (String friendId : friendIds) {
-                                friendBalances.put(friendId, 0.0);
-                            }
+                    friendNames.clear();
+                    friendProfilePictures.clear();
+                    friendBalances.clear();
 
-                            for (QueryDocumentSnapshot userDoc : query) {
-                                String friendId = userDoc.getId();
-                                String fname = userDoc.getString("fname");
-                                String lname = userDoc.getString("lname");
-                                String profilePicture = userDoc.getString("profile_picture");
+                    for (String friendId : friendIds) {
+                        friendBalances.put(friendId, 0.0); // Initialize balance
+                    }
 
-                                if (fname == null || lname == null) {
-                                    continue;
-                                }
+                    for (QueryDocumentSnapshot userDoc : query) {
+                        String friendId = userDoc.getId();
+                        String fname = userDoc.getString("fname");
+                        String lname = userDoc.getString("lname");
+                        String profilePicture = userDoc.getString("profile_picture");
 
-                                String friendName = fname + " " + lname.charAt(0) + ".";
-                                friendNames.put(friendId, friendName);
-                                friendProfilePictures.put(friendId, profilePicture != null ? profilePicture : "");
-                            }
+                        if (fname == null || lname == null) continue;
 
-                            calculateFriendBalances();
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error processing friend details: ", e);
-                            if (isAdded()) {
-                                Toast.makeText(getContext(), "Error processing friend details", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching friend details: ", e);
-                        if (isAdded()) {
-                            Toast.makeText(getContext(), "Error fetching friend details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error initiating fetchFriendDetails: ", e);
-            if (isAdded()) {
-                Toast.makeText(getContext(), "Error fetching friend details", Toast.LENGTH_SHORT).show();
-            }
-        }
+                        String friendName = fname + " " + lname.charAt(0) + ".";
+                        friendNames.put(friendId, friendName);
+                        friendProfilePictures.put(friendId, profilePicture != null ? profilePicture : "");
+                    }
+
+                    calculateFriendBalances();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching friend details: ", e);
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Error fetching friend details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void calculateFriendBalances() {
+        if (!isAdded() || getView() == null) {
+            Log.d(TAG, "Skipping calculateFriendBalances: View not available");
+            return;
+        }
+
+        Map<String, ExpenseManager.UserExpenseData> aggregatedData = new HashMap<>();
+        int groupCount = expenseManagers.size();
+        if (groupCount == 0) {
+            updateFriendBalanceList();
+            return;
+        }
+
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(groupCount);
+        Map<String, Boolean> groupDataReceived = new HashMap<>();
+
         for (String groupId : groupIds) {
             ExpenseManager expenseManager = expenseManagers.get(groupId);
             if (expenseManager != null) {
-                try {
-                    // Use Fragment lifecycle instead of view lifecycle
-                    expenseManager.getUserExpenseData().observe(getViewLifecycleOwner(), userDataMap -> {
-                        try {
-                            if (userDataMap == null) {
-                                return;
-                            }
+                expenseManager.getUserExpenseData().observe(getViewLifecycleOwner(), userDataMap -> {
+                    if (!isAdded() || getView() == null) {
+                        Log.d(TAG, "Skipping LiveData update for group " + groupId + ": View not available");
+                        return;
+                    }
 
-                            ExpenseManager.UserExpenseData currentUserData = userDataMap.get(currentUserId);
-                            if (currentUserData == null) {
-                                return;
-                            }
-
-                            for (String friendId : friendNames.keySet()) {
-                                ExpenseManager.UserExpenseData friendData = userDataMap.get(friendId);
-                                if (friendData != null) {
-                                    double currentNetBalance = currentUserData.netBalance;
-                                    double friendNetBalance = friendData.netBalance;
-                                    double balanceWithFriend = currentNetBalance - friendNetBalance;
-
-                                    double existingBalance = friendBalances.getOrDefault(friendId, 0.0);
-                                    friendBalances.put(friendId, existingBalance + balanceWithFriend);
+                    if (userDataMap != null && !groupDataReceived.containsKey(groupId)) {
+                        synchronized (aggregatedData) {
+                            for (Map.Entry<String, ExpenseManager.UserExpenseData> entry : userDataMap.entrySet()) {
+                                String userId = entry.getKey();
+                                ExpenseManager.UserExpenseData newData = entry.getValue();
+                                ExpenseManager.UserExpenseData existingData = aggregatedData.get(userId);
+                                if (existingData == null) {
+                                    aggregatedData.put(userId, new ExpenseManager.UserExpenseData(
+                                            newData.totalSpent, newData.totalShare, newData.netBalance,
+                                            new HashMap<>(newData.debts), new HashMap<>(newData.credits)));
+                                } else {
+                                    existingData.totalSpent += newData.totalSpent;
+                                    existingData.totalShare += newData.totalShare;
+                                    existingData.netBalance = existingData.totalSpent - existingData.totalShare;
+                                    for (Map.Entry<String, Double> debt : newData.debts.entrySet()) {
+                                        existingData.debts.put(debt.getKey(),
+                                                existingData.debts.getOrDefault(debt.getKey(), 0.0) + debt.getValue());
+                                    }
+                                    for (Map.Entry<String, Double> credit : newData.credits.entrySet()) {
+                                        existingData.credits.put(credit.getKey(),
+                                                existingData.credits.getOrDefault(credit.getKey(), 0.0) + credit.getValue());
+                                    }
                                 }
                             }
-
-                            updateFriendBalanceList();
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error processing user expense data: ", e);
-                            if (isAdded()) {
-                                Toast.makeText(getContext(), "Error calculating balances", Toast.LENGTH_SHORT).show();
-                            }
+                            groupDataReceived.put(groupId, true);
                         }
-                    });
-                } catch (Exception e) {
-                    Log.e(TAG, "Error observing user expense data: ", e);
+                        latch.countDown();
+                    }
+                });
+            } else {
+                latch.countDown();
+            }
+        }
+
+        new Thread(() -> {
+            try {
+                latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                handler.post(() -> {
+                    if (!isAdded() || getView() == null) {
+                        Log.d(TAG, "Skipping balance update: Fragment not active");
+                        return;
+                    }
+
+                    if (aggregatedData.isEmpty()) {
+                        updateFriendBalanceList();
+                        return;
+                    }
+
+                    ExpenseManager.UserExpenseData currentUserData = aggregatedData.get(currentUserId);
+                    if (currentUserData == null) {
+                        updateFriendBalanceList();
+                        return;
+                    }
+
+                    friendBalances.clear();
+                    for (String friendId : friendNames.keySet()) {
+                        ExpenseManager.UserExpenseData friendData = aggregatedData.get(friendId);
+                        double balanceWithFriend = 0.0;
+                        if (friendData != null) {
+                            double debtToFriend = friendData.credits.getOrDefault(currentUserId, 0.0);
+                            double creditFromFriend = currentUserData.credits.getOrDefault(friendId, 0.0);
+                            balanceWithFriend = creditFromFriend - debtToFriend;
+                            Log.d(TAG, "Friend " + friendId + " balance: " + balanceWithFriend +
+                                    " (debtTo: " + debtToFriend + ", creditFrom: " + creditFromFriend + ")");
+                        }
+                        friendBalances.put(friendId, balanceWithFriend);
+                    }
+
+                    updateFriendBalanceList();
+                });
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Error waiting for expense data: ", e);
+                handler.post(() -> {
                     if (isAdded()) {
                         Toast.makeText(getContext(), "Error calculating balances", Toast.LENGTH_SHORT).show();
                     }
-                }
+                    updateFriendBalanceList();
+                });
             }
-        }
+        }).start();
     }
 
     private void updateFriendBalanceList() {
@@ -424,7 +440,6 @@ public class HomeFragment extends Fragment {
                     friendBalanceList.add(new FriendBalance(friendName, balance, profilePicture));
                 }
             }
-            // Limit to the first 3 friends
             if (friendBalanceList.size() > MAX_FRIENDS_TO_DISPLAY) {
                 friendBalanceList = new ArrayList<>(friendBalanceList.subList(0, MAX_FRIENDS_TO_DISPLAY));
             }
@@ -447,7 +462,6 @@ public class HomeFragment extends Fragment {
 
             GroupViewModel groupViewModel = new ViewModelProvider(requireActivity()).get(GroupViewModel.class);
             groupViewModel.getGroupList().observe(getViewLifecycleOwner(), groups -> {
-                // Limit to the first 2 groups
                 List<GroupItem> limitedGroups = groups.size() > MAX_GROUPS_TO_DISPLAY
                         ? new ArrayList<>(groups.subList(0, MAX_GROUPS_TO_DISPLAY))
                         : groups;
@@ -464,34 +478,29 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Cancel Firestore tasks
         if (fetchGroupsTask != null && !fetchGroupsTask.isComplete()) {
-            fetchGroupsTask.isCanceled(); // Use cancel(true) instead of isCanceled()
+            fetchGroupsTask.isCanceled();
         }
         if (fetchFriendsTask != null && !fetchFriendsTask.isComplete()) {
-            fetchFriendsTask.isCanceled(); // Use cancel(true) instead of isCanceled()
+            fetchFriendsTask.isCanceled();
         }
 
-        // Remove Firestore listeners
         for (ListenerRegistration listener : firestoreListeners) {
             listener.remove();
         }
         firestoreListeners.clear();
 
-        // Remove LiveData observers
         for (ExpenseManager manager : expenseManagers.values()) {
-            manager.getUserExpenseData().removeObservers(this);
+            manager.getUserExpenseData().removeObservers(getViewLifecycleOwner());
             manager.removeListener();
         }
 
-        // Clear handler callbacks
         handler.removeCallbacksAndMessages(null);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Ensure all resources are released
         expenseManagers.clear();
         groupIds.clear();
         friendNames.clear();

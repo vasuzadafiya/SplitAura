@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
@@ -19,7 +20,7 @@ import java.util.List;
 public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionPaymentAdapter.TransactionViewHolder> {
 
     private List<Transaction> transactionList;
-    private Context context;
+    private final Context context;
 
     public TransactionPaymentAdapter(Context context) {
         this.context = context;
@@ -36,19 +37,34 @@ public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionP
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
+
         holder.tvFriendName.setText(transaction.getFriendName());
         holder.tvAmount.setText(String.format("₹%.2f", transaction.getAmount()));
         holder.tvDate.setText(transaction.getDate());
         holder.tvStatus.setText(transaction.getStatus());
+        holder.tvTransactionId.setText("Transaction ID: " + transaction.getTransactionId());
+        holder.tvUpiApp.setText("UPI App: " + transaction.getUpiApp());
 
-        // Apply dynamic styling based on status
-        if ("SUCCESS".equals(transaction.getStatus())) {
-            holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_green_light));
-            holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.black));
-        } else {
-            holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_red_light));
-            holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.white));
+        // Dynamic styling based on status
+        switch (transaction.getStatus()) {
+            case "SUCCESS":
+                holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_green_light));
+                holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.black));
+                break;
+            case "PENDING":
+            case "REQUESTED": // Added to match PaymentFragment
+                holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_orange_light));
+                holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.black));
+                break;
+            default: // FAILED or other
+                holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_red_light));
+                holder.tvStatus.setTextColor(context.getResources().getColor(android.R.color.white));
+                break;
         }
+
+        // Click listener for transaction details
+        holder.itemView.setOnClickListener(v ->
+                Toast.makeText(context, "Transaction ID: " + transaction.getTransactionId(), Toast.LENGTH_SHORT).show());
     }
 
     @Override
@@ -64,14 +80,16 @@ public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionP
     }
 
     static class TransactionViewHolder extends RecyclerView.ViewHolder {
-        TextView tvFriendName, tvAmount, tvDate, tvStatus;
+        TextView tvFriendName, tvAmount, tvDate, tvStatus, tvTransactionId, tvUpiApp;
 
-        public TransactionViewHolder(@NonNull View itemView) {
+        TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             tvFriendName = itemView.findViewById(R.id.tv_friend_name);
             tvAmount = itemView.findViewById(R.id.tv_amount);
             tvDate = itemView.findViewById(R.id.tv_date);
             tvStatus = itemView.findViewById(R.id.tv_status);
+            tvTransactionId = itemView.findViewById(R.id.tv_transaction_id);
+            tvUpiApp = itemView.findViewById(R.id.tv_upi_app);
         }
     }
 
@@ -79,7 +97,7 @@ public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionP
         private final List<Transaction> oldList;
         private final List<Transaction> newList;
 
-        public TransactionDiffCallback(List<Transaction> oldList, List<Transaction> newList) {
+        TransactionDiffCallback(List<Transaction> oldList, List<Transaction> newList) {
             this.oldList = oldList;
             this.newList = newList;
         }
@@ -96,8 +114,7 @@ public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionP
 
         @Override
         public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return oldList.get(oldItemPosition).getDate().equals(newList.get(newItemPosition).getDate()) &&
-                    oldList.get(oldItemPosition).getFriendName().equals(newList.get(newItemPosition).getFriendName());
+            return oldList.get(oldItemPosition).getTransactionId().equals(newList.get(newItemPosition).getTransactionId());
         }
 
         @Override
@@ -105,7 +122,10 @@ public class TransactionPaymentAdapter extends RecyclerView.Adapter<TransactionP
             Transaction oldTransaction = oldList.get(oldItemPosition);
             Transaction newTransaction = newList.get(newItemPosition);
             return oldTransaction.getAmount() == newTransaction.getAmount() &&
-                    oldTransaction.getStatus().equals(newTransaction.getStatus());
+                    oldTransaction.getStatus().equals(newTransaction.getStatus()) &&
+                    oldTransaction.getFriendName().equals(newTransaction.getFriendName()) &&
+                    oldTransaction.getDate().equals(newTransaction.getDate()) &&
+                    oldTransaction.getUpiApp().equals(newTransaction.getUpiApp());
         }
     }
 }

@@ -24,7 +24,6 @@ import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.fragments.GroupFragment;
 import com.example.splitaura.fragments.HomeFragment;
 import com.example.splitaura.fragments.PaymentFragment;
-import com.example.splitaura.fragments.PaymentResultCallback;
 import com.example.splitaura.fragments.ProfileFragment;
 import com.example.splitaura.utils.Utill;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -35,21 +34,19 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.regex.Pattern;
 
-public class Homepage extends BaseActivity implements PaymentResultCallback {
+public class Homepage extends BaseActivity {
 
     private FrameLayout curvedBracketContainer;
     private View shadowOverlay;
-    private PaymentResultCallback paymentResultCallback;
     private boolean isCurvedBarVisible = false;
-    // Declare bottomNavigationView as a field so it can be used in other methods.
     private BottomNavigationView bottomNavigationView;
+    private boolean hasShownUPIDialog = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.homepage);
 
-        // Draw behind status bar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View decorView = getWindow().getDecorView();
             decorView.setSystemUiVisibility(
@@ -62,15 +59,12 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         shadowOverlay = findViewById(R.id.shadowOverlay);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
-        // Initialize Click Listeners for Spotlight Icons
         findViewById(R.id.personalContainer).setOnClickListener(v -> openPersonalActivity());
         findViewById(R.id.groupContainer).setOnClickListener(v -> openGroupActivity());
         findViewById(R.id.friendsContainer).setOnClickListener(v -> openFriendsActivity());
 
-        // Clicking on shadowOverlay should hide the curvedBracket
         shadowOverlay.setOnClickListener(v -> hideCurvedBracket());
 
-        // Load default fragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_layout, new HomeFragment())
@@ -104,6 +98,7 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
             }
             return true;
         });
+
         checkUPIStatus();
     }
 
@@ -121,7 +116,7 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
             shadowOverlay.setVisibility(View.VISIBLE);
             shadowOverlay.setAlpha(0f);
             shadowOverlay.animate().alpha(0.6f).setDuration(200).start();
-            shadowOverlay.setClickable(true); // Block background clicks
+            shadowOverlay.setClickable(true);
 
             curvedBracketContainer.setVisibility(View.VISIBLE);
             curvedBracketContainer.setAlpha(0f);
@@ -136,7 +131,7 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
             isCurvedBarVisible = false;
             shadowOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> {
                 shadowOverlay.setVisibility(View.GONE);
-                shadowOverlay.setClickable(false); // Re-enable background clicks
+                shadowOverlay.setClickable(false);
             }).start();
 
             curvedBracketContainer.animate().alpha(0f).setDuration(200)
@@ -144,7 +139,6 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         }
     }
 
-    // Function to animate icons smoothly from the bottom navigation
     private void animateIcons() {
         LinearLayout personalIcon = findViewById(R.id.personalContainer);
         LinearLayout groupIcon = findViewById(R.id.groupContainer);
@@ -177,7 +171,7 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
     }
 
     private void openGroupActivity() {
-        Utill.showToast(this,"Coming Soon");
+        Utill.showToast(this, "Coming Soon");
         hideCurvedBracket();
     }
 
@@ -186,68 +180,54 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         hideCurvedBracket();
     }
 
-    // When navigateToAddFriendFragment is called, automatically select the nav_groups item.
     public void navigateToAddFriendFragment() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_groups);
         }
     }
 
-    public void setPaymentResultCallback(PaymentResultCallback callback) {
-        this.paymentResultCallback = callback;
-    }
-
-    @Override
-    public void onPaymentSuccess(String paymentId) {
-        Log.d("Homepage", "onPaymentSuccess: Received paymentId: " + paymentId);
-        Toast.makeText(this, "MainActivity: Payment success, ID: " + paymentId, Toast.LENGTH_LONG).show();
-        if (paymentResultCallback != null) {
-            paymentResultCallback.onPaymentSuccess(paymentId);
-        } else {
-            Log.w("Homepage", "onPaymentSuccess: paymentResultCallback is null");
-            Toast.makeText(this, "Callback not set", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onPaymentError(int code, String response) {
-        Log.d("Homepage", "onPaymentError: Code: " + code + ", Response: " + response);
-        Toast.makeText(this, "MainActivity: Payment error, Code: " + code, Toast.LENGTH_LONG).show();
-        if (paymentResultCallback != null) {
-            paymentResultCallback.onPaymentError(code, response);
-        } else {
-            Log.w("Homepage", "onPaymentError: paymentResultCallback is null");
-            Toast.makeText(this, "Callback not set", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    // Checks Firestore for the current user's UPI status.
     private void checkUPIStatus() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            Toast.makeText(Homepage.this, "User not authenticated. Please log in again.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Homepage.this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        String userId = auth.getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String upi = documentSnapshot.getString("upi");
-                        // If UPI is missing or empty, load the dialog with user details.
-                        if (upi == null || upi.isEmpty()) {
-                            String fname = documentSnapshot.getString("fname");
-                            String lname = documentSnapshot.getString("lname");
-                            String fullName = "";
-                            if (fname != null) fullName += fname;
-                            if (lname != null) fullName += " " + lname;
-                            String profileImage = documentSnapshot.getString("profile_picture");
-                            showUPIDialog(fullName, profileImage);
+                        Log.d("Homepage", "UPI from Firestore: " + upi);
+                        if (upi == null || upi.isEmpty() || !validateUPI(upi)) {
+                            if (!hasShownUPIDialog) {
+                                hasShownUPIDialog = true;
+                                String fname = documentSnapshot.getString("fname");
+                                String lname = documentSnapshot.getString("lname");
+                                String fullName = "";
+                                if (fname != null) fullName += fname;
+                                if (lname != null) fullName += " " + lname;
+                                String profileImage = documentSnapshot.getString("profile_picture");
+                                showUPIDialog(fullName, profileImage);
+                            }
+                        }
+                    } else {
+                        if (!isFinishing()) {
+                            Toast.makeText(Homepage.this, "User profile not found in Firestore", Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(Homepage.this, "Error checking UPI: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    if (!isFinishing()) {
+                        Toast.makeText(Homepage.this, "Error checking UPI: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 
-    // Displays the UPI input dialog populated with the user's full name, profile image, and description.
     private void showUPIDialog(String fullName, String profileImage) {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.get_upi, null);
@@ -259,18 +239,22 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         TextView tvDialogAlertText = dialogView.findViewById(R.id.tvAlertText);
 
         tvDialogName.setText(fullName);
-        // Set the description text with a financial warning.
-        tvDialogAlertText.setText("Please enter your valid UPI ID carefully. An incorrect UPI ID may result in financial issues.");
-        // Load profile image using Glide (ensure you have the dependency)
+        String guidanceText = "Please enter your valid UPI ID carefully. An incorrect UPI ID may result in financial issues.\n\n" +
+                "How to find your UPI ID:\n" +
+                "• Google Pay: Open the app, tap your profile picture (top-left), and find your UPI ID under your name (e.g., yourname@okaxis).\n" +
+                "• PhonePe: Open the app, go to 'My Profile' (top-right), and check your UPI ID under 'UPI Settings' (e.g., yourname@ybl).\n" +
+                "• Paytm: Open the app, tap the profile icon (top-left), go to 'UPI & Payment Settings,' and copy your UPI ID (e.g., yourname@paytm).\n\n" +
+                "Example UPI ID: exampleuser@okhdfcbank";
+        tvDialogAlertText.setText(guidanceText);
+
         Glide.with(this)
                 .load(profileImage)
-                .placeholder(R.drawable.obsmallmen2)  // Optional placeholder image
+                .placeholder(R.drawable.obsmallmen2)
                 .circleCrop()
                 .into(ivDialogProfile);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialogView);
-        // Prevent the user from dismissing the dialog until a valid UPI is added.
         builder.setCancelable(false);
         AlertDialog dialog = builder.create();
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -279,7 +263,6 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         addUPIButton.setOnClickListener(v -> {
             String upiInput = upiEditText.getText().toString().trim();
             if (validateUPI(upiInput)) {
-                // Show a confirmation dialog before saving the UPI.
                 new AlertDialog.Builder(Homepage.this)
                         .setTitle("Confirm UPI ID")
                         .setMessage("Please confirm that your UPI: " + upiInput + " is correct. Providing an incorrect UPI ID may result in financial issues.")
@@ -294,25 +277,35 @@ public class Homepage extends BaseActivity implements PaymentResultCallback {
         });
     }
 
-    // Validates the UPI using a basic regular expression.
     private boolean validateUPI(String upiId) {
-        String regex = "^[a-zA-Z0-9.\\-_]{2,256}@[a-zA-Z]{2,64}$";
-        return Pattern.matches(regex, upiId);
+        String regex = "^[a-zA-Z0-9.\\-_]{2,256}@[a-zA-Z0-9]{2,64}$";
+        boolean isValid = Pattern.matches(regex, upiId);
+        Log.d("Homepage", "Validating UPI: " + upiId + ", Is Valid: " + isValid);
+        return isValid;
     }
 
-    // Saves the UPI to the current user's Firestore document.
     private void saveUPIToFirestore(String upiInput, AlertDialog dialog) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(userId)
                 .update("upi", upiInput)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(Homepage.this, "UPI added successfully!", Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
+                    if (!isFinishing()) {
+                        Toast.makeText(Homepage.this, "UPI added successfully!", Toast.LENGTH_SHORT).show();
+                    }
                     dialog.dismiss();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(Homepage.this, "Failed to add UPI. Try again!", Toast.LENGTH_SHORT).show();
+                    if (!isFinishing()) {
+                        Toast.makeText(Homepage.this, "Failed to add UPI. Try again!", Toast.LENGTH_SHORT).show();
+                    }
                 });
+    }
+
+    // Add a method to handle logout (if logout is initiated from this activity)
+    public void logout() {
+        FirebaseAuth.getInstance().signOut();
+        startActivity(new Intent(Homepage.this, LoginActivity.class));
+        finish();
     }
 }

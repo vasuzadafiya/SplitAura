@@ -227,8 +227,9 @@ public class SelectGroupMembers extends BaseActivity {
                 String fname = documentSnapshot.getString("fname");
                 String lname = documentSnapshot.getString("lname");
                 String profilePicture = documentSnapshot.getString("profile_picture");
+                String upi = documentSnapshot.getString("upi");
 
-                Friend friend = new Friend(uid, email, fname, lname, profilePicture);
+                Friend friend = new Friend(uid, email, fname, lname, profilePicture,upi);
                 selectedFriends.add(friend); // Ensure current user is also added
 
                 // Proceed with Firestore upload **after** user is added to the list

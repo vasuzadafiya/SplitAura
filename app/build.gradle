@@ -65,6 +65,7 @@ dependencies {
     implementation libs.firebase.core
     implementation libs.firebase.database
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.google.firebase:firebase-messaging:24.1.1'
     implementation 'com.firebaseui:firebase-ui-firestore:8.0.2'
     implementation(libs.cloudinary.android.v302)
 
@@ -89,5 +90,8 @@ dependencies {
 
 //    chart api
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    implementation 'com.google.zxing:core:3.5.2'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
 }

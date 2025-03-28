@@ -523,7 +523,6 @@ public class LoginActivity extends BaseActivity {
             user.put("email", email);
             user.put("password", password);
             user.put("profile_picture", profilePictureUrl);
-            user.put("upi", null);
             user.put("gLogin", isGoogleLogin);
 
             List<String> searchKeywords = new ArrayList<>();

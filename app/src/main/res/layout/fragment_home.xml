@@ -152,6 +152,7 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
+                        android:id="@+id/history"
                         style="@style/IconTrayImageButton"
                         android:contentDescription="@string/history"
                         android:src="@drawable/ic_history" />

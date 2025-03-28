@@ -13,7 +13,10 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/card_internal_padding">
+        android:paddingTop="8dp"
+        android:paddingStart="16dp"
+        android:paddingBottom="8dp"
+        android:paddingEnd="16dp">
 
         <!-- Friend Name -->
         <TextView
@@ -52,6 +55,30 @@
             app:layout_constraintStart_toStartOf="@id/tv_friend_name"
             app:layout_constraintTop_toBottomOf="@id/tv_friend_name" />
 
+        <!-- Transaction ID -->
+        <TextView
+            android:id="@+id/tv_transaction_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaction ID: N/A"
+            android:textSize="14sp"
+            android:textColor="@color/gray"
+            android:layout_marginTop="@dimen/text_margin_top"
+            app:layout_constraintStart_toStartOf="@id/tv_date"
+            app:layout_constraintTop_toBottomOf="@id/tv_date" />
+
+        <!-- UPI App -->
+        <TextView
+            android:id="@+id/tv_upi_app"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UPI App: Unknown"
+            android:textSize="14sp"
+            android:textColor="@color/gray"
+            android:layout_marginTop="@dimen/text_margin_top"
+            app:layout_constraintStart_toStartOf="@id/tv_transaction_id"
+            app:layout_constraintTop_toBottomOf="@id/tv_transaction_id" />
+
         <!-- Status Indicator -->
         <TextView
             android:id="@+id/tv_status"
@@ -62,10 +89,10 @@
             android:paddingHorizontal="@dimen/status_padding_horizontal"
             android:paddingVertical="@dimen/status_padding_vertical"
             android:layout_marginTop="@dimen/text_margin_top"
-            app:layout_constraintStart_toStartOf="@id/tv_date"
-            app:layout_constraintTop_toBottomOf="@id/tv_date"
+            app:layout_constraintStart_toStartOf="@id/tv_upi_app"
+            app:layout_constraintTop_toBottomOf="@id/tv_upi_app"
             app:cardCornerRadius="@dimen/status_corner_radius"
-            android:background="@drawable/status_background" /> <!-- Dynamic background via drawable -->
+            android:background="@drawable/status_background" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

@@ -171,7 +171,7 @@ public class AddExpenseActivity extends BaseActivity {
                         } else {
                             firestore.collection("users").document(memberId).get().addOnSuccessListener(userDoc -> {
                                 if (userDoc.exists()) {
-                                    Friend friend = new Friend(userDoc.getString("uid"), userDoc.getString("email"), userDoc.getString("fname"), userDoc.getString("lname"), userDoc.getString("profile_picture"));
+                                    Friend friend = new Friend(userDoc.getString("uid"), userDoc.getString("email"), userDoc.getString("fname"), userDoc.getString("lname"), userDoc.getString("profile_picture"), userDoc.getString("upi"));
                                     friendCache.put(memberId, friend);
                                     groupMembers.add(friend);
                                     Log.d(TAG, "Loaded group member: " + friend.getFullName());

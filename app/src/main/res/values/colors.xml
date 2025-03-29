@@ -31,4 +31,36 @@
     <color name="light_grayish_green">#F5FFF5</color>
     <color name="iconBackground">#F3F3F3</color>
     <color name="iconTint">#FFFFFF</color>
+    <color name="primaryColor">#6200EE</color>
+    <color name="primaryDarkColor">#3700B3</color>
+    <color name="primaryLightColor">#BB86FC</color>
+    <color name="secondaryColor">#03DAC6</color>
+    <color name="primaryText">#212121</color>
+    <color name="secondaryText">#757575</color>
+    <color name="errorColor">#B00020</color>
+    <color name="successColor">#4CAF50</color>
+
+    <color name="secondary_ripple">#1F6200EE</color>
+    <color name="error_ripple">#1FB00020</color>
+    <color name="secondaryContainer">#EADDFF</color>
+    <color name="onSecondary">#FFFFFF</color>
+    <color name="outline">#79747E</color>
+    <!-- Primary Colors -->
+    <color name="primary">#2D3748</color>        <!-- Dark Slate Gray -->
+    <color name="primaryVariant">#4A5568</color>  <!-- Lighter Slate -->
+    <color name="secondary">#4FD1C5</color>      <!-- Teal -->
+    <color name="secondaryVariant">#38B2AC</color><!-- Darker Teal -->
+
+    <!-- Background Colors -->
+    <color name="surface">#FFFFFF</color>        <!-- White -->
+    <color name="surfaceVariant">#EDF2F7</color>  <!-- Light Gray -->
+
+    <!-- Text Colors -->
+    <color name="textPrimary">#1A202C</color>    <!-- Very Dark Gray -->
+    <color name="textSecondary">#718096</color>   <!-- Gray -->
+    <color name="textOnPrimary">#FFFFFF</color>   <!-- White -->
+
+    <!-- Accent Colors -->
+    <color name="error">#E53E3E</color>         <!-- Red -->
+    <color name="success">#38A169</color>       <!-- Green -->
 </resources>

@@ -83,6 +83,8 @@ dependencies {
     implementation(libs.google.firebase.auth)
     implementation(libs.play.services.auth)
     implementation libs.fragment
+    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
 //    image uploading api
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

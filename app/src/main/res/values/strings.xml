@@ -19,6 +19,9 @@
     <string name="retry">Retry</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="spotlight_fragment">Spotlight Fragment</string>
+    <string name="amount_format">₹ %s</string>
+    <string name="date_format">%s</string>
+    <string name="paid_by_format">Paid by: %s</string>
     <string name="home">Home</string>
     <string name="groups">Groups</string>
     <string name="group_info">Group Info</string>
@@ -29,6 +32,15 @@
     <string name="balance_amount">₹9235.35</string>
     <string name="available_bal">Available Balance</string>
     <string name="view_all"><![CDATA[View All ->]]></string>
+    <string name="amount">Amount :</string>
+    <string name="added_by_format">%s</string>
+    <string name="paid_by">Paid by :</string>
+    <string name="split_by">Split by :</string>
+    <string name="date">Date :</string>
+    <string name="categories">Categories</string>
+    <string name="notes">Notes :</string>
+    <string name="update">UPDATE</string>
+    <string name="cancel">CANCEL</string>
     <string name="friends">Friends</string>
     <string name="pay">pay</string>
     <string name="request">Request</string>
@@ -42,6 +54,7 @@
     <string name="event_emoji">Event🎉</string>
     <string name="other_emoji">Other🔀</string>
     <string name="tv_title">Title</string>
+    <string name="delete1">Delete</string>
     <string name="tv_description">Description</string>
     <string name="tv_currency">Currency</string>
     <string name="tv_category">Category</string>
@@ -78,6 +91,7 @@
     <string name="profile_picture">profile picture</string>
     <string name="add_group">Create group</string>
     <string name="add_upi">Add UPI</string>
+    <string name="split_by_format">%s</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

@@ -22,6 +22,10 @@
         <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
 
     <style name="CustomBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="android:windowIsFloating">false</item>
@@ -52,4 +56,90 @@
         <item name="iconPadding">8dp</item>
         <item name="iconTint">@android:color/white</item>
     </style>
+
+    <style name="CustomDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogButton.Negative</item>
+        <item name="buttonBarNeutralButtonStyle">@style/DialogButton.Neutral</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/DialogTitle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/DialogBody</item>
+    </style>
+
+    <style name="DialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/secondary_ripple</item>
+    </style>
+
+    <style name="DialogButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/error</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/error_ripple</item>
+    </style>
+
+    <style name="DialogTitle" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+    <style name="DialogButton.Neutral" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/textSecondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/secondary_ripple</item>
+    </style>
+
+    <style name="DialogBody" parent="MaterialAlertDialog.MaterialComponents.Body.Text">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="android:lineSpacingMultiplier">1.25</item>
+    </style>
+    <!-- Light Confirmation Dialog Theme -->
+    <style name="LightDialogTheme" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:background">@android:color/white</item>
+        <item name="android:textColorPrimary">@color/textPrimary</item>
+        <item name="android:textColorSecondary">@color/textSecondary</item>
+        <item name="colorSurface">@android:color/white</item>
+        <item name="colorOnSurface">@color/textPrimary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/LightDialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/LightDialogButton.Negative</item>
+    </style>
+
+    <style name="LightDialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/secondary_ripple</item>
+    </style>
+
+    <style name="LightDialogButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/error</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="rippleColor">@color/error_ripple</item>
+    </style>
+
 </resources>

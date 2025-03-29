@@ -1,23 +1,42 @@
 package com.example.splitaura.adapters;
 
+import static android.content.ContentValues.TAG;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.R;
+import com.google.android.flexbox.FlexboxLayout;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
+
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
     private List<ExpenseManager.Expense> expenseList;
+    private final Context context;
+    private final OnExpenseActionListener actionListener;
+    private final Map<String, String> userNamesCache = new HashMap<>();
 
-    public ExpenseAdapter(List<ExpenseManager.Expense> expenseList) {
-        this.expenseList = expenseList != null ? new ArrayList<>(expenseList) : new ArrayList<>();
+    public ExpenseAdapter(Context context, OnExpenseActionListener listener) {
+        this.context = context;
+        this.expenseList = new ArrayList<>();
+        this.actionListener = listener;
     }
 
     @NonNull
@@ -32,63 +51,217 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         ExpenseManager.Expense expense = expenseList.get(position);
 
         holder.expenseName.setText(expense.getTitle());
-        String formattedText = String.format("₹ %s", expense.getAmount());
-        holder.expenseAmount.setText(formattedText);
-        holder.expensePaidBy.setText("Paid by " + expense.getPaidBy());
-        holder.expenseDate.setText(expense.getDate());
+        holder.expenseAmount.setText(context.getString(R.string.amount_format, expense.getAmount()));
+        holder.expensePaidBy.setText(context.getString(R.string.paid_by_format, expense.getPaidBy()));
+        holder.expenseDate.setText(context.getString(R.string.date_format, expense.getDate()));
 
-        String category = (expense.getCategories() == null || expense.getCategories().isEmpty())
-                ? "Other"
-                : expense.getCategories().get(0);
+        setCategoryIcon(holder.categoryIcon, expense.getCategories() != null && !expense.getCategories().isEmpty() ? expense.getCategories().get(0) : "Other");
 
-        setCategoryIcon(holder.categoryIcon, category);
+        holder.itemView.setOnClickListener(v -> showExpenseOptionsDialog(expense));
+    }
+
+    private void showExpenseOptionsDialog(ExpenseManager.Expense expense) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.CustomDialogTheme);
+
+        // Inflate custom view
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_details_expense, null);
+        builder.setView(dialogView);
+
+        // Initialize views
+        TextView addedByView = dialogView.findViewById(R.id.dialog_expense_added_by);
+
+        // Set creator info if available
+        if (expense.getAddedBy() != null && !expense.getAddedBy().equals("unknown")) {
+            // Check cache first
+            if (userNamesCache.containsKey(expense.getAddedBy())) {
+                String creatorName = userNamesCache.get(expense.getAddedBy());
+                addedByView.setText(context.getString(R.string.added_by_format, creatorName));
+                addedByView.setVisibility(View.VISIBLE);
+            } else {
+                // Fetch name if not in cache
+                fetchUserName(expense.getAddedBy(), name -> {
+                    addedByView.setText(context.getString(R.string.added_by_format, name));
+                    addedByView.setVisibility(View.VISIBLE);
+                });
+            }
+        } else {
+            addedByView.setVisibility(View.GONE);
+        }
+        ImageView icon = dialogView.findViewById(R.id.dialog_expense_icon);
+        TextView title = dialogView.findViewById(R.id.dialog_expense_title);
+        TextView amount = dialogView.findViewById(R.id.dialog_expense_amount);
+        TextView paidBy = dialogView.findViewById(R.id.dialog_expense_paid_by);
+        TextView splitBy = dialogView.findViewById(R.id.dialog_expense_split_by);
+        TextView date = dialogView.findViewById(R.id.dialog_expense_date);
+        TextView notes = dialogView.findViewById(R.id.dialog_expense_notes);
+        FlexboxLayout categoriesContainer = dialogView.findViewById(R.id.categories_container);
+        MaterialButton btnUpdate = dialogView.findViewById(R.id.btn_update);
+        MaterialButton btnDelete = dialogView.findViewById(R.id.btn_delete);
+
+        // Set data
+        setCategoryIcon(icon, expense.getCategories() != null && !expense.getCategories().isEmpty() ?
+                expense.getCategories().get(0) : "General");
+        title.setText(expense.getTitle());
+        amount.setText(context.getString(R.string.amount_format, expense.getAmount()));
+        paidBy.setText(expense.getPaidBy());
+        splitBy.setText(expense.getSplitBy());
+        date.setText(expense.getDate());
+
+        // Handle notes visibility
+        if (expense.getNotes() != null && !expense.getNotes().isEmpty()) {
+            notes.setText(expense.getNotes());
+            notes.setVisibility(View.VISIBLE);
+        } else {
+            notes.setVisibility(View.GONE);
+            dialogView.findViewById(R.id.dialog_expense_notes).setVisibility(View.GONE);
+        }
+
+        // Populate categories
+        categoriesContainer.removeAllViews();
+        if (expense.getCategories() != null && !expense.getCategories().isEmpty()) {
+            for (String category : expense.getCategories()) {
+                TextView chip = (TextView) LayoutInflater.from(context)
+                        .inflate(R.layout.category_chip, categoriesContainer, false);
+                chip.setText(category);
+                categoriesContainer.addView(chip);
+            }
+        } else {
+            categoriesContainer.setVisibility(View.GONE);
+            dialogView.findViewById(R.id.categories_container).setVisibility(View.GONE);
+        }
+
+        // Create dialog
+        AlertDialog dialog = builder.create();
+
+        // Set button click listeners
+        btnUpdate.setOnClickListener(v -> {
+            dialog.dismiss();
+            showUpdateConfirmationDialog(expense);
+        });
+
+        btnDelete.setOnClickListener(v -> {
+            dialog.dismiss();
+            showDeleteConfirmationDialog(expense);
+        });
+
+        dialog.show();
+
+        // Add animation
+        dialog.getWindow().setWindowAnimations(R.style.DialogAnimation);
+    }
+
+    private void fetchUserName(String uid, OnNameFetchedListener listener) {
+        FirebaseFirestore.getInstance().collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String firstName = documentSnapshot.getString("fname");
+                        String lastName = documentSnapshot.getString("lname");
+                        String fullName = (firstName != null ? firstName : "") +
+                                (lastName != null ? " " + lastName : "");
+                        fullName = fullName.trim();
+
+                        if (!fullName.isEmpty()) {
+                            userNamesCache.put(uid, fullName);
+                            listener.onNameFetched(fullName);
+                        } else {
+                            listener.onNameFetched("User " + uid.substring(0, 6));
+                        }
+                    } else {
+                        listener.onNameFetched("Unknown User");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching user name", e);
+                    listener.onNameFetched("User " + uid.substring(0, 6));
+                });
+    }
+
+    private interface OnNameFetchedListener {
+        void onNameFetched(String name);
+    }
+
+    private void showUpdateConfirmationDialog(ExpenseManager.Expense expense) {
+        new MaterialAlertDialogBuilder(context, R.style.LightDialogTheme)
+                .setTitle("Confirm Update")
+                .setMessage("Are you sure you want to update this expense?")
+                .setPositiveButton("Update", (dialog, which) -> {
+                    if (actionListener != null) {
+                        actionListener.onEditExpense(expense);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showDeleteConfirmationDialog(ExpenseManager.Expense expense) {
+        new MaterialAlertDialogBuilder(context, R.style.LightDialogTheme)
+                .setTitle("Delete Expense")
+                .setMessage("This action cannot be undone. Are you sure?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    if (actionListener != null) {
+                        actionListener.onDeleteExpense(expense);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void setCategoryIcon(ImageView categoryIcon, String category) {
-        int[] backgroundColors = {
-                R.drawable.icon_background_blue, R.drawable.icon_background_green,
-                R.drawable.icon_background_orange, R.drawable.icon_background_purple,
-                R.drawable.icon_background_red, R.drawable.icon_background_teal,
-                R.drawable.icon_background_yellow, R.drawable.icon_background_pink,
-                R.drawable.icon_background_cyan
-        };
+        int iconResId;
+        int bgColorResId;
 
-        int randomIndex = new Random().nextInt(backgroundColors.length);
-        int backgroundColor = backgroundColors[randomIndex];
-
-        switch (category) {
+        switch (category != null ? category : "General") {
             case "General":
-                categoryIcon.setImageResource(R.drawable.ic_general);
-                break;
-            case "Food":
-                categoryIcon.setImageResource(R.drawable.ic_food);
+                iconResId = R.drawable.ic_general;
+                bgColorResId = R.drawable.icon_background_teal;
                 break;
             case "Games":
-                categoryIcon.setImageResource(R.drawable.ic_games);
+                iconResId = R.drawable.ic_games;
+                bgColorResId = R.drawable.icon_background_blue;
                 break;
             case "Sports":
-                categoryIcon.setImageResource(R.drawable.ic_sports);
+                iconResId = R.drawable.ic_sports;
+                bgColorResId = R.drawable.icon_background_orange;
                 break;
             case "Music":
-                categoryIcon.setImageResource(R.drawable.ic_music);
+                iconResId = R.drawable.ic_music;
+                bgColorResId = R.drawable.icon_background_purple;
                 break;
             case "Movies":
-                categoryIcon.setImageResource(R.drawable.ic_movies);
+                iconResId = R.drawable.ic_movies;
+                bgColorResId = R.drawable.icon_background_red;
+                break;
+            case "Food":
+                iconResId = R.drawable.ic_food;
+                bgColorResId = R.drawable.icon_background_green;
                 break;
             case "Liquor":
-                categoryIcon.setImageResource(R.drawable.ic_liquor);
+                iconResId = R.drawable.ic_liquor;
+                bgColorResId = R.drawable.icon_background_pink;
                 break;
             case "Grocery":
-                categoryIcon.setImageResource(R.drawable.ic_grocery);
+                iconResId = R.drawable.ic_grocery;
+                bgColorResId = R.drawable.icon_background_orange;
                 break;
             case "Shop":
-                categoryIcon.setImageResource(R.drawable.ic_shop);
+                iconResId = R.drawable.ic_shop;
+                bgColorResId = R.drawable.icon_background_cyan;
                 break;
             default:
-                categoryIcon.setImageResource(R.drawable.ic_category);
-                break;
+                iconResId = R.drawable.ic_category;
+                bgColorResId = R.drawable.icon_background_teal;
         }
-        categoryIcon.setBackgroundResource(backgroundColor);
+
+        categoryIcon.setImageResource(iconResId);
+        categoryIcon.setBackgroundResource(bgColorResId);
+    }
+
+    public void updateExpenses(List<ExpenseManager.Expense> newExpenses) {
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new ExpenseDiffCallback(expenseList, newExpenses));
+        expenseList.clear();
+        expenseList.addAll(newExpenses);
+        result.dispatchUpdatesTo(this);
     }
 
     @Override
@@ -96,7 +269,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return expenseList.size();
     }
 
-    public static class ExpenseViewHolder extends RecyclerView.ViewHolder {
+    public ExpenseManager.Expense getExpenseAt(int position) {
+        if (position >= 0 && position < expenseList.size()) {
+            return expenseList.get(position);
+        }
+        return null;
+    }
+
+    static class ExpenseViewHolder extends RecyclerView.ViewHolder {
         ImageView categoryIcon;
         TextView expenseName, expensePaidBy, expenseAmount, expenseDate;
 
@@ -110,9 +290,30 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         }
     }
 
-    public void updateExpenses(List<ExpenseManager.Expense> newExpenses) {
-        this.expenseList.clear();
-        this.expenseList.addAll(newExpenses != null ? newExpenses : new ArrayList<>());
-        notifyDataSetChanged();
+    public interface OnExpenseActionListener {
+        void onEditExpense(ExpenseManager.Expense expense);
+        void onDeleteExpense(ExpenseManager.Expense expense);
+    }
+
+    private static class ExpenseDiffCallback extends DiffUtil.Callback {
+        private final List<ExpenseManager.Expense> oldList, newList;
+
+        public ExpenseDiffCallback(List<ExpenseManager.Expense> oldList, List<ExpenseManager.Expense> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override public int getOldListSize() { return oldList.size(); }
+        @Override public int getNewListSize() { return newList.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldPos, int newPos) {
+            return oldList.get(oldPos).getExpenseId().equals(newList.get(newPos).getExpenseId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldPos, int newPos) {
+            return oldList.get(oldPos).equals(newList.get(newPos));
+        }
     }
 }

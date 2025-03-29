@@ -308,4 +308,10 @@ public class Homepage extends BaseActivity {
         startActivity(new Intent(Homepage.this, LoginActivity.class));
         finish();
     }
+
+    public void navigateToPaymentFragments() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_payments);
+        }
+    }
 }

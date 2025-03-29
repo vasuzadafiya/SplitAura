@@ -68,6 +68,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/txt_saving"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
@@ -100,6 +101,7 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
+                        android:id="@+id/btn_pay"
                         style="@style/IconTrayImageButton"
                         android:contentDescription="@string/pay"
                         android:src="@drawable/ic_pay" />
@@ -113,6 +115,7 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
+                        android:id="@+id/btn_request_amount"
                         style="@style/IconTrayImageButton"
                         android:contentDescription="@string/request"
                         android:src="@drawable/ic_request" />
@@ -126,6 +129,7 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
+                        android:id="@+id/btn_add_income"
                         style="@style/IconTrayImageButton"
                         android:contentDescription="@string/top_up"
                         android:src="@drawable/ic_topup" />
@@ -139,6 +143,7 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
+                        android:id="@+id/btn_withdraw_saving"
                         style="@style/IconTrayImageButton"
                         android:contentDescription="@string/withdraw"
                         android:src="@drawable/ic_withdraw" />
@@ -152,8 +157,9 @@
                 <LinearLayout style="@style/IconTrayItemLayout">
 
                     <ImageButton
-                        android:id="@+id/history"
+                        android:id="@+id/btn_history"
                         style="@style/IconTrayImageButton"
+                        android:layout_width="50dp"
                         android:contentDescription="@string/history"
                         android:src="@drawable/ic_history" />
 

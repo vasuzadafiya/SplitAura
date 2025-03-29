@@ -3,6 +3,8 @@ package com.example.splitaura.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,11 +12,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -31,6 +37,7 @@ import com.example.splitaura.adapters.FriendBalanceAdapter;
 import com.example.splitaura.adapters.GroupAdapter;
 import com.example.splitaura.models.FriendBalance;
 import com.example.splitaura.models.GroupItem;
+import com.example.splitaura.utils.Utill;
 import com.example.splitaura.viewmodels.GroupViewModel;
 import com.example.splitaura.viewmodels.HomeViewModel;
 import com.google.android.gms.tasks.Task;
@@ -82,6 +89,12 @@ public class HomeFragment extends Fragment {
     private boolean isDataFresh = false;
     private CardView groupCardView;
     private CardView friendCardView;
+    private ImageButton pay;
+    private ImageButton request;
+    private ImageButton addIncome;
+    private ImageButton withdraw;
+    private ImageButton history;
+    private TextView savingTextView;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -96,10 +109,6 @@ public class HomeFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
 
-        if (currentUserId == null) {
-            Toast.makeText(getContext(), "User not authenticated. Please log in.", Toast.LENGTH_LONG).show();
-            return view;
-        }
 
         sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
@@ -109,6 +118,12 @@ public class HomeFragment extends Fragment {
         friendProfilePictures = new HashMap<>();
         friendBalances = new HashMap<>();
         firestoreListeners = new ArrayList<>();
+        pay = view.findViewById(R.id.btn_pay);
+        request = view.findViewById(R.id.btn_request_amount);
+        withdraw = view.findViewById(R.id.btn_withdraw_saving);
+        history = view.findViewById(R.id.btn_history);
+        addIncome = view.findViewById(R.id.btn_add_income);
+        savingTextView = view.findViewById(R.id.txt_saving);
 
         initViews(view);
         initViewModels();
@@ -117,9 +132,72 @@ public class HomeFragment extends Fragment {
         fetchGroupData();
         loadCachedFriendsData();
         fetchFriendsData();
+        manageClick();
 
         return view;
     }
+
+    private void manageClick() {
+        pay.setOnClickListener(v -> navigateTopaymentFragment());
+        request.setOnClickListener(v -> navigateTopaymentFragment());
+        history.setOnClickListener(v -> navigateTopaymentFragment());
+        addIncome.setOnClickListener(v -> updateSaving());
+        withdraw.setOnClickListener(v -> updateSaving());
+        getSaving();
+
+
+    }
+
+    private void updateSaving() {
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        View dialogView = inflater.inflate(R.layout.manage_saving, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        dialog.show();
+
+        EditText savingedt = dialogView.findViewById(R.id.saving_edit_text);
+        Button update = dialogView.findViewById(R.id.updateButton);
+
+        update.setOnClickListener(v -> {
+            String inputText = savingedt.getText().toString().trim();
+
+            // Check if input is not empty and is a valid number
+            if (!inputText.isEmpty()) {
+                try {
+                    double saving = Double.parseDouble(inputText);
+
+                    // Update the database with the new saving amount
+                    db.collection("users").document(currentUserId)
+                            .update("saving", saving)
+                            .addOnSuccessListener(task -> {
+                                Utill.showToast(getActivity(), "Saving Updated");
+                                dialog.dismiss(); // Dismiss the dialog after successful update
+                            })
+                            .addOnFailureListener(e -> {
+                                Utill.showToast(getActivity(), "Something went wrong with saving");
+                            });
+                } catch (NumberFormatException e) {
+                    Utill.showToast(getActivity(), "Please enter a valid number");
+                }
+            } else {
+                Utill.showToast(getActivity(), "Enter a valid saving amount");
+            }
+        });
+    }
+
+    private void getSaving() {
+        homeViewModel.getSaving().observe(getViewLifecycleOwner(), saving -> {
+            savingTextView.setText(String.format("%.2f", saving));
+        });
+    }
+
 
     private void initViews(View view) {
         groupRecyclerView = view.findViewById(R.id.group_recyclerView);
@@ -144,6 +222,12 @@ public class HomeFragment extends Fragment {
     private void navigateToGroupFragment() {
         if (getActivity() instanceof Homepage) {
             ((Homepage) getActivity()).navigateToAddFriendFragment();
+        }
+    }
+
+    private void navigateTopaymentFragment() {
+        if (getActivity() instanceof Homepage) {
+            ((Homepage) getActivity()).navigateToPaymentFragments();
         }
     }
 
@@ -194,7 +278,8 @@ public class HomeFragment extends Fragment {
             String friendsJson = sharedPreferences.getString(KEY_FRIENDS_DATA, null);
             if (friendsJson != null) {
                 Gson gson = new Gson();
-                Type type = new TypeToken<List<FriendBalance>>() {}.getType();
+                Type type = new TypeToken<List<FriendBalance>>() {
+                }.getType();
                 List<FriendBalance> cachedFriends = gson.fromJson(friendsJson, type);
                 if (cachedFriends != null) {
                     friendBalanceList.clear();

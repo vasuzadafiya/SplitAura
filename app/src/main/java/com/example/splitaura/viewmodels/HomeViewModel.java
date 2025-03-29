@@ -1,7 +1,6 @@
 package com.example.splitaura.viewmodels;
 
 import android.app.Application;
-import android.widget.Toast;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -14,6 +13,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<String> profilePicUrl = new MutableLiveData<>();
+    // New LiveData for saving
+    private final MutableLiveData<Double> saving = new MutableLiveData<>();
+
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     private final UserSessionManager sessionManager;
@@ -29,7 +31,7 @@ public class HomeViewModel extends AndroidViewModel {
         if (cachedUsername != null) {
             username.setValue(cachedUsername);
         } else {
-            username.setValue("Hello User\nManage your finance easily");  // Fallback text
+            username.setValue("Hello User\nManage your finance easily");
         }
 
         if (cachedPicUrl != null) {
@@ -48,11 +50,18 @@ public class HomeViewModel extends AndroidViewModel {
         return profilePicUrl;
     }
 
+    // New getter for saving LiveData
+    public LiveData<Double> getSaving() {
+        return saving;
+    }
+
     private void fetchUserData() {
         db.collection("users").document(userId).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
                 String fname = documentSnapshot.getString("fname");
-                String formattedName = fname != null ? "Hello " + fname.toLowerCase() + "\nManage your finance easily" : "Hello User\nManage your finance easily";
+                String formattedName = fname != null
+                        ? "Hello " + fname.toLowerCase() + "\nManage your finance easily"
+                        : "Hello User\nManage your finance easily";
                 username.setValue(formattedName);
                 sessionManager.saveUsername(formattedName);
 
@@ -61,9 +70,17 @@ public class HomeViewModel extends AndroidViewModel {
                     profilePicUrl.setValue(picUrl);
                     sessionManager.saveProfilePicUrl(picUrl);
                 }
+
+                // Fetch the saving field from Firestore
+                Double savingValue = documentSnapshot.getDouble("saving");
+                if (savingValue != null) {
+                    saving.setValue(savingValue);
+                } else {
+                    saving.setValue(0.0); // Or any default value you'd like
+                }
             }
         }).addOnFailureListener(e -> {
-            // Handle error
+            // Handle error (optional: you could log or show a toast)
         });
     }
 }

@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     app:cardBackgroundColor="@color/light_grayish_pink"
     app:cardElevation="0dp"
+    android:layout_gravity="center"
     android:padding="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout

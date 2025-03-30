@@ -23,6 +23,7 @@ import com.example.splitaura.Homepage;
 import com.example.splitaura.LoginActivity;
 import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -61,15 +62,13 @@ public class ProfileFragment extends Fragment {
     private final List<String> groupsList = new ArrayList<>();
     private SwipeRefreshLayout swipeRefreshLayout;
     private CardView groupCard, friendCard;
+    private LoadingDialog loadingDialog;
+    private boolean isDataLoading = false;
 
     private SharedPreferences cachePrefs;
     private final Gson gson = new Gson();
     private String targetUid;
     private String currentUserUid;
-
-    public ProfileFragment() {
-        // Required empty public constructor
-    }
 
     public static ProfileFragment newInstance(String userUid) {
         ProfileFragment fragment = new ProfileFragment();
@@ -85,6 +84,7 @@ public class ProfileFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         cachePrefs = requireContext().getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE);
+        loadingDialog = new LoadingDialog(requireContext());
 
         currentUserUid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
         targetUid = getArguments() != null && getArguments().containsKey(ARG_USER_UID)
@@ -92,11 +92,20 @@ public class ProfileFragment extends Fragment {
                 : currentUserUid;
     }
 
+    @Override
+    public void onDestroyView() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.hide();
+        }
+        super.onDestroyView();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        // Initialize views
         editProfileButton = view.findViewById(R.id.editProfileButton);
         logoutButton = view.findViewById(R.id.logoutButton);
         addFriendButton = view.findViewById(R.id.addFriendButton);
@@ -120,6 +129,20 @@ public class ProfileFragment extends Fragment {
         cardListener();
 
         return view;
+    }
+
+    private void showLoadingDialog() {
+        if (!isDataLoading && loadingDialog != null && !loadingDialog.isShowing()) {
+            isDataLoading = true;
+            loadingDialog.show();
+        }
+    }
+
+    private void hideLoadingDialog() {
+        if (isDataLoading && loadingDialog != null && loadingDialog.isShowing()) {
+            isDataLoading = false;
+            loadingDialog.hide();
+        }
     }
 
     private void cardListener() {
@@ -148,11 +171,13 @@ public class ProfileFragment extends Fragment {
         userMobile.setText("Mobile: Loading...");
         userGender.setText("Gender: Loading...");
         userUpi.setText("UPI: Loading...");
-        friendsCount.setText("Loading...");
-        groupsCount.setText("Loading...");
+        friendsCount.setText("0");
+        groupsCount.setText("0");
     }
 
     public void refreshData() {
+        if (isDataLoading) return;
+
         friendCache.clear();
         friendsList.clear();
         groupCache.clear();
@@ -168,59 +193,60 @@ public class ProfileFragment extends Fragment {
         long currentTime = System.currentTimeMillis();
 
         if (currentTime - lastCacheTime < CACHE_DURATION_MS && targetUid.equals(currentUserUid)) {
+            // Load from cache
             String userDataJson = cachePrefs.getString(USER_DATA_KEY, null);
             String friendsListJson = cachePrefs.getString(FRIENDS_LIST_KEY, null);
             String groupsListJson = cachePrefs.getString(GROUPS_LIST_KEY, null);
 
-            if (userDataJson != null) {
+            if (userDataJson != null && friendsListJson != null && groupsListJson != null) {
+                // All cached data is available
                 Map<String, String> userData = gson.fromJson(userDataJson, new TypeToken<Map<String, String>>() {}.getType());
-                userName.setText(userData.getOrDefault("fullName", "Unknown User"));
-                userEmail.setText("Email: " + userData.getOrDefault("email", "Not provided"));
-                userMobile.setText("Mobile: " + userData.getOrDefault("mobile", "Not provided"));
-                userGender.setText("Gender: " + userData.getOrDefault("gender", "Not provided"));
-                userUpi.setText("UPI: " + userData.getOrDefault("upi", "Not provided"));
-                String profilePicture = userData.get("profilePicture");
-                if (profilePicture != null && !profilePicture.isEmpty()) {
-                    Glide.with(this)
-                            .load(profilePicture)
-                            .apply(new RequestOptions()
-                                    .placeholder(R.drawable.obsmallmen2)
-                                    .error(R.drawable.obsmallmen2)
-                                    .circleCrop())
-                            .into(profileImage);
-                } else {
-                    profileImage.setImageResource(R.drawable.obsmallmen2);
-                }
-            } else {
-                fetchUserData();
-                return;
-            }
+                updateUIWithUserData(userData);
 
-            if (friendsListJson != null) {
                 Type friendListType = new TypeToken<List<Friend>>() {}.getType();
-                friendsList.clear();
                 friendsList.addAll(gson.fromJson(friendsListJson, friendListType));
                 friendsCount.setText(String.valueOf(friendsList.size()));
-            } else {
-                fetchUserData();
-                return;
-            }
 
-            if (groupsListJson != null) {
                 Type groupListType = new TypeToken<List<String>>() {}.getType();
-                groupsList.clear();
                 groupsList.addAll(gson.fromJson(groupsListJson, groupListType));
                 groupsCount.setText(String.valueOf(groupsList.size()));
-            } else {
-                fetchUserData();
+
+                updateButtonVisibility();
+                return;
             }
+        }
+
+        // If we get here, we need to fetch fresh data
+        showLoadingDialog();
+        fetchUserData();
+    }
+
+    private void updateUIWithUserData(Map<String, String> userData) {
+        userName.setText(userData.getOrDefault("fullName", "Unknown User"));
+        userEmail.setText("Email: " + userData.getOrDefault("email", "Not provided"));
+        userMobile.setText("Mobile: " + userData.getOrDefault("mobile", "Not provided"));
+        userGender.setText("Gender: " + userData.getOrDefault("gender", "Not provided"));
+        userUpi.setText("UPI: " + userData.getOrDefault("upi", "Not provided"));
+
+        String profilePicture = userData.get("profilePicture");
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            Glide.with(this)
+                    .load(profilePicture)
+                    .apply(new RequestOptions()
+                            .placeholder(R.drawable.obsmallmen2)
+                            .error(R.drawable.obsmallmen2)
+                            .circleCrop())
+                    .into(profileImage);
         } else {
-            fetchUserData();
+            profileImage.setImageResource(R.drawable.obsmallmen2);
         }
     }
 
     private void fetchUserData() {
-        if (targetUid == null) return;
+        if (targetUid == null) {
+            hideLoadingDialog();
+            return;
+        }
 
         DocumentReference userRef = db.collection("users").document(targetUid);
         userRef.get().addOnCompleteListener(task -> {
@@ -236,38 +262,29 @@ public class ProfileFragment extends Fragment {
                     String upi = document.getString("upi");
 
                     String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-                    userName.setText(fullName.trim().isEmpty() ? "Unknown User" : fullName.trim());
-                    userEmail.setText("Email: " + (email != null ? email : "Not provided"));
-                    userMobile.setText("Mobile: " + (mobile != null ? mobile : "Not provided"));
-                    userGender.setText("Gender: " + (gender != null ? gender : "Not provided"));
-                    userUpi.setText("UPI: " + (upi != null ? upi : "Not provided"));
+                    Map<String, String> userData = new HashMap<>();
+                    userData.put("fullName", fullName.trim().isEmpty() ? "Unknown User" : fullName.trim());
+                    userData.put("email", email != null ? email : "Not provided");
+                    userData.put("mobile", mobile != null ? mobile : "Not provided");
+                    userData.put("gender", gender != null ? gender : "Not provided");
+                    userData.put("upi", upi != null ? upi : "Not provided");
+                    userData.put("profilePicture", profilePicture != null ? profilePicture : "");
 
-                    if (profilePicture != null && !profilePicture.isEmpty()) {
-                        Glide.with(this)
-                                .load(profilePicture)
-                                .apply(new RequestOptions()
-                                        .placeholder(R.drawable.obsmallmen2)
-                                        .error(R.drawable.obsmallmen2)
-                                        .circleCrop())
-                                .into(profileImage);
-                    } else {
-                        profileImage.setImageResource(R.drawable.obsmallmen2);
-                    }
+                    updateUIWithUserData(userData);
 
                     if (targetUid.equals(currentUserUid)) {
-                        Map<String, String> userData = new HashMap<>();
-                        userData.put("fullName", fullName.trim().isEmpty() ? "Unknown User" : fullName.trim());
-                        userData.put("email", email != null ? email : "Not provided");
-                        userData.put("mobile", mobile != null ? mobile : "Not provided");
-                        userData.put("gender", gender != null ? gender : "Not provided");
-                        userData.put("upi", upi != null ? upi : "Not provided");
-                        userData.put("profilePicture", profilePicture != null ? profilePicture : "");
                         String userDataJson = gson.toJson(userData);
                         cachePrefs.edit().putString(USER_DATA_KEY, userDataJson).apply();
                     }
 
                     fetchFriendsAndGroups(targetUid);
+                } else {
+                    hideLoadingDialog();
+                    Toast.makeText(getContext(), "User data not found", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                hideLoadingDialog();
+                Toast.makeText(getContext(), "Failed to load user data", Toast.LENGTH_SHORT).show();
             }
             updateButtonVisibility();
         });
@@ -297,6 +314,9 @@ public class ProfileFragment extends Fragment {
             }
             friendQueriesCompleted.incrementAndGet();
             checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
+        }).addOnFailureListener(e -> {
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         });
 
         friendQuery2.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -309,6 +329,9 @@ public class ProfileFragment extends Fragment {
                     }
                 }
             }
+            friendQueriesCompleted.incrementAndGet();
+            checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
+        }).addOnFailureListener(e -> {
             friendQueriesCompleted.incrementAndGet();
             checkFriendsCountUpdate(friendQueriesCompleted.get(), friendDetailsFetched.get(), totalFriendQueries.get());
         });
@@ -328,6 +351,11 @@ public class ProfileFragment extends Fragment {
                     if (groupQueriesCompleted.get() == totalGroupQueries) {
                         fetchGroupDetails(groupIds);
                     }
+                }).addOnFailureListener(e -> {
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
                 });
 
         db.collection("groups")
@@ -337,6 +365,11 @@ public class ProfileFragment extends Fragment {
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         groupIds.add(doc.getId());
                     }
+                    groupQueriesCompleted.incrementAndGet();
+                    if (groupQueriesCompleted.get() == totalGroupQueries) {
+                        fetchGroupDetails(groupIds);
+                    }
+                }).addOnFailureListener(e -> {
                     groupQueriesCompleted.incrementAndGet();
                     if (groupQueriesCompleted.get() == totalGroupQueries) {
                         fetchGroupDetails(groupIds);
@@ -366,6 +399,14 @@ public class ProfileFragment extends Fragment {
                             groupCache.put(groupId, groupName != null ? groupName : "Unknown Group");
                             groupsList.add(groupId);
                         }
+                        if (groupsProcessed.incrementAndGet() == groupIds.size()) {
+                            groupsCount.setText(String.valueOf(groupsList.size()));
+                            if (targetUid.equals(currentUserUid)) {
+                                String groupsListJson = gson.toJson(groupsList);
+                                cachePrefs.edit().putString(GROUPS_LIST_KEY, groupsListJson).apply();
+                            }
+                        }
+                    }).addOnFailureListener(e -> {
                         if (groupsProcessed.incrementAndGet() == groupIds.size()) {
                             groupsCount.setText(String.valueOf(groupsList.size()));
                             if (targetUid.equals(currentUserUid)) {
@@ -405,6 +446,9 @@ public class ProfileFragment extends Fragment {
                         }
                         friendDetailsFetched.incrementAndGet();
                         checkFriendsCountUpdate(2, friendDetailsFetched.get(), totalFriendQueries);
+                    }).addOnFailureListener(e -> {
+                        friendDetailsFetched.incrementAndGet();
+                        checkFriendsCountUpdate(2, friendDetailsFetched.get(), totalFriendQueries);
                     });
         }
     }
@@ -417,6 +461,7 @@ public class ProfileFragment extends Fragment {
                 cachePrefs.edit().putString(FRIENDS_LIST_KEY, friendsListJson).apply();
                 cachePrefs.edit().putLong(CACHE_TIMESTAMP, System.currentTimeMillis()).apply();
             }
+            hideLoadingDialog();
         }
     }
 
@@ -439,7 +484,10 @@ public class ProfileFragment extends Fragment {
 
             logoutButton.setOnClickListener(v -> logout());
 
-            addFriendButton.setOnClickListener(v -> sendFriendRequest());
+            addFriendButton.setOnClickListener(v -> {
+                showLoadingDialog();
+                sendFriendRequest();
+            });
         }
     }
 
@@ -458,7 +506,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void sendFriendRequest() {
-        if (targetUid == null || currentUserUid == null || targetUid.equals(currentUserUid)) return;
+        if (targetUid == null || currentUserUid == null || targetUid.equals(currentUserUid)) {
+            hideLoadingDialog();
+            return;
+        }
 
         db.collection("friend_requests")
                 .whereEqualTo("sender_uid", currentUserUid)
@@ -475,14 +526,30 @@ public class ProfileFragment extends Fragment {
                         db.collection("friend_requests")
                                 .add(friendRequest)
                                 .addOnSuccessListener(documentReference -> {
+                                    hideLoadingDialog();
                                     if (isAdded() && getContext() != null) {
                                         Toast.makeText(getContext(), "Friend request sent!", Toast.LENGTH_SHORT).show();
                                     }
                                     addFriendButton.setEnabled(false);
                                     addFriendButton.setText("Request Sent");
+                                })
+                                .addOnFailureListener(e -> {
+                                    hideLoadingDialog();
+                                    if (isAdded() && getContext() != null) {
+                                        Toast.makeText(getContext(), "Failed to send request", Toast.LENGTH_SHORT).show();
+                                    }
                                 });
-                    } else if (isAdded() && getContext() != null) {
-                        Toast.makeText(getContext(), "Friend request already sent!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        hideLoadingDialog();
+                        if (isAdded() && getContext() != null) {
+                            Toast.makeText(getContext(), "Friend request already sent!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    hideLoadingDialog();
+                    if (isAdded() && getContext() != null) {
+                        Toast.makeText(getContext(), "Failed to check friend request", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

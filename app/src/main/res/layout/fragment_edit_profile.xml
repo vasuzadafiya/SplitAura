@@ -3,36 +3,42 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardBackgroundColor="@color/light_grayish_pink"
-    app:cardElevation="0dp"
-    android:padding="16dp">
+    android:padding="8dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="14dp"
-        android:layout_marginTop="40dp">
+        android:padding="16dp">
 
-        <!-- Profile Picture -->
+        <!-- Profile Picture with Circular Border -->
         <ImageView
             android:id="@+id/editProfileImage"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:contentDescription="Profile Picture"
             android:src="@drawable/obsmallmen2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.05" />
+            app:layout_constraintVertical_bias="0.0" />
 
         <!-- Change Profile Picture Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/changeProfilePictureButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Change Picture"
+            android:text="Change Photo"
+            android:textColor="@color/f_pass_color"
             android:textSize="14sp"
+            app:icon="@drawable/ic_camera"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            app:iconTint="@color/f_pass_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/editProfileImage" />
@@ -43,9 +49,13 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:hint="First Name"
-            app:boxStrokeColor="@color/f_pass_color"
+            app:boxStrokeColor="@color/primaryColor"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primaryColor"
+            app:hintTextColor="@color/primaryColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/changeProfilePictureButton">
@@ -55,7 +65,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
-                android:textColor="@color/black" />
+                android:textColor="@color/black"
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Last Name Field -->
@@ -66,7 +77,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="Last Name"
-            app:boxStrokeColor="@color/f_pass_color"
+            app:boxStrokeColor="@color/primaryColor"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primaryColor"
+            app:hintTextColor="@color/primaryColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/editFirstNameInputLayout">
@@ -76,7 +91,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
-                android:textColor="@color/black" />
+                android:textColor="@color/black"
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Email Field -->
@@ -86,8 +102,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Upi Id"
-            app:boxStrokeColor="@color/f_pass_color"
+            android:hint="UPI ID"
+            app:boxStrokeColor="@color/primaryColor"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primaryColor"
+            app:hintTextColor="@color/primaryColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/editLastNameInputLayout">
@@ -97,7 +117,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
-                android:textColor="@color/black" />
+                android:textColor="@color/black"
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Mobile Number Field -->
@@ -108,7 +129,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="Mobile Number"
-            app:boxStrokeColor="@color/f_pass_color"
+            app:boxStrokeColor="@color/primaryColor"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="clear_text"
+            app:endIconTint="@color/primaryColor"
+            app:hintTextColor="@color/primaryColor"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/editEmailInputLayout">
@@ -118,7 +143,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="phone"
-                android:textColor="@color/black" />
+                android:textColor="@color/black"
+                android:textSize="16sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Gender Field with Radio Buttons -->
@@ -126,10 +152,11 @@
             android:id="@+id/genderLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Gender"
-            android:textStyle="bold"
+            android:textColor="@color/black"
             android:textSize="16sp"
-            android:layout_marginTop="16dp"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/editMobileInputLayout" />
 
@@ -139,33 +166,42 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="horizontal"
+            android:padding="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/genderLabel">
 
-            <RadioButton
+            <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/radioMale"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:text="Male"
+                android:textColor="@color/black"
                 android:textSize="16sp"
-                android:text="Male" />
+                app:buttonTint="@color/f_pass_color" />
 
-            <RadioButton
+            <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/radioFemale"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:text="Female"
+                android:textColor="@color/black"
                 android:textSize="16sp"
-                android:text="Female" />
+                app:buttonTint="@color/f_pass_color" />
 
-            <RadioButton
+            <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/radioOther"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="8dp"
+                android:layout_weight="1"
+                android:text="Other"
+                android:textColor="@color/black"
                 android:textSize="16sp"
-                android:text="Other" />
+                app:buttonTint="@color/f_pass_color" />
         </RadioGroup>
 
         <!-- ProgressBar -->
@@ -173,6 +209,7 @@
             android:id="@+id/saveProgressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -180,39 +217,42 @@
 
         <!-- Save and Cancel Buttons -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal"
-            android:layout_marginTop="24dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/saveProgressBar">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/saveProfileButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:padding="12dp"
-                android:text="Save"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:background="@drawable/btn_bg"
-                app:cornerRadius="8dp" />
-
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancelButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:padding="12dp"
                 android:text="Cancel"
                 android:textColor="@color/f_pass_color"
                 android:textSize="16sp"
-                android:background="@drawable/btn_bg_transparent"
-                app:cornerRadius="8dp" />
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/f_pass_color"
+                app:rippleColor="@color/secondary_ripple"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/saveProfileButton"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Update"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:backgroundTint="@color/f_pass_color"
+                app:rippleColor="@color/secondary_ripple"
+                app:cornerRadius="12dp" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

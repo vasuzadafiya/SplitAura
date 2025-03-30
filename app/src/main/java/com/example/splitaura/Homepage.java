@@ -98,7 +98,7 @@ public class Homepage extends BaseActivity {
             }
             return true;
         });
-
+        handleNavigationIntent(getIntent());
         checkUPIStatus();
     }
 
@@ -203,17 +203,15 @@ public class Homepage extends BaseActivity {
                     if (documentSnapshot.exists()) {
                         String upi = documentSnapshot.getString("upi");
                         Log.d("Homepage", "UPI from Firestore: " + upi);
-                        if (upi == null || upi.isEmpty() || !validateUPI(upi)) {
-                            if (!hasShownUPIDialog) {
-                                hasShownUPIDialog = true;
-                                String fname = documentSnapshot.getString("fname");
-                                String lname = documentSnapshot.getString("lname");
-                                String fullName = "";
-                                if (fname != null) fullName += fname;
-                                if (lname != null) fullName += " " + lname;
-                                String profileImage = documentSnapshot.getString("profile_picture");
-                                showUPIDialog(fullName, profileImage);
-                            }
+                        if ((upi == null || upi.isEmpty() || !validateUPI(upi)) && !hasShownUPIDialog) {
+                            hasShownUPIDialog = true;
+                            String fname = documentSnapshot.getString("fname");
+                            String lname = documentSnapshot.getString("lname");
+                            String fullName = "";
+                            if (fname != null) fullName += fname;
+                            if (lname != null) fullName += " " + lname;
+                            String profileImage = documentSnapshot.getString("profile_picture");
+                            showUPIDialog(fullName, profileImage);
                         }
                     } else {
                         if (!isFinishing()) {
@@ -266,13 +264,12 @@ public class Homepage extends BaseActivity {
                 new AlertDialog.Builder(Homepage.this)
                         .setTitle("Confirm UPI ID")
                         .setMessage("Please confirm that your UPI: " + upiInput + " is correct. Providing an incorrect UPI ID may result in financial issues.")
-                        .setPositiveButton("Confirm", (dialogInterface, i) -> {
-                            saveUPIToFirestore(upiInput, dialog);
-                        })
+                        .setPositiveButton("Confirm", (dialogInterface, i) -> saveUPIToFirestore(upiInput, dialog))
                         .setNegativeButton("Edit", null)
                         .show();
             } else {
                 upiEditText.setError("Enter a valid UPI ID!");
+                upiEditText.requestFocus();
             }
         });
     }
@@ -302,10 +299,23 @@ public class Homepage extends BaseActivity {
                 });
     }
 
-    // Add a method to handle logout (if logout is initiated from this activity)
-    public void logout() {
-        FirebaseAuth.getInstance().signOut();
-        startActivity(new Intent(Homepage.this, LoginActivity.class));
-        finish();
+
+    public void navigateToPaymentFragments() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_payments);
+        }
+    }
+
+    private void handleNavigationIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra("navigateToPayment", false)) {
+            navigateToPaymentFragments();
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // Update the intent
+        handleNavigationIntent(intent);
     }
 }

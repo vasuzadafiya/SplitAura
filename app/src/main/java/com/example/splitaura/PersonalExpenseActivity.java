@@ -163,18 +163,6 @@ public class PersonalExpenseActivity extends BaseActivity {
         }
     }
 
-    public void showLoadingDialog() {
-        if (loadingDialog != null && !loadingDialog.isShowing()) {
-            loadingDialog.show();
-        }
-    }
-
-    public void hideLoadingDialog() {
-        if (loadingDialog != null && loadingDialog.isShowing()) {
-            loadingDialog.dismiss();
-        }
-    }
-
     // Remove the listener when the activity stops (or you can call this when the user logs out)
     @Override
     protected void onStop() {

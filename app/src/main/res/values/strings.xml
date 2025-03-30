@@ -30,7 +30,7 @@
     <string name="spotlight">spotlight</string>
     <string name="welcome_message">Hello \nManage your finance easily</string>
     <string name="balance_amount">₹9235.35</string>
-    <string name="available_bal">Available Balance</string>
+    <string name="available_bal">Available Saving</string>
     <string name="view_all"><![CDATA[View All ->]]></string>
     <string name="amount">Amount :</string>
     <string name="added_by_format">%s</string>
@@ -44,8 +44,8 @@
     <string name="friends">Friends</string>
     <string name="pay">pay</string>
     <string name="request">Request</string>
-    <string name="top_up">Top-up</string>
-    <string name="withdraw">Withdraw</string>
+    <string name="top_up">Add Income</string>
+    <string name="withdraw">Withdraw Saving</string>
     <string name="history">History</string>
     <string name="trip_emoji">Trip 🧳</string>
     <string name="family_emoji">Family👨‍👩‍👧‍👦</string>
@@ -92,6 +92,10 @@
     <string name="add_group">Create group</string>
     <string name="add_upi">Add UPI</string>
     <string name="split_by_format">%s</string>
+    <string name="select_friend">Select Friend</string>
+    <string name="image">Image</string>
+    <string name="total_group_spending">Total Group Spending</string>
+    <string name="peoples">People</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

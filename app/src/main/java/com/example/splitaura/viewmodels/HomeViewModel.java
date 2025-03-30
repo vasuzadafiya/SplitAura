@@ -1,7 +1,7 @@
 package com.example.splitaura.viewmodels;
 
 import android.app.Application;
-import android.widget.Toast;
+import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -14,6 +14,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class HomeViewModel extends AndroidViewModel {
     private final MutableLiveData<String> username = new MutableLiveData<>();
     private final MutableLiveData<String> profilePicUrl = new MutableLiveData<>();
+    private final MutableLiveData<Double> saving = new MutableLiveData<>();
+
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
     private final UserSessionManager sessionManager;
@@ -22,16 +24,11 @@ public class HomeViewModel extends AndroidViewModel {
         super(application);
         sessionManager = UserSessionManager.getInstance(application);
 
-        // Load cached data first
+        // Load cached user data first
         String cachedUsername = sessionManager.getUsername();
         String cachedPicUrl = sessionManager.getProfilePicUrl();
 
-        if (cachedUsername != null) {
-            username.setValue(cachedUsername);
-        } else {
-            username.setValue("Hello User\nManage your finance easily");  // Fallback text
-        }
-
+        username.setValue((cachedUsername != null) ? cachedUsername : "Hello User\nManage your finance easily");
         if (cachedPicUrl != null) {
             profilePicUrl.setValue(cachedPicUrl);
         }
@@ -48,22 +45,36 @@ public class HomeViewModel extends AndroidViewModel {
         return profilePicUrl;
     }
 
-    private void fetchUserData() {
-        db.collection("users").document(userId).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String fname = documentSnapshot.getString("fname");
-                String formattedName = fname != null ? "Hello " + fname.toLowerCase() + "\nManage your finance easily" : "Hello User\nManage your finance easily";
-                username.setValue(formattedName);
-                sessionManager.saveUsername(formattedName);
+    public LiveData<Double> getSaving() {
+        return saving;
+    }
 
-                String picUrl = documentSnapshot.getString("profile_picture");
-                if (picUrl != null && !picUrl.isEmpty()) {
-                    profilePicUrl.setValue(picUrl);
-                    sessionManager.saveProfilePicUrl(picUrl);
-                }
-            }
-        }).addOnFailureListener(e -> {
-            // Handle error
-        });
+    private void fetchUserData() {
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists()) {
+                        return;
+                    }
+
+                    // Retrieve and format user's name
+                    String fname = documentSnapshot.getString("fname");
+                    String greetingName = (fname != null && !fname.isEmpty()) ? fname.toLowerCase() : "User";
+                    String formattedName = "Hello " + greetingName + "\nManage your finance easily";
+                    username.setValue(formattedName);
+                    sessionManager.saveUsername(formattedName);
+
+                    // Retrieve and update profile picture URL if available
+                    String picUrl = documentSnapshot.getString("profile_picture");
+                    if (picUrl != null && !picUrl.isEmpty()) {
+                        profilePicUrl.setValue(picUrl);
+                        sessionManager.saveProfilePicUrl(picUrl);
+                    }
+
+                    // Retrieve and update saving value independently
+                    Double savingValue = documentSnapshot.getDouble("saving");
+                    saving.setValue(savingValue != null ? savingValue : 0.0);
+                })
+                .addOnFailureListener(e -> Log.e("fetchUserData", "Error fetching user data", e));
     }
 }

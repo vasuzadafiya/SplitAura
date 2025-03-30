@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:layout_margin="4dp"
+    app:cardCornerRadius="12dp">
 
-    <!-- Debtor name (e.g., "Laila Ainsley") -->
-    <TextView
-        android:id="@+id/debtor_name"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Laila Ainsley"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:paddingBottom="4dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/menu_dots"/>
+        android:padding="16dp">
 
-    <!-- Three-dot menu (clickable) at top-right -->
+        <!-- Debtor name (e.g., "Laila Ainsley") -->
+        <TextView
+            android:id="@+id/debtor_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingBottom="4dp"
+            android:text="Laila Ainsley"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/menu_dots"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Owe text (e.g., "Owes") -->
+        <!-- Three-dot menu (clickable) at top-right -->
+
+        <!-- Owe text (e.g., "Owes") -->
 
     <TextView
         android:id="@+id/menu_dots"
@@ -39,43 +44,42 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.516" />
 
-    <TextView
-        android:id="@+id/owe_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Owes"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:paddingBottom="2dp"
-        app:layout_constraintTop_toBottomOf="@id/debtor_name"
-        app:layout_constraintStart_toStartOf="@id/debtor_name"/>
+        <TextView
+            android:id="@+id/owe_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="2dp"
+            android:text="Owes"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/debtor_name"
+            app:layout_constraintTop_toBottomOf="@id/debtor_name" />
 
-    <!-- Creditor text (e.g., "Vasu Zadaiya (You)") -->
-    <TextView
-        android:id="@+id/creditor_text"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Vasu Zadaiya (You)"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:paddingBottom="4dp"
-        app:layout_constraintTop_toBottomOf="@id/owe_text"
-        app:layout_constraintStart_toStartOf="@id/owe_text"
-        app:layout_constraintEnd_toStartOf="@id/owe_amount"/>
+        <!-- Creditor text (e.g., "Vasu Zadaiya (You)") -->
+        <TextView
+            android:id="@+id/creditor_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingBottom="4dp"
+            android:text="Vasu Zadaiya (You)"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/owe_amount"
+            app:layout_constraintStart_toStartOf="@id/owe_text"
+            app:layout_constraintTop_toBottomOf="@id/owe_text" />
 
-    <!-- Amount (e.g., "₹349.90") in red -->
-    <TextView
-        android:id="@+id/owe_amount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:text="₹349.90"
-        android:textColor="@color/red"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/creditor_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/debtor_name"
-        app:layout_constraintVertical_bias="0.0" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Amount (e.g., "₹349.90") in red -->
+        <TextView
+            android:id="@+id/owe_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:text="₹349.90"
+            android:textColor="@color/red"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/creditor_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/debtor_name" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

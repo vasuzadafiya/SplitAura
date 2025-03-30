@@ -14,7 +14,7 @@
         android:layout_height="250dp"
         app:cardBackgroundColor="@color/light_grayish_blue"
         app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -22,33 +22,31 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_balances"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:minHeight="100dp"
             android:padding="8dp"
-            android:scrollbars="vertical"
             tools:listitem="@layout/balance_item" />
     </androidx.cardview.widget.CardView>
 
     <!-- Divider between balances and owing users -->
     <View
         android:id="@+id/view_divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/darker_gray"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginVertical="10dp"
+        android:background="@drawable/dashed_line"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardview_balances" />
 
     <!-- CardView for Owing Users -->
     <androidx.cardview.widget.CardView
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         app:cardBackgroundColor="@color/light_grayish_pink"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_divider">
@@ -57,11 +55,7 @@
             android:id="@+id/recycler_view_owing"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            android:minHeight="100dp"
             android:padding="8dp"
-            android:scrollbars="vertical"
-            android:layout_marginBottom="8dp"
             tools:listitem="@layout/owe_item" />
     </androidx.cardview.widget.CardView>
 

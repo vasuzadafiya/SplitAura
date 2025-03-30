@@ -45,6 +45,7 @@ import java.util.UUID;
 public class EditProfileDialogFragment extends DialogFragment {
 
     private static final String TAG = "EditProfileDialogFragment";
+    private static final String LOADING = "Loading...";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -55,7 +56,9 @@ public class EditProfileDialogFragment extends DialogFragment {
     private TextInputEditText editUpiIdEditText; // New field for UPI ID
     private TextInputEditText editMobileEditText;
     private RadioGroup genderRadioGroup;
-    private RadioButton radioMale, radioFemale, radioOther;
+    private RadioButton radioMale;
+    private RadioButton radioFemale;
+    private RadioButton radioOther;
     private Button changeProfilePictureButton;
     private Button saveProfileButton;
     private Button cancelButton;
@@ -128,10 +131,10 @@ public class EditProfileDialogFragment extends DialogFragment {
     }
 
     private void setLoadingPlaceholders() {
-        editFirstNameEditText.setText("Loading...");
-        editLastNameEditText.setText("Loading...");
-        editUpiIdEditText.setText("Loading..."); // Set placeholder for UPI ID
-        editMobileEditText.setText("Loading...");
+        editFirstNameEditText.setText(LOADING);
+        editLastNameEditText.setText(LOADING);
+        editUpiIdEditText.setText(LOADING);
+        editMobileEditText.setText(LOADING);
     }
 
     private void fetchUserData() {
@@ -150,7 +153,7 @@ public class EditProfileDialogFragment extends DialogFragment {
                 if (document != null && document.exists()) {
                     String firstName = document.getString("fname");
                     String lastName = document.getString("lname");
-                    String upiId = document.getString("upi"); // Fetch UPI ID
+                    String upiId = document.getString("upi");
                     String mobile = document.getString("mobile");
                     String gender = document.getString("gender");
                     String profilePicture = document.getString("profile_picture");
@@ -198,10 +201,8 @@ public class EditProfileDialogFragment extends DialogFragment {
     }
 
     private void setupButtons() {
-        changeProfilePictureButton.setOnClickListener(v -> {
-            // Launch image picker
-            pickImageLauncher.launch("image/*");
-        });
+//        launch image picker
+        changeProfilePictureButton.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
 
         saveProfileButton.setOnClickListener(v -> {
             saveProgressBar.setVisibility(View.VISIBLE); // Show ProgressBar
@@ -215,9 +216,7 @@ public class EditProfileDialogFragment extends DialogFragment {
     private void saveProfileChanges() {
         String firstName = editFirstNameEditText.getText().toString().trim();
         String lastName = editLastNameEditText.getText().toString().trim();
-        String upiId = editUpiIdEditText.getText().toString().trim(); // Get UPI ID
         String mobile = editMobileEditText.getText().toString().trim();
-        String gender = getSelectedGender();
 
         // Validation
         if (TextUtils.isEmpty(firstName)) {
@@ -375,7 +374,7 @@ public class EditProfileDialogFragment extends DialogFragment {
     }
 
     private void animateAndDismiss() {
-        if (getDialog() == null || getDialog().getWindow() == null || getDialog().getWindow().getDecorView() == null) {
+        if (getDialog() == null || getDialog().getWindow() == null) {
             dismiss(); // Fallback if view hierarchy is invalid
             return;
         }
@@ -384,7 +383,9 @@ public class EditProfileDialogFragment extends DialogFragment {
         fadeOut.setDuration(500); // 500ms fade-out duration
         fadeOut.setAnimationListener(new android.view.animation.Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(android.view.animation.Animation animation) {}
+            public void onAnimationStart(android.view.animation.Animation animation) {
+                //not used
+            }
 
             @Override
             public void onAnimationEnd(android.view.animation.Animation animation) {
@@ -394,7 +395,9 @@ public class EditProfileDialogFragment extends DialogFragment {
             }
 
             @Override
-            public void onAnimationRepeat(android.view.animation.Animation animation) {}
+            public void onAnimationRepeat(android.view.animation.Animation animation) {
+                //not used
+            }
         });
 
         getDialog().getWindow().getDecorView().startAnimation(fadeOut);

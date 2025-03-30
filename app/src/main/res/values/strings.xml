@@ -92,6 +92,10 @@
     <string name="add_group">Create group</string>
     <string name="add_upi">Add UPI</string>
     <string name="split_by_format">%s</string>
+    <string name="select_friend">Select Friend</string>
+    <string name="image">Image</string>
+    <string name="total_group_spending">Total Group Spending</string>
+    <string name="peoples">People</string>
     <string-array name="split_by_options">
         <item>Equally</item>
         <item>Custom</item>

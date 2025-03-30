@@ -7,18 +7,20 @@
     android:background="@color/white"
     tools:context=".fragments.GroupFragment">
 
-    <!-- AppBar with collapsing toolbar and background image -->
+    <!-- AppBar with Collapsing Toolbar and background image -->
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapstoolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:contentScrim="@color/background"
+            app:layout_scrollFlags="scroll|enterAlwaysCollapsed">
 
             <!-- Background image with parallax effect -->
             <ImageView
@@ -48,11 +50,10 @@
                     android:textColor="@android:color/white"
                     android:textSize="@dimen/text_size_large"
                     android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/profile_picture"
-                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintVertical_bias="0.359" />
 
                 <TextView
@@ -72,15 +73,15 @@
                     android:contentDescription="@string/profile_picture"
                     android:scaleType="centerCrop"
                     android:src="@drawable/obsmallmen2"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:shapeAppearanceOverlay="@style/CircleImageViewStyle" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Content scrolling area -->
+    <!-- Scrolling content area -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -106,7 +107,7 @@
                 app:icon="@drawable/ic_add_group"
                 app:rippleColor="@android:color/white" />
 
-            <!-- CardView for groups list -->
+            <!-- Groups List Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,6 +132,7 @@
                         android:textSize="@dimen/text_size_large"
                         android:textStyle="bold" />
 
+                    <!-- RecyclerView for groups list -->
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/group_recyclerView"
                         android:layout_width="match_parent"
@@ -141,4 +143,5 @@
             </androidx.cardview.widget.CardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

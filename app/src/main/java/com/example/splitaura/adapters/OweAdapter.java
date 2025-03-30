@@ -1,14 +1,16 @@
 package com.example.splitaura.adapters;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.splitaura.Homepage;
 import com.example.splitaura.R;
 import com.example.splitaura.models.OweRelationship;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
-    private List<OweRelationship> oweRelationships;
+    private final List<OweRelationship> oweRelationships;
     private final String currentUserId;
     private final Map<String, String> userNamesCache = new HashMap<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -53,32 +55,12 @@ public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
         holder.creditorText.setText(creditorName);
         holder.oweAmount.setText(String.format("₹%.2f", owe.getAmount()));
 
-        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, owe, position));
+        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, owe));
     }
 
     @Override
     public int getItemCount() {
         return oweRelationships.size();
-    }
-
-    public static class OweViewHolder extends RecyclerView.ViewHolder {
-        TextView debtorName, oweText, creditorText, oweAmount, menuDots;
-
-        public OweViewHolder(@NonNull View itemView) {
-            super(itemView);
-            debtorName = itemView.findViewById(R.id.debtor_name);
-            oweText = itemView.findViewById(R.id.owe_text);
-            creditorText = itemView.findViewById(R.id.creditor_text);
-            oweAmount = itemView.findViewById(R.id.owe_amount);
-            menuDots = itemView.findViewById(R.id.menu_dots);
-        }
-    }
-
-    public void updateOweRelationships(List<OweRelationship> newOweRelationships) {
-        this.oweRelationships.clear();
-        this.oweRelationships.addAll(newOweRelationships != null ? newOweRelationships : new ArrayList<>());
-        fetchUserNames(); // Refresh names
-        notifyDataSetChanged();
     }
 
     private void fetchUserNames() {
@@ -92,56 +74,67 @@ public class OweAdapter extends RecyclerView.Adapter<OweAdapter.OweViewHolder> {
 
         if (userIds.isEmpty()) return;
 
-        db.collection("users").whereIn(FieldPath.documentId(), userIds)
-                .get()
-                .addOnSuccessListener(query -> {
-                    for (QueryDocumentSnapshot doc : query) {
-                        String fullName = (doc.getString("fname") != null ? doc.getString("fname") : "") + " " +
-                                (doc.getString("lname") != null ? doc.getString("lname") : "");
-                        userNamesCache.put(doc.getId(), fullName.trim());
-                    }
-                    notifyDataSetChanged(); // Refresh UI with updated names
-                });
+        db.collection("users").whereIn(FieldPath.documentId(), userIds).get().addOnSuccessListener(query -> {
+            for (QueryDocumentSnapshot doc : query) {
+                String fullName = (doc.getString("fname") != null ? doc.getString("fname") : "") + " " + (doc.getString("lname") != null ? doc.getString("lname") : "");
+                userNamesCache.put(doc.getId(), fullName.trim());
+            }
+            notifyDataSetChanged(); // Refresh UI with updated names
+        });
     }
 
-    private void showPopupMenu(View view, OweRelationship owe, int position) {
-        PopupMenu popup = new PopupMenu(view.getContext(), view);
-        String debtorId = owe.getDebtor();
-        String creditorId = owe.getCreditor();
-        String debtorName = userNamesCache.getOrDefault(debtorId, debtorId);
-        String creditorName = userNamesCache.getOrDefault(creditorId, creditorId);
+    public void updateOweRelationships(List<OweRelationship> newOweRelationships) {
+        this.oweRelationships.clear();
+        this.oweRelationships.addAll(newOweRelationships != null ? newOweRelationships : new ArrayList<>());
+        fetchUserNames(); // Refresh names
+        notifyDataSetChanged();
+    }
 
-        if (debtorId.equals(currentUserId)) {
-            popup.getMenu().add("Pay Now");
-            popup.getMenu().add("Mark as Paid");
-        } else if (creditorId.equals(currentUserId)) {
-            popup.getMenu().add("Request Payment");
-            popup.getMenu().add("Mark as Settled");
+    private void showPopupMenu(View view, OweRelationship owe) {
+        PopupMenu popup = new PopupMenu(view.getContext(), view);
+        String menuText = "";
+
+        if (owe.getDebtor().equals(currentUserId)) {
+            menuText = "Pay Now";
+        } else if (owe.getCreditor().equals(currentUserId)) {
+            menuText = "Request Payment";
         }
 
+        if (!menuText.isEmpty()) {
+            popup.getMenu().add(menuText);
+        }
+
+        // All menu items trigger the same action
         popup.setOnMenuItemClickListener(item -> {
-            String action = item.getTitle().toString();
-            switch (action) {
-                case "Pay Now":
-                    Toast.makeText(view.getContext(), "Pay Now clicked for " + debtorName + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
-                    // TODO: Implement payment logic
-                    break;
-                case "Mark as Paid":
-                    Toast.makeText(view.getContext(), "Marked as Paid: " + debtorName + " to " + creditorName, Toast.LENGTH_SHORT).show();
-                    // TODO: Add logic to update Firestore (e.g., remove debt from calculation)
-                    break;
-                case "Request Payment":
-                    Toast.makeText(view.getContext(), "Request Payment clicked for " + debtorName + " owing ₹" + owe.getAmount(), Toast.LENGTH_SHORT).show();
-                    // TODO: Implement notification/request logic
-                    break;
-                case "Mark as Settled":
-                    Toast.makeText(view.getContext(), "Marked as Settled: " + debtorName + " to " + creditorName, Toast.LENGTH_SHORT).show();
-                    // TODO: Add logic to update Firestore (e.g., remove credit from calculation)
-                    break;
-            }
+            navigateToPaymentFragment(view);
             return true;
         });
 
         popup.show();
+    }
+
+    private void navigateToPaymentFragment(View view) {
+        // Create an intent to launch HomeActivity
+        Intent intent = new Intent(view.getContext(), Homepage.class);
+        // Pass a flag to navigate to the Payment fragment
+        intent.putExtra("navigateToPayment", true);
+        view.getContext().startActivity(intent);
+    }
+
+    public static class OweViewHolder extends RecyclerView.ViewHolder {
+        TextView debtorName;
+        TextView oweText;
+        TextView creditorText;
+        TextView oweAmount;
+        TextView menuDots;
+
+        public OweViewHolder(@NonNull View itemView) {
+            super(itemView);
+            debtorName = itemView.findViewById(R.id.debtor_name);
+            oweText = itemView.findViewById(R.id.owe_text);
+            creditorText = itemView.findViewById(R.id.creditor_text);
+            oweAmount = itemView.findViewById(R.id.owe_amount);
+            menuDots = itemView.findViewById(R.id.menu_dots);
+        }
     }
 }

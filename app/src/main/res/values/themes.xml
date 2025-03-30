@@ -20,7 +20,7 @@
 
 
         <!-- Status bar color -->
-        <item name="android:statusBarColor">@color/dark_blue</item>
+        <item name="android:statusBarColor">@color/f_pass_color</item>
         <!-- Apply our custom BottomNavigation style -->
         <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
 

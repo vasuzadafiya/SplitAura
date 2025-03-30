@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,19 +22,14 @@ import com.example.splitaura.models.GroupItem;
 import com.example.splitaura.viewmodels.GroupViewModel;
 import com.example.splitaura.viewmodels.HomeViewModel;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GroupFragment extends Fragment {
 
-    private MaterialButton addGroup;
-    private RecyclerView groupRecyclerView;
     private GroupAdapter groupAdapter;
-    private List<GroupItem> groupList;
     private ImageView profilePic;
-    private HomeViewModel homeViewModel;
     private TextView sizeofGroup;
 
     public GroupFragment() {
@@ -53,12 +47,14 @@ public class GroupFragment extends Fragment {
     }
 
     private void initViews(View view) {
+        RecyclerView groupRecyclerView;
         groupRecyclerView = view.findViewById(R.id.group_recyclerView);
         groupRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         profilePic = view.findViewById(R.id.profile_picture);
         sizeofGroup = view.findViewById(R.id.number_of_groups);  // Initialize the TextView here
 
-        // Initialize group list and adapter
+        // Initialize group list and
+        List<GroupItem> groupList;
         groupList = new ArrayList<>();
         groupAdapter = new GroupAdapter(getContext(), groupList);
         groupRecyclerView.setAdapter(groupAdapter);
@@ -72,7 +68,9 @@ public class GroupFragment extends Fragment {
             sizeofGroup.setText("You are in " + groups.size() + " groups");
         });
     }
+
     private void setupProfilePic() {
+        HomeViewModel homeViewModel;
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         homeViewModel.getProfilePicUrl().observe(getViewLifecycleOwner(), picUrl -> {
             if (picUrl != null && !picUrl.isEmpty()) {
@@ -86,6 +84,7 @@ public class GroupFragment extends Fragment {
     }
 
     private void setupAddGroupButton(View view) {
+        MaterialButton addGroup;
         addGroup = view.findViewById(R.id.activity_add_group);
         addGroup.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), AddGroupActivity.class);

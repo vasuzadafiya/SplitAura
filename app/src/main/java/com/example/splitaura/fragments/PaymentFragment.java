@@ -1,6 +1,8 @@
 package com.example.splitaura.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -40,16 +42,20 @@ import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.LoginActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.TransactionPaymentAdapter;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.DebtSummary;
 import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Transaction;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -59,6 +65,7 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,6 +74,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 public class PaymentFragment extends Fragment {
@@ -76,6 +86,12 @@ public class PaymentFragment extends Fragment {
     private static final int MAX_TRANSACTIONS = 50;
     private static final int UPI_PAYMENT_REQUEST_CODE = 101;
     private static final String UPI_SCHEME = "upi://pay";
+    private static final String CACHE_PREFS = "PaymentCache";
+    private static final String FRIENDS_LIST_KEY = "friends_list";
+    private static final String GROUPS_LIST_KEY = "groups_list";
+    private static final String TRANSACTIONS_LIST_KEY = "transactions_list";
+    private static final String CACHE_TIMESTAMP = "cache_timestamp";
+    private static final long CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
     private TextView tvBalanceSummary, tvBalanceStatus, transHistoryTitle;
     private AutoCompleteTextView spinnerFriends;
@@ -99,12 +115,38 @@ public class PaymentFragment extends Fragment {
     private Map<String, ExpenseManager> expenseManagers;
     private ListenerRegistration transactionListener;
     private boolean hasRealTransactions = false;
+    private LoadingDialog loadingDialog;
+    private boolean isDataLoading = false;
+    private SharedPreferences cachePrefs;
+    private final Gson gson = new Gson();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initializeFirebase();
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        loadingDialog = new LoadingDialog(requireContext());
+        cachePrefs = requireContext().getSharedPreferences(CACHE_PREFS, Context.MODE_PRIVATE);
+        currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+
+        if (currentUserId == null) {
+            redirectToLogin();
+        }
+
         initializeLists();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
+        if (transactionListener != null) {
+            transactionListener.remove();
+        }
+        for (ExpenseManager manager : expenseManagers.values()) {
+            manager.removeListener();
+        }
     }
 
     @Nullable
@@ -115,7 +157,7 @@ public class PaymentFragment extends Fragment {
         setupRecyclerView();
         setupScrollListener();
         setupListeners();
-        loadAllGroupsAndFriends();
+        loadCachedData();
         return view;
     }
 
@@ -126,15 +168,6 @@ public class PaymentFragment extends Fragment {
             selectedFriend = friendsList.get(position);
             fetchAndUpdateBalance();
         });
-    }
-
-    private void initializeFirebase() {
-        auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
-        if (currentUserId == null) {
-            redirectToLogin();
-        }
     }
 
     private void initializeLists() {
@@ -172,20 +205,157 @@ public class PaymentFragment extends Fragment {
         scrollListener = () -> {
             if (!isAdded() || getView() == null || nestedScrollView == null) return;
 
-            // Get the position of "Recent Transactions" relative to the screen
             int[] titleLocation = new int[2];
             transHistoryTitle.getLocationOnScreen(titleLocation);
             int titleTop = titleLocation[1];
             int scrollY = nestedScrollView.getScrollY();
             int titleOffsetInScrollView = transHistoryTitle.getTop() - scrollY;
 
-            // Only lock scrolling when "Recent Transactions" reaches the top
             if (titleOffsetInScrollView <= 0) {
                 nestedScrollView.scrollTo(0, transHistoryTitle.getTop());
-                // Removed requestDisallowInterceptTouchEvent(true) to avoid blocking all scrolling
             }
         };
         nestedScrollView.getViewTreeObserver().addOnScrollChangedListener(scrollListener);
+    }
+
+    private void loadCachedData() {
+        long lastCacheTime = cachePrefs.getLong(CACHE_TIMESTAMP, 0);
+        long currentTime = System.currentTimeMillis();
+
+        if (currentTime - lastCacheTime < CACHE_DURATION_MS) {
+            String friendsListJson = cachePrefs.getString(FRIENDS_LIST_KEY, null);
+            String groupsListJson = cachePrefs.getString(GROUPS_LIST_KEY, null);
+            String transactionsListJson = cachePrefs.getString(TRANSACTIONS_LIST_KEY, null);
+
+            if (friendsListJson != null && groupsListJson != null && transactionsListJson != null) {
+                Type friendListType = new TypeToken<List<Friend>>() {}.getType();
+                friendsList = gson.fromJson(friendsListJson, friendListType);
+
+                Type groupListType = new TypeToken<List<String>>() {}.getType();
+                groupIds = gson.fromJson(groupsListJson, groupListType);
+
+                Type transactionListType = new TypeToken<List<Transaction>>() {}.getType();
+                transactionList = gson.fromJson(transactionsListJson, transactionListType);
+
+                setupFriendsSpinner();
+                transactionAdapter.updateTransactions(transactionList);
+                calculateDebtSummaries();
+                fetchAndUpdateBalance();
+                return;
+            }
+        }
+
+        showLoadingDialog();
+        loadAllGroupsAndFriends();
+    }
+
+    private void saveDataToCache() {
+        executorService.execute(() -> {
+            String friendsListJson = gson.toJson(friendsList);
+            String groupsListJson = gson.toJson(groupIds);
+            String transactionsListJson = gson.toJson(transactionList);
+
+            cachePrefs.edit()
+                    .putString(FRIENDS_LIST_KEY, friendsListJson)
+                    .putString(GROUPS_LIST_KEY, groupsListJson)
+                    .putString(TRANSACTIONS_LIST_KEY, transactionsListJson)
+                    .putLong(CACHE_TIMESTAMP, System.currentTimeMillis())
+                    .apply();
+        });
+    }
+
+    private void showLoadingDialog() {
+        if (!isDataLoading && loadingDialog != null && !loadingDialog.isShowing()) {
+            isDataLoading = true;
+            loadingDialog.show();
+        }
+    }
+
+    private void hideLoadingDialog() {
+        if (isDataLoading && loadingDialog != null && loadingDialog.isShowing()) {
+            isDataLoading = false;
+            loadingDialog.hide();
+        }
+    }
+
+    private void loadAllGroupsAndFriends() {
+        showLoadingDialog();
+
+        db.collection("groups")
+                .whereArrayContains("memberIds", currentUserId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (!isAdded()) {
+                        hideLoadingDialog();
+                        return;
+                    }
+
+                    if (task.isSuccessful()) {
+                        groupIds.clear();
+                        uniqueFriendIds.clear();
+                        friendsList.clear();
+
+                        for (QueryDocumentSnapshot groupDoc : task.getResult()) {
+                            String groupId = groupDoc.getId();
+                            groupIds.add(groupId);
+                            expenseManagers.put(groupId, new ExpenseManager(groupId));
+                            List<String> memberIds = (List<String>) groupDoc.get("memberIds");
+                            if (memberIds != null) {
+                                for (String memberId : memberIds) {
+                                    if (!memberId.equals(currentUserId)) {
+                                        uniqueFriendIds.add(memberId);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (uniqueFriendIds.isEmpty()) {
+                            setupFriendsSpinner();
+                            hideLoadingDialog();
+                        } else {
+                            fetchAllFriendDetails(new ArrayList<>(uniqueFriendIds));
+                        }
+                    } else {
+                        handleError("Error fetching groups: " + task.getException().getMessage(), task.getException());
+                        hideLoadingDialog();
+                    }
+                });
+    }
+
+    private void fetchAllFriendDetails(List<String> friendIds) {
+        AtomicInteger completedCount = new AtomicInteger(0);
+
+        for (String friendId : friendIds) {
+            db.collection("users").document(friendId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (!isAdded()) return;
+
+                        if (documentSnapshot.exists()) {
+                            Friend friend = documentSnapshot.toObject(Friend.class);
+                            if (friend != null) {
+                                friendsList.add(friend);
+                            }
+                        }
+
+                        if (completedCount.incrementAndGet() == friendIds.size()) {
+                            setupFriendsSpinner();
+                            calculateDebtSummaries();
+                            setupTransactionListener();
+                            saveDataToCache();
+                            hideLoadingDialog();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        if (completedCount.incrementAndGet() == friendIds.size()) {
+                            setupFriendsSpinner();
+                            calculateDebtSummaries();
+                            setupTransactionListener();
+                            saveDataToCache();
+                            hideLoadingDialog();
+                        }
+                    });
+        }
     }
 
     private void setupTransactionListener() {
@@ -202,18 +372,25 @@ public class PaymentFragment extends Fragment {
                 handleError("Error listening to transactions: " + e.getMessage(), e);
                 return;
             }
+
             if (snapshots != null && !snapshots.isEmpty()) {
                 transactionList.clear();
                 hasRealTransactions = true;
+
                 for (QueryDocumentSnapshot doc : snapshots) {
                     Transaction transaction = parseTransaction(doc);
-                    if (transaction != null) transactionList.add(transaction);
+                    if (transaction != null) {
+                        transactionList.add(transaction);
+                    }
                 }
+
                 transactionAdapter.updateTransactions(transactionList);
+                saveDataToCache();
                 Log.d(TAG, "Transactions updated: " + transactionList.size() + " items");
             } else if (!hasRealTransactions) {
                 addDummyTransactions();
             }
+
             swipeRefresh.setRefreshing(false);
         });
     }
@@ -223,7 +400,6 @@ public class PaymentFragment extends Fragment {
         String[] methods = {"UPI", "Manual", "Wallet"};
 
         transactionList.clear();
-        // Increase to 20 items to ensure content exceeds screen height
         for (int i = 0; i < Math.min(20, MAX_TRANSACTIONS); i++) {
             String friendName = friendsList.isEmpty() ? "Friend " + (i + 1) :
                     friendsList.get(i % friendsList.size()).getFullName();
@@ -249,87 +425,6 @@ public class PaymentFragment extends Fragment {
         startActivity(new Intent(getActivity(), LoginActivity.class)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
         if (getActivity() != null) getActivity().finish();
-    }
-
-    private void loadAllGroupsAndFriends() {
-        db.collection("groups")
-                .whereArrayContains("memberIds", currentUserId)
-                .addSnapshotListener((querySnapshot, e) -> {
-                    if (e != null) {
-                        handleError("Error fetching groups: " + e.getMessage(), e);
-                        return;
-                    }
-                    if (querySnapshot == null || querySnapshot.isEmpty()) {
-                        Log.w(TAG, "No groups found for user: " + currentUserId);
-                        setupFriendsSpinner();
-                        return;
-                    }
-
-                    groupIds.clear();
-                    uniqueFriendIds.clear();
-                    friendsList.clear();
-                    for (QueryDocumentSnapshot groupDoc : querySnapshot) {
-                        String groupId = groupDoc.getId();
-                        groupIds.add(groupId);
-                        expenseManagers.put(groupId, new ExpenseManager(groupId));
-                        List<String> memberIds = (List<String>) groupDoc.get("memberIds");
-                        if (memberIds != null) {
-                            for (String memberId : memberIds) {
-                                if (!memberId.equals(currentUserId) && !uniqueFriendIds.contains(memberId)) {
-                                    uniqueFriendIds.add(memberId);
-                                    fetchFriendDetails(memberId);
-                                }
-                            }
-                        }
-                    }
-                    if (uniqueFriendIds.isEmpty()) {
-                        Log.w(TAG, "No friends found in groups for user: " + currentUserId);
-                        setupFriendsSpinner();
-                    }
-                });
-    }
-
-    private void fetchFriendDetails(String friendId) {
-        db.collection("users").document(friendId)
-                .get()
-                .addOnSuccessListener(userDoc -> {
-                    if (!isAdded()) return;
-                    if (userDoc.exists()) {
-                        Friend friend = userDoc.toObject(Friend.class);
-                        friendsList.add(friend);
-                        Log.d(TAG, "Friend fetched: " + friend.getFullName());
-                    }
-                    if (friendsList.size() == uniqueFriendIds.size()) {
-                        setupFriendsSpinner();
-                        calculateDebtSummaries();
-                        setupTransactionListener();
-                    }
-                })
-                .addOnFailureListener(e -> handleError("Error fetching friend: " + e.getMessage(), e));
-    }
-
-    private void setupFriendsSpinner() {
-        if (!isAdded()) return;
-
-        List<String> friendNames = new ArrayList<>();
-        for (Friend friend : friendsList) {
-            String fullName = friend.getFullName().trim();
-            if (!fullName.isEmpty()) friendNames.add(fullName);
-        }
-        if (friendNames.isEmpty()) {
-            friendNames.add("No friends available");
-            spinnerFriends.setEnabled(false);
-        } else {
-            spinnerFriends.setEnabled(true);
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                android.R.layout.simple_dropdown_item_1line, friendNames);
-        spinnerFriends.setAdapter(adapter);
-        if (!friendNames.contains("No friends available") && !friendsList.isEmpty()) {
-            spinnerFriends.setText(friendNames.get(0), false);
-            selectedFriend = friendsList.get(0);
-            fetchAndUpdateBalance();
-        }
     }
 
     private void fetchAndUpdateBalance() {
@@ -412,20 +507,27 @@ public class PaymentFragment extends Fragment {
     private void initiatePayment() {
         if (!validateInput()) return;
 
+        showLoadingDialog();
         double amount = Double.parseDouble(etAmount.getText().toString());
+
         db.collection("users").document(currentUserId).get()
                 .addOnSuccessListener(doc -> {
-                    if (!isAdded()) return;
+                    if (!isAdded()) {
+                        hideLoadingDialog();
+                        return;
+                    }
 
                     String userUpi = doc.getString("upi");
                     if (!validateUPI(userUpi)) {
                         showToast("Please add a valid UPI ID in your profile.");
+                        hideLoadingDialog();
                         return;
                     }
 
                     String friendUpi = selectedFriend.getUpi();
                     if (!validateUPI(friendUpi)) {
                         showToast(selectedFriend.getFname() + " hasn't added a valid UPI ID.");
+                        hideLoadingDialog();
                         return;
                     }
 
@@ -435,8 +537,12 @@ public class PaymentFragment extends Fragment {
                     Intent upiIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(upiUrl));
                     startActivityForResult(upiIntent, UPI_PAYMENT_REQUEST_CODE);
                     Log.d(TAG, "UPI Payment initiated: " + upiUrl);
+                    hideLoadingDialog();
                 })
-                .addOnFailureListener(e -> handleError("Error fetching user profile: " + e.getMessage(), e));
+                .addOnFailureListener(e -> {
+                    handleError("Error fetching user profile: " + e.getMessage(), e);
+                    hideLoadingDialog();
+                });
     }
 
     private void requestPayment() {
@@ -452,6 +558,7 @@ public class PaymentFragment extends Fragment {
     private void generateQrCode() {
         if (!validateInput()) return;
 
+        showLoadingDialog();
         double amount = Double.parseDouble(etAmount.getText().toString());
         double balance = debtSummaries.stream()
                 .filter(ds -> ds.getFriendId().equals(selectedFriend.getUid()))
@@ -460,19 +567,27 @@ public class PaymentFragment extends Fragment {
 
         db.collection("users").document(currentUserId).get()
                 .addOnSuccessListener(doc -> {
-                    if (!isAdded()) return;
+                    if (!isAdded()) {
+                        hideLoadingDialog();
+                        return;
+                    }
                     String userUpi = doc.getString("upi");
                     if (!validateUPI(userUpi)) {
                         showToast("Please add a valid UPI ID in your profile.");
+                        hideLoadingDialog();
                         return;
                     }
 
                     String upiUrl = balance > 0 ?
                             buildUpiLink(amount, userUpi, auth.getCurrentUser().getDisplayName(), "SPLIT_" + System.currentTimeMillis()) :
                             buildUpiLink(amount, selectedFriend.getUpi(), selectedFriend.getFullName(), "SPLIT_" + System.currentTimeMillis());
+                    hideLoadingDialog();
                     showQrDialog(upiUrl, amount);
                 })
-                .addOnFailureListener(e -> handleError("Error fetching user UPI: " + e.getMessage(), e));
+                .addOnFailureListener(e -> {
+                    handleError("Error fetching user UPI: " + e.getMessage(), e);
+                    hideLoadingDialog();
+                });
     }
 
     private void showQrDialog(String upiUrl, double amount) {
@@ -844,6 +959,7 @@ public class PaymentFragment extends Fragment {
     }
 
     private void refreshData() {
+        showLoadingDialog();
         loadAllGroupsAndFriends();
         calculateDebtSummaries();
         fetchAndUpdateBalance();
@@ -852,6 +968,7 @@ public class PaymentFragment extends Fragment {
 
     private void handleError(String message, Exception e) {
         Log.e(TAG, message, e);
+        hideLoadingDialog();
         if (isAdded()) showToast(message);
     }
 
@@ -859,29 +976,27 @@ public class PaymentFragment extends Fragment {
         if (isAdded()) Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (scrollListener != null && nestedScrollView != null) {
-            nestedScrollView.getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
-        }
-        if (transactionListener != null) {
-            transactionListener.remove();
-            transactionListener = null;
-        }
-        for (ExpenseManager manager : expenseManagers.values()) {
-            manager.removeListener();
-        }
-    }
+    private void setupFriendsSpinner() {
+        if (!isAdded()) return;
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        friendsList.clear();
-        transactionList.clear();
-        debtSummaries.clear();
-        groupIds.clear();
-        uniqueFriendIds.clear();
-        expenseManagers.clear();
+        List<String> friendNames = new ArrayList<>();
+        for (Friend friend : friendsList) {
+            String fullName = friend.getFullName().trim();
+            if (!fullName.isEmpty()) friendNames.add(fullName);
+        }
+        if (friendNames.isEmpty()) {
+            friendNames.add("No friends available");
+            spinnerFriends.setEnabled(false);
+        } else {
+            spinnerFriends.setEnabled(true);
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_dropdown_item_1line, friendNames);
+        spinnerFriends.setAdapter(adapter);
+        if (!friendNames.contains("No friends available") && !friendsList.isEmpty()) {
+            spinnerFriends.setText(friendNames.get(0), false);
+            selectedFriend = friendsList.get(0);
+            fetchAndUpdateBalance();
+        }
     }
 }

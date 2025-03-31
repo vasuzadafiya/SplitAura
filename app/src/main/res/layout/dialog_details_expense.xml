@@ -1,239 +1,258 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
+    app:cardBackgroundColor="@color/surface"
     app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/surface">
+    app:cardElevation="8dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="match_parent">
 
-        <!-- Header with icon and title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <ImageView
-                android:id="@+id/dialog_expense_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="16dp"
-                android:padding="8dp"
-                android:background="@drawable/circle_background_accent"
-                app:tint="@color/onSecondary"/>
-
-            <TextView
-                android:id="@+id/dialog_expense_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="20sp"
-                android:textColor="@color/textPrimary"
-                android:textStyle="bold"
-                android:maxLines="2"
-                android:ellipsize="end"
-                tools:text="Dinner at fancy restaurant"/>
-        </LinearLayout>
-
-        <!-- Main content card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="@color/surfaceVariant"
-            android:layout_marginBottom="20dp">
-
+            <!-- Header with icon and title -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <!-- Amount (highlighted) -->
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/dialog_expense_amount"
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/dialog_expense_icon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/circle_background_accent"
+                    android:padding="8dp"
+                    app:tint="@color/onSecondary" />
+
+                <TextView
+                    android:id="@+id/dialog_expense_title"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:textSize="24sp"
-                    android:textColor="@color/primary"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="16dp"
-                    tools:text="$120.00"/>
+                    tools:text="Dinner at fancy restaurant" />
+            </LinearLayout>
 
-                <!-- Details grid -->
-                <GridLayout
+            <ImageView
+                android:id="@+id/expense_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/image"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/app_icon"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Main content card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="@color/surfaceVariant"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="2"
-                    android:rowCount="3"
-                    android:alignmentMode="alignMargins"
-                    android:columnOrderPreserved="false">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                    <!-- Paid By -->
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Amount (highlighted) -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/dialog_expense_amount"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/paid_by"
-                        android:textColor="@color/textSecondary"
-                        android:textSize="16sp"
-                        android:layout_marginBottom="8dp"/>
+                        android:layout_marginBottom="16dp"
+                        android:textColor="@color/primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        tools:text="$120.00" />
 
-                    <TextView
-                        android:id="@+id/dialog_expense_paid_by"
-                        android:layout_width="wrap_content"
+                    <!-- Details grid -->
+                    <GridLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="@color/textPrimary"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginStart="16dp"
-                        tools:text="John Doe"/>
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="2"
+                        android:columnOrderPreserved="false"
+                        android:rowCount="3">
 
-                    <!-- Split By -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/split_by"
-                        android:textColor="@color/textSecondary"
-                        android:textSize="16sp"
-                        android:layout_marginBottom="8dp"/>
+                        <!-- Paid By -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/paid_by"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="16sp" />
 
-                    <TextView
-                        android:id="@+id/dialog_expense_split_by"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:layout_marginStart="16dp"
-                        android:textColor="@color/textPrimary"
-                        android:layout_marginBottom="8dp"
-                        tools:text="Equally"/>
+                        <TextView
+                            android:id="@+id/dialog_expense_paid_by"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginBottom="8dp"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="16sp"
+                            tools:text="John Doe" />
 
-                    <!-- Date -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/date"
-                        android:textColor="@color/textSecondary"
-                        android:layout_marginBottom="8dp"
-                        android:textSize="16sp"/>
+                        <!-- Split By -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/split_by"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="16sp" />
 
-                    <TextView
-                        android:id="@+id/dialog_expense_date"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:layout_marginStart="16dp"
-                        android:textColor="@color/textPrimary"
-                        android:layout_marginBottom="8dp"
-                        tools:text="May 15, 2023"/>
+                        <TextView
+                            android:id="@+id/dialog_expense_split_by"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginBottom="8dp"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="16sp"
+                            tools:text="Equally" />
+
+                        <!-- Date -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/date"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/dialog_expense_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:layout_marginBottom="8dp"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="16sp"
+                            tools:text="May 15, 2023" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Added by:"
                             android:textColor="@color/textSecondary"
-                            android:textSize="16sp"/>
+                            android:textSize="16sp" />
 
                         <TextView
                             android:id="@+id/dialog_expense_added_by"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="16sp"
                             android:layout_marginStart="16dp"
                             android:textColor="@color/textPrimary"
-                            tools:text="John Doe"/>
+                            android:textSize="16sp"
+                            tools:text="John Doe" />
 
-                </GridLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+                    </GridLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-        <!-- Categories section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/categories"
-            android:textColor="@color/textSecondary"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"/>
-
-        <com.google.android.flexbox.FlexboxLayout
-            android:id="@+id/categories_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:flexWrap="wrap"
-            app:alignItems="flex_start"
-            app:alignContent="flex_start"
-            android:layout_marginBottom="20dp"/>
-
-        <!-- Notes section -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/notes"
-            android:textColor="@color/textSecondary"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"/>
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surfaceVariant"
-            app:cardCornerRadius="8dp"
-            app:strokeColor="@color/outline"
-            app:strokeWidth="1dp"
-            android:layout_marginBottom="16dp">
-
+            <!-- Categories section -->
             <TextView
-                android:id="@+id/dialog_expense_notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/textPrimary"
-                android:padding="12dp"
-                android:lineSpacingExtra="4dp"
-                tools:text="Celebrating Jane's birthday with the team"/>
-        </com.google.android.material.card.MaterialCardView>
+                android:layout_marginBottom="8dp"
+                android:text="@string/categories"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp" />
 
-        <!-- Button bar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:paddingTop="8dp">
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/categories_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:alignContent="flex_start"
+                app:alignItems="flex_start"
+                app:flexWrap="wrap" />
 
-            <com.google.android.material.button.MaterialButton
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:id="@+id/btn_delete"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="@string/delete1"
-                android:textColor="@color/error"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                app:rippleColor="@color/error_ripple"/>
+            <!-- Notes section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/notes"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp" />
 
-            <com.google.android.material.button.MaterialButton
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:id="@+id/btn_update"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="@string/update"
-                android:textColor="@color/secondary"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                app:rippleColor="@color/secondary_ripple"/>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/surfaceVariant"
+                app:cardCornerRadius="8dp"
+                app:strokeColor="@color/outline"
+                app:strokeWidth="1dp">
+
+                <TextView
+                    android:id="@+id/dialog_expense_notes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="4dp"
+                    android:padding="12dp"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="14sp"
+                    tools:text="Celebrating Jane's birthday with the team" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Button bar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="horizontal"
+                android:paddingTop="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_delete"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/delete1"
+                    android:textColor="@color/error"
+                    app:rippleColor="@color/error_ripple" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_update"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="@string/update"
+                    android:textColor="@color/secondary"
+                    app:rippleColor="@color/secondary_ripple" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
 </androidx.cardview.widget.CardView>

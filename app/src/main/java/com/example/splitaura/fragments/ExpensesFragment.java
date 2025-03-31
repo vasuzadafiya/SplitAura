@@ -65,7 +65,7 @@ public class ExpensesFragment extends Fragment {
         placeholder = view.findViewById(R.id.placeholder);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        expenseAdapter = new ExpenseAdapter(getContext(), new ExpenseAdapter.OnExpenseActionListener() {
+        expenseAdapter = new ExpenseAdapter(requireContext(), new ExpenseAdapter.OnExpenseActionListener() {
             @Override
             public void onEditExpense(ExpenseManager.Expense expense) {
                 Intent intent = new Intent(getContext(), AddExpenseActivity.class);

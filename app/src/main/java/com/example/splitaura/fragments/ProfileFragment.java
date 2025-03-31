@@ -259,7 +259,7 @@ public class ProfileFragment extends Fragment {
                     userUpi.setText("UPI: " + (upi != null ? upi : NOT_PROVIDED));
 
                     if (profilePicture != null && !profilePicture.isEmpty()) {
-                        Glide.with(this).load(profilePicture).apply(new RequestOptions().placeholder(R.drawable.obsmallmen2).error(R.drawable.obsmallmen2).circleCrop()).into(profileImage);
+                        Glide.with(requireContext()).load(profilePicture).apply(new RequestOptions().placeholder(R.drawable.obsmallmen2).error(R.drawable.obsmallmen2).circleCrop()).into(profileImage);
                     } else {
                         profileImage.setImageResource(R.drawable.obsmallmen2);
                     }

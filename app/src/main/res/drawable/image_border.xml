@@ -7,7 +7,7 @@
             android:useLevel="false">
             <!-- Sweep gradient for rainbow effect: Red -> Green -> Blue -->
             <gradient
-                android:angle="0"
+                android:angle="90"
                 android:centerColor="@color/f_pass_color"
                 android:endColor="@color/red"
                 android:startColor="@color/light_blue"

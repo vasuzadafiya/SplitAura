@@ -10,9 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.R;
 import com.google.android.flexbox.FlexboxLayout;
@@ -22,13 +28,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseViewHolder> {
-    private List<ExpenseManager.Expense> expenseList;
+
+    private static final String GENERAL = "General";
+
+    private final List<ExpenseManager.Expense> expenseList;
     private final Context context;
     private final OnExpenseActionListener actionListener;
     private final Map<String, String> userNamesCache = new HashMap<>();
@@ -69,6 +77,26 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
         // Initialize views
         TextView addedByView = dialogView.findViewById(R.id.dialog_expense_added_by);
+        ImageView expenseImage = dialogView.findViewById(R.id.expense_image);
+        String imageUrl = expense.getImageUrl();
+
+        if (imageUrl != null) {
+            expenseImage.setVisibility(View.VISIBLE);
+            int radius = 40;
+
+            // Create RequestOptions with both CenterCrop and RoundedCorners transformations.
+            RequestOptions requestOptions = new RequestOptions()
+                    .transform(new CenterCrop(), new RoundedCorners(radius));
+
+            Glide.with(context)
+                    .load(imageUrl)
+                    .apply(requestOptions)
+                    .placeholder(R.mipmap.app_icon) // optional placeholder image
+                    .into(expenseImage);
+
+        } else {
+            expenseImage.setVisibility(View.GONE);
+        }
 
         // Set creator info if available
         if (expense.getAddedBy() != null && !expense.getAddedBy().equals("unknown")) {
@@ -100,7 +128,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
         // Set data
         setCategoryIcon(icon, expense.getCategories() != null && !expense.getCategories().isEmpty() ?
-                expense.getCategories().get(0) : "General");
+                expense.getCategories().get(0) : GENERAL);
         title.setText(expense.getTitle());
         amount.setText(context.getString(R.string.amount_format, expense.getAmount()));
         paidBy.setText(expense.getPaidBy());
@@ -211,8 +239,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         int iconResId;
         int bgColorResId;
 
-        switch (category != null ? category : "General") {
-            case "General":
+        switch (category != null ? category : GENERAL) {
+            case GENERAL:
                 iconResId = R.drawable.ic_general;
                 bgColorResId = R.drawable.icon_background_teal;
                 break;
@@ -276,9 +304,18 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         return null;
     }
 
+    public interface OnExpenseActionListener {
+        void onEditExpense(ExpenseManager.Expense expense);
+
+        void onDeleteExpense(ExpenseManager.Expense expense);
+    }
+
     static class ExpenseViewHolder extends RecyclerView.ViewHolder {
         ImageView categoryIcon;
-        TextView expenseName, expensePaidBy, expenseAmount, expenseDate;
+        TextView expenseName;
+        TextView expensePaidBy;
+        TextView expenseAmount;
+        TextView expenseDate;
 
         public ExpenseViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -290,21 +327,24 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         }
     }
 
-    public interface OnExpenseActionListener {
-        void onEditExpense(ExpenseManager.Expense expense);
-        void onDeleteExpense(ExpenseManager.Expense expense);
-    }
-
     private static class ExpenseDiffCallback extends DiffUtil.Callback {
-        private final List<ExpenseManager.Expense> oldList, newList;
+        private final List<ExpenseManager.Expense> oldList;
+        private final List<ExpenseManager.Expense> newList;
 
         public ExpenseDiffCallback(List<ExpenseManager.Expense> oldList, List<ExpenseManager.Expense> newList) {
             this.oldList = oldList;
             this.newList = newList;
         }
 
-        @Override public int getOldListSize() { return oldList.size(); }
-        @Override public int getNewListSize() { return newList.size(); }
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
 
         @Override
         public boolean areItemsTheSame(int oldPos, int newPos) {

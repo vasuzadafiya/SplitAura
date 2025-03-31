@@ -35,11 +35,14 @@ public class GroupExpensesActivity extends BaseActivity {
 
     private ImageView groupIcon;
     private TextView groupName;
-    private MaterialButton btnExpenses, btnBalances, btnTotals, btnGroups;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private MaterialButton btnExpenses;
+    private MaterialButton btnBalances;
+    private MaterialButton btnTotals;
     private ImageView backButton;
     private ViewPager2 viewPager;
     private View fragmentContainer;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private MaterialButton btnGroups;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +193,7 @@ public class GroupExpensesActivity extends BaseActivity {
 
     // ViewPager2 adapter class for fragments.
     private static class GroupExpensesPagerAdapter extends FragmentStateAdapter {
-        private ViewPager2 viewPager;
+        private final ViewPager2 viewPager;
 
         GroupExpensesPagerAdapter(AppCompatActivity activity, ViewPager2 viewPager) {
             super(activity);

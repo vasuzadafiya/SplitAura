@@ -374,8 +374,14 @@ public class HomeFragment extends Fragment {
                         String lname = userDoc.getString("lname");
                         String profilePic = userDoc.getString("profile_picture");
 
-                        if (fname != null && lname != null) {
-                            String friendName = fname + " " + lname.charAt(0) + ".";
+                        if (fname != null) {
+                            String friendName;
+                            // If last name exists and is non-empty, append its first character; otherwise, just use the first name.
+                            if (lname != null && !lname.isEmpty()) {
+                                friendName = fname + " " + lname.charAt(0) + ".";
+                            } else {
+                                friendName = fname;
+                            }
                             friendNames.put(friendId, friendName);
                             friendProfilePictures.put(friendId, (profilePic != null) ? profilePic : "");
                         }

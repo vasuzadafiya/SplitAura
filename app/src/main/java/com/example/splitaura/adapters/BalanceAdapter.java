@@ -5,10 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.splitaura.R;
 import com.example.splitaura.models.Balance;
 import com.google.firebase.firestore.FieldPath;
@@ -21,19 +22,32 @@ import java.util.List;
 import java.util.Map;
 
 public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceViewHolder> {
-    private List<Balance> balances;
-    private final Map<String, String> userNamesCache = new HashMap<>(); // Cache for user names
+    private static final int VIEW_TYPE_POSITIVE = 0;
+    private static final int VIEW_TYPE_NEGATIVE = 1;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final List<Balance> balances;
+    private final Map<String, String> userNamesCache = new HashMap<>();
 
     public BalanceAdapter(List<Balance> balances) {
         this.balances = balances != null ? new ArrayList<>(balances) : new ArrayList<>();
-        fetchUserNames(); // Pre-fetch user names
+        fetchUserNames();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Balance balance = balances.get(position);
+        return balance.getAmount() >= 0 ? VIEW_TYPE_POSITIVE : VIEW_TYPE_NEGATIVE;
     }
 
     @NonNull
     @Override
     public BalanceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.balance_item, parent, false);
+        View view;
+        if (viewType == VIEW_TYPE_POSITIVE) {
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.balance_item_positive, parent, false);
+        } else {
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.balance_item_negative, parent, false);
+        }
         return new BalanceViewHolder(view);
     }
 
@@ -42,47 +56,20 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
         Balance balance = balances.get(position);
         String userId = balance.getName();
 
-        // Display "Loading..." or a placeholder until the user name is fetched
+        // Display "Loading..." or the cached name
         String displayName = userNamesCache.getOrDefault(userId, "Loading...");
         holder.nameTextView.setText(displayName);
 
-        // Format the balance amount with currency symbol and sign
+        // Format the balance amount with sign and currency symbol
         String amountText;
         if (balance.getAmount() >= 0) {
-            amountText = String.format("+ ₹%.2f", balance.getAmount()); // Add plus sign for positive amounts
+            amountText = String.format("+ ₹%.2f", balance.getAmount());
+            holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_green));
         } else {
-            amountText = String.format("- ₹%.2f", Math.abs(balance.getAmount())); // Add minus sign for negative amounts
+            amountText = String.format("- ₹%.2f", Math.abs(balance.getAmount()));
+            holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_red));
         }
         holder.amountTextView.setText(amountText);
-        holder.amountTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.white));
-
-        // Configure layout based on balance sign
-        ConstraintLayout.LayoutParams nameParams = (ConstraintLayout.LayoutParams) holder.nameTextView.getLayoutParams();
-        ConstraintLayout.LayoutParams amountParams = (ConstraintLayout.LayoutParams) holder.amountTextView.getLayoutParams();
-
-        // Reset constraints
-        nameParams.startToStart = ConstraintLayout.LayoutParams.UNSET;
-        nameParams.endToStart = ConstraintLayout.LayoutParams.UNSET;
-        nameParams.endToEnd = ConstraintLayout.LayoutParams.UNSET;
-        amountParams.startToEnd = ConstraintLayout.LayoutParams.UNSET;
-        amountParams.endToStart = ConstraintLayout.LayoutParams.UNSET;
-
-        if (balance.getAmount() >= 0) {
-            holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_green));
-            nameParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
-            nameParams.endToStart = holder.amountTextView.getId();
-            amountParams.startToEnd = holder.nameTextView.getId();
-            amountParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
-        } else {
-            holder.amountTextView.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.background_red));
-            nameParams.startToEnd = holder.amountTextView.getId();
-            nameParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
-            amountParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
-            amountParams.endToStart = holder.nameTextView.getId();
-        }
-
-        holder.nameTextView.setLayoutParams(nameParams);
-        holder.amountTextView.setLayoutParams(amountParams);
     }
 
     @Override
@@ -90,20 +77,10 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
         return balances.size();
     }
 
-    public static class BalanceViewHolder extends RecyclerView.ViewHolder {
-        TextView nameTextView, amountTextView;
-
-        public BalanceViewHolder(@NonNull View itemView) {
-            super(itemView);
-            nameTextView = itemView.findViewById(R.id.balance_name);
-            amountTextView = itemView.findViewById(R.id.balance_amount);
-        }
-    }
-
     public void updateBalances(List<Balance> newBalances) {
         this.balances.clear();
         this.balances.addAll(newBalances != null ? newBalances : new ArrayList<>());
-        fetchUserNames(); // Refresh names
+        fetchUserNames();
         notifyDataSetChanged();
     }
 
@@ -128,11 +105,19 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
                                 (doc.getString("lname") != null ? doc.getString("lname") : "");
                         userNamesCache.put(doc.getId(), fullName.trim());
                     }
-                    notifyDataSetChanged(); // Refresh UI with updated names
+                    notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> {
-                    // Handle failure (e.g., log the error)
-                    Log.e("BalanceAdapter", "Failed to fetch user names", e);
-                });
+                .addOnFailureListener(e -> Log.e("BalanceAdapter", "Failed to fetch user names", e));
+    }
+
+    public static class BalanceViewHolder extends RecyclerView.ViewHolder {
+        TextView nameTextView;
+        TextView amountTextView;
+
+        public BalanceViewHolder(@NonNull View itemView) {
+            super(itemView);
+            nameTextView = itemView.findViewById(R.id.balance_name);
+            amountTextView = itemView.findViewById(R.id.balance_amount);
+        }
     }
 }

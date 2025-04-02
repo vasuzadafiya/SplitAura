@@ -29,6 +29,7 @@ public class GroupViewModel extends AndroidViewModel {
     private final String userId;
     private ListenerRegistration groupsListener;
     private boolean isDataFetched = false;
+    private final MutableLiveData<Boolean> groupDeleted = new MutableLiveData<>();
 
     public GroupViewModel(@NonNull Application application) {
         super(application);
@@ -121,5 +122,13 @@ public class GroupViewModel extends AndroidViewModel {
         if (groupsListener != null) {
             groupsListener.remove();
         }
+    }
+
+    public void setGroupDeleted(boolean deleted) {
+        groupDeleted.setValue(deleted);
+    }
+
+    public MutableLiveData<Boolean> getGroupDeleted() {
+        return groupDeleted;
     }
 }

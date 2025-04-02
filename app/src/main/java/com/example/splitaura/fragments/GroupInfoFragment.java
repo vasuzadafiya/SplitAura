@@ -5,11 +5,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
@@ -17,12 +17,18 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.MemberAdapter;
+import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
+import com.example.splitaura.viewmodels.GroupViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +38,13 @@ public class GroupInfoFragment extends Fragment {
 
     private ViewPager2 viewPager;
     private RecyclerView recyclerViewMembers;
-    private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent;
+    private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent, tvMenuDots;
     private MemberAdapter memberAdapter;
     private String groupId;
+    private String currentUserId;
     private FirebaseFirestore db;
     private ListenerRegistration groupListener;
+    private LoadingDialog loadingDialog;
 
     public GroupInfoFragment(ViewPager2 viewPager) {
         this.viewPager = viewPager;
@@ -46,107 +54,226 @@ public class GroupInfoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_group_info, container, false);
 
-        // Initialize Firestore and group ID
         db = FirebaseFirestore.getInstance();
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         groupId = getActivity().getIntent().getStringExtra(GroupExpensesActivity.GROUP_ID);
+        loadingDialog = new LoadingDialog(requireContext());
 
-        // Initialize UI components
-        tvGroupTitle = view.findViewById(R.id.tv_group_title);
-        tvDescriptionContent = view.findViewById(R.id.tv_description_content);
-        tvCurrencyContent = view.findViewById(R.id.tv_currency_content);
-        tvCategoryContent = view.findViewById(R.id.tv_category_content);
-        recyclerViewMembers = view.findViewById(R.id.recycler_view_members);
-        recyclerViewMembers.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        // Initialize MemberAdapter with ViewPager2
-        memberAdapter = new MemberAdapter(new ArrayList<>(), getContext(), requireActivity().getSupportFragmentManager(), viewPager);
-        recyclerViewMembers.setAdapter(memberAdapter);
-
-        // Fetch and observe group data
+        initViews(view);
+        setupRecyclerView();
+        setupMenuDots();
         observeGroupData();
 
         return view;
     }
 
+    private void initViews(View view) {
+        tvGroupTitle = view.findViewById(R.id.tv_group_title);
+        tvDescriptionContent = view.findViewById(R.id.tv_description_content);
+        tvCurrencyContent = view.findViewById(R.id.tv_currency_content);
+        tvCategoryContent = view.findViewById(R.id.tv_category_content);
+        tvMenuDots = view.findViewById(R.id.tv_menu_dots);
+        recyclerViewMembers = view.findViewById(R.id.recycler_view_members);
+    }
+
+    private void setupRecyclerView() {
+        recyclerViewMembers.setLayoutManager(new LinearLayoutManager(getContext()));
+        memberAdapter = new MemberAdapter(new ArrayList<>(), getContext(),
+                requireActivity().getSupportFragmentManager(), viewPager);
+        recyclerViewMembers.setAdapter(memberAdapter);
+    }
+
+    private void setupMenuDots() {
+        tvMenuDots.setOnClickListener(v -> showGroupOptionsMenu());
+    }
+
+    private void showGroupOptionsMenu() {
+        PopupMenu popupMenu = new PopupMenu(requireContext(), tvMenuDots);
+        popupMenu.getMenu().add("Delete Group");
+
+        popupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("Delete Group")) {
+                verifyUserIsCreator();
+                return true;
+            }
+            return false;
+        });
+        popupMenu.show();
+    }
+
+    private void verifyUserIsCreator() {
+        loadingDialog.show();
+        db.collection("groups").document(groupId)
+                .get()
+                .addOnSuccessListener(document -> {
+                    loadingDialog.hide();
+                    if (document.exists()) {
+                        String creatorId = document.getString("createdBy");
+                        if (creatorId != null && creatorId.equals(currentUserId)) {
+                            showDeleteConfirmationDialog();
+                        } else {
+                            showPermissionDeniedDialog();
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    loadingDialog.hide();
+                    showErrorDialog("Error verifying permissions", e.getMessage());
+                });
+    }
+
+    private void showDeleteConfirmationDialog() {
+        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle("Delete Group?")
+                .setMessage("This will permanently delete the group and all its data.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    loadingDialog.show();
+                    deleteGroup();
+                })
+                .setNegativeButton("Cancel", null)
+                .setIcon(R.drawable.ic_warning)
+                .show();
+    }
+
+    private void showPermissionDeniedDialog() {
+        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle("Permission Denied")
+                .setMessage("Only the group creator can delete this group.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void showErrorDialog(String title, String message) {
+        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void deleteGroup() {
+        WriteBatch batch = db.batch();
+        batch.delete(db.collection("groups").document(groupId));
+
+        db.collection("groups").document(groupId).collection("expenses")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        batch.delete(doc.getReference());
+                    }
+                    commitDeletionBatch(batch);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching expenses: ", e);
+                    commitDeletionBatch(batch);
+                });
+    }
+
+    private void commitDeletionBatch(WriteBatch batch) {
+        batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    loadingDialog.hide();
+                    notifyHomeFragmentAndNavigate();
+                })
+                .addOnFailureListener(e -> {
+                    loadingDialog.hide();
+                    handleDeletionFailure(e);
+                });
+    }
+
+    private void notifyHomeFragmentAndNavigate() {
+        // Notify HomeFragment through ViewModel
+        if (getActivity() != null) {
+            GroupViewModel groupViewModel = new ViewModelProvider(getActivity()).get(GroupViewModel.class);
+            groupViewModel.setGroupDeleted(true);
+        }
+
+        // Navigate back
+        requireActivity().finish();
+    }
+
+    private void handleDeletionFailure(Exception e) {
+        String errorMsg = "Failed to delete group";
+        if (e instanceof FirebaseFirestoreException) {
+            FirebaseFirestoreException firestoreEx = (FirebaseFirestoreException) e;
+            switch (firestoreEx.getCode()) {
+                case PERMISSION_DENIED:
+                    errorMsg = "You don't have permission to delete this group";
+                    break;
+                case NOT_FOUND:
+                    errorMsg = "Group not found - it may have already been deleted";
+                    break;
+                case UNAVAILABLE:
+                    errorMsg = "Network error - please check your connection";
+                    break;
+            }
+        }
+        showErrorDialog("Deletion Failed", errorMsg);
+    }
+
     private void observeGroupData() {
         if (groupId == null) {
-            Log.e(TAG, "Group ID is null");
-            Toast.makeText(getContext(), "Group ID not found", Toast.LENGTH_SHORT).show();
+            showErrorDialog("Error", "Group ID not found");
             return;
         }
 
+        loadingDialog.show();
         groupListener = db.collection("groups").document(groupId)
                 .addSnapshotListener((doc, e) -> {
+                    loadingDialog.hide();
                     if (e != null) {
-                        Log.e(TAG, "Error fetching group data: ", e);
-                        Toast.makeText(getContext(), "Error fetching group data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        showErrorDialog("Error", "Failed to load group data");
                         return;
                     }
+
                     if (doc != null && doc.exists()) {
-                        // Fetch group details
-                        String title = doc.getString("title");
-                        String description = doc.getString("description");
-                        String currency = doc.getString("currency");
-                        String category = doc.getString("category");
-
-                        // Update UI with group details
-                        if (title != null) {
-                            tvGroupTitle.setText(title);
-                        } else {
-                            tvGroupTitle.setText("Untitled Group");
-                        }
-
-                        if (description != null) {
-                            tvDescriptionContent.setText(description);
-                        } else {
-                            tvDescriptionContent.setText("No description available");
-                        }
-
-                        if (currency != null) {
-                            tvCurrencyContent.setText(currency);
-                        } else {
-                            tvCurrencyContent.setText("INR"); // Default currency
-                        }
-
-                        if (category != null) {
-                            tvCategoryContent.setText(category);
-                        } else {
-                            tvCategoryContent.setText("General");
-                        }
-
-                        // Fetch group members
-                        List<String> memberIds = (List<String>) doc.get("memberIds");
-                        if (memberIds != null && !memberIds.isEmpty()) {
-                            fetchGroupMembers(memberIds);
-                        } else {
-                            memberAdapter.updateData(new ArrayList<>());
-                            Toast.makeText(getContext(), "No members in this group", Toast.LENGTH_SHORT).show();
-                        }
+                        updateGroupUI(doc);
+                        fetchMembers(doc);
                     } else {
-                        Toast.makeText(getContext(), "Group not found", Toast.LENGTH_SHORT).show();
+                        showErrorDialog("Error", "Group not found");
                     }
                 });
     }
 
-    private void fetchGroupMembers(List<String> memberIds) {
+    private void updateGroupUI(DocumentSnapshot doc) {
+        tvGroupTitle.setText(doc.getString("title") != null ?
+                doc.getString("title") : "Untitled Group");
+        tvDescriptionContent.setText(doc.getString("description") != null ?
+                doc.getString("description") : "No description");
+        tvCurrencyContent.setText(doc.getString("currency") != null ?
+                doc.getString("currency") : "INR");
+        tvCategoryContent.setText(doc.getString("category") != null ?
+                doc.getString("category") : "General");
+    }
+
+    private void fetchMembers(DocumentSnapshot doc) {
+        List<String> memberIds = (List<String>) doc.get("memberIds");
+        if (memberIds == null || memberIds.isEmpty()) {
+            memberAdapter.updateData(new ArrayList<>());
+            return;
+        }
+
+        loadingDialog.show();
         db.collection("users").whereIn(FieldPath.documentId(), memberIds)
                 .get()
                 .addOnSuccessListener(query -> {
+                    loadingDialog.hide();
                     List<Friend> friends = new ArrayList<>();
                     for (QueryDocumentSnapshot userDoc : query) {
-                        Friend friend = new Friend();
-                        friend.setUid(userDoc.getId());
-                        friend.setEmail(userDoc.getString("email"));
-                        friend.setFname(userDoc.getString("fname"));
-                        friend.setLname(userDoc.getString("lname"));
-                        friend.setProfile_picture(userDoc.getString("profile_picture"));
-                        friends.add(friend);
+                        friends.add(new Friend(
+                                userDoc.getId(),
+                                userDoc.getString("email"),
+                                userDoc.getString("fname"),
+                                userDoc.getString("lname"),
+                                userDoc.getString("profile_picture"),
+                                userDoc.getString("upi")
+                        ));
                     }
                     memberAdapter.updateData(friends);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching members: ", e);
-                    Toast.makeText(getContext(), "Error fetching members: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    loadingDialog.hide();
+                    showErrorDialog("Error", "Failed to load members");
                 });
     }
 
@@ -155,7 +282,9 @@ public class GroupInfoFragment extends Fragment {
         super.onDestroyView();
         if (groupListener != null) {
             groupListener.remove();
-            groupListener = null;
+        }
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.hide();
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.splitaura;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -10,15 +12,21 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.example.splitaura.models.Transaction;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class ExpenseManager {
     private static final String TAG = "ExpenseManager";
@@ -30,6 +38,8 @@ public class ExpenseManager {
     private ListenerRegistration expenseListener;
     private ListenerRegistration groupListener;
     private List<String> memberIds = new ArrayList<>();
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     public ExpenseManager(String groupId) {
         this.groupId = groupId;
@@ -92,8 +102,6 @@ public class ExpenseManager {
 
                 if (map.containsKey("addedBy")) {
                     expense.setAddedBy((String) map.get("addedBy"));
-                } else {
-                    expense.setAddedBy("legacy_expense");
                 }
 
                 if (map.containsKey("categories")) {
@@ -127,37 +135,54 @@ public class ExpenseManager {
         }
     }
 
+    public LiveData<Map<String, UserExpenseData>> getUserExpenseData() {
+        return userExpenseData;
+    }
+
+    public LiveData<List<Expense>> getExpenses() {
+        return expenses;
+    }
+
+    public LiveData<Double> getGroupAmount() {
+        return groupAmount;
+    }
+
     public void addExpense(Map<String, Object> expenseData, Runnable onSuccess, Runnable onFailure) {
-        try {
-            // Add current user as the creator if not already set
-            if (!expenseData.containsKey("addedBy")) {
-                String currentUserUid = getCurrentUserUid();
-                expenseData.put("addedBy", currentUserUid);
-            }
-
-            if (!validateExpenseData(expenseData)) {
-                Log.e(TAG, "Invalid expense data");
-                onFailure.run();
-                return;
-            }
-
-            firestore.collection("groups").document(groupId).collection("expenses")
-                    .add(expenseData)
-                    .addOnSuccessListener(docRef -> {
-                        Log.d(TAG, "Expense added: " + docRef.getId());
-                        onSuccess.run();
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to add expense: ", e);
-                        onFailure.run();
-                    });
-        } catch (Exception e) {
-            Log.e(TAG, "Error in addExpense", e);
+        if (!isCurrentUserGroupMember()) {
+            Log.w(TAG, "User not authorized to add expense");
             onFailure.run();
+            return;
         }
+
+        if (!validateExpenseData(expenseData)) {
+            Log.e(TAG, "Invalid expense data");
+            onFailure.run();
+            return;
+        }
+
+        if (!expenseData.containsKey("addedBy")) {
+            expenseData.put("addedBy", getCurrentUserUid());
+        }
+
+        firestore.collection("groups").document(groupId).collection("expenses")
+                .add(expenseData)
+                .addOnSuccessListener(docRef -> {
+                    Log.d(TAG, "Expense added: " + docRef.getId());
+                    onSuccess.run();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to add expense", e);
+                    onFailure.run();
+                });
     }
 
     public void deleteExpense(String expenseId, Runnable onSuccess, Runnable onFailure) {
+        if (!isCurrentUserGroupMember()) {
+            Log.w(TAG, "User not authorized to delete expense");
+            onFailure.run();
+            return;
+        }
+
         firestore.collection("groups").document(groupId).collection("expenses")
                 .document(expenseId)
                 .delete()
@@ -172,145 +197,146 @@ public class ExpenseManager {
                 });
     }
 
-    public LiveData<Map<String, UserExpenseData>> getUserExpenseData() {
-        return userExpenseData;
-    }
-
-    public LiveData<List<Expense>> getExpenses() {
-        return expenses;
-    }
-
-    public LiveData<Double> getGroupAmount() {
-        return groupAmount;
-    }
-
-    private String getCurrentUserUid() {
-        try {
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-            if (currentUser != null) {
-                return currentUser.getUid();
-            }
-            return "unknown_user";
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting current user UID", e);
-            return "error_retrieving_user";
-        }
-    }
-
-    private boolean validateExpenseData(Map<String, Object> expenseData) {
-        return expenseData.containsKey("paidBy") &&
-                expenseData.containsKey("amount") &&
-                expenseData.containsKey("participants") &&
-                expenseData.get("amount") instanceof String;
-    }
-
-    private void fetchGroupMembersAndSetupListeners() {
-        groupListener = firestore.collection("groups").document(groupId)
-                .addSnapshotListener((doc, e) -> {
-                    if (e != null) {
-                        Log.e(TAG, "Error fetching group data: ", e);
-                        memberIds = new ArrayList<>();
-                        return;
-                    }
-                    if (doc != null && doc.exists()) {
-                        memberIds = (List<String>) doc.get("memberIds");
-                        if (memberIds == null) memberIds = new ArrayList<>();
+    public void deleteGroup(Runnable onSuccess, Runnable onFailure) {
+        firestore.collection("groups").document(groupId)
+                .get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String creatorId = document.getString("createdBy");
+                        if (creatorId != null && creatorId.equals(getCurrentUserUid())) {
+                            executeGroupDeletion(onSuccess, onFailure);
+                        } else {
+                            Log.w(TAG, "User not authorized to delete group");
+                            onFailure.run();
+                        }
                     } else {
-                        memberIds = new ArrayList<>();
-                        groupAmount.setValue(0.0);
-                        updateGroupAmountInFirestore(0.0);
+                        Log.w(TAG, "Group already deleted");
+                        onSuccess.run();
                     }
-                    setupExpenseListener();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error verifying group creator", e);
+                    onFailure.run();
                 });
     }
 
-    private void setupExpenseListener() {
-        if (expenseListener != null) expenseListener.remove();
-        expenseListener = firestore.collection("groups").document(groupId).collection("expenses")
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) {
-                        Log.e(TAG, "Error fetching expenses: ", e);
-                        userExpenseData.setValue(new HashMap<>());
-                        expenses.setValue(new ArrayList<>());
-                        groupAmount.setValue(0.0);
-                        updateGroupAmountInFirestore(0.0);
-                        return;
+    private void executeGroupDeletion(Runnable onSuccess, Runnable onFailure) {
+        firestore.collection("groups").document(groupId).collection("expenses")
+                .get()
+                .addOnSuccessListener(expensesSnapshot -> {
+                    WriteBatch batch = firestore.batch();
+
+                    for (QueryDocumentSnapshot expenseDoc : expensesSnapshot) {
+                        batch.delete(expenseDoc.getReference());
                     }
-                    calculateExpenseData(snapshots);
+
+                    DocumentReference groupRef = firestore.collection("groups").document(groupId);
+                    batch.delete(groupRef);
+
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Group and all expenses deleted successfully");
+                                cleanupAfterDeletion();
+                                onSuccess.run();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to delete group", e);
+                                onFailure.run();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to get expenses for deletion", e);
+                    onFailure.run();
                 });
     }
 
-    private void calculateExpenseData(QuerySnapshot snapshots) {
-        Map<String, UserExpenseData> data = new HashMap<>();
-        List<Expense> expenseList = new ArrayList<>();
-        double groupAmountValue = 0.0;
+    private void cleanupAfterDeletion() {
+        handler.post(() -> {
+            userExpenseData.setValue(new HashMap<>());
+            expenses.setValue(new ArrayList<>());
+            groupAmount.setValue(0.0);
+        });
+        removeListener();
+    }
 
-        // Initialize data for all members
-        for (String userId : memberIds) {
-            data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
+    public void settleDebt(String debtorId, String creditorId, double amount) {
+        Map<String, UserExpenseData> currentData = userExpenseData.getValue();
+        if (currentData == null || !currentData.containsKey(debtorId) || !currentData.containsKey(creditorId)) {
+            Log.w(TAG, "Invalid user data for settlement");
+            return;
         }
 
-        for (QueryDocumentSnapshot doc : snapshots) {
-            try {
-                Expense expense = Expense.fromMap(doc.getData());
-                expense.setExpenseId(doc.getId());
-                expenseList.add(expense);
+        UserExpenseData debtorData = currentData.get(debtorId);
+        UserExpenseData creditorData = currentData.get(creditorId);
+        double currentDebt = debtorData.debts.getOrDefault(creditorId, 0.0);
 
-                String paidBy = expense.getPaidBy();
-                String amountStr = expense.getAmount();
-                Map<String, Double> participants = expense.getParticipants();
-
-                if (paidBy == null || amountStr == null || participants == null) {
-                    Log.w(TAG, "Invalid expense data in document: " + doc.getId());
-                    continue;
-                }
-
-                double amount;
-                try {
-                    amount = Double.parseDouble(amountStr);
-                } catch (NumberFormatException e) {
-                    Log.w(TAG, "Invalid amount format in document: " + doc.getId(), e);
-                    continue;
-                }
-
-                groupAmountValue += amount;
-                data.computeIfAbsent(paidBy, k -> new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
-                UserExpenseData payerData = data.get(paidBy);
-                payerData.totalSpent += amount;
-
-                int participantCount = participants.size();
-                double equalShare = participantCount > 0 ? amount / participantCount : 0.0;
-
-                for (Map.Entry<String, Double> participant : participants.entrySet()) {
-                    String userId = participant.getKey();
-                    double share = participant.getValue() != null && participant.getValue() > 0 ?
-                            participant.getValue() : equalShare;
-
-                    data.computeIfAbsent(userId, k -> new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
-                    UserExpenseData userData = data.get(userId);
-                    userData.totalShare += share;
-
-                    if (!userId.equals(paidBy)) {
-                        userData.debts.put(paidBy, userData.debts.getOrDefault(paidBy, 0.0) + share);
-                        payerData.credits.put(userId, payerData.credits.getOrDefault(userId, 0.0) + share);
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error processing expense document: " + doc.getId(), e);
-            }
+        if (amount <= 0 || currentDebt < amount) {
+            Log.w(TAG, "Invalid settlement amount: " + amount + " vs debt: " + currentDebt);
+            return;
         }
+
+        debtorData.debts.put(creditorId, currentDebt - amount);
+        creditorData.credits.put(debtorId, creditorData.credits.getOrDefault(debtorId, 0.0) - amount);
+
+        // Update net balances
+        debtorData.netBalance = debtorData.totalSpent - debtorData.totalShare;
+        creditorData.netBalance = creditorData.totalSpent - creditorData.totalShare;
+
+        userExpenseData.setValue(currentData);
+    }
+
+    public List<Transaction> simplifyDebts() {
+        Map<String, UserExpenseData> currentData = userExpenseData.getValue();
+        if (currentData == null) return Collections.emptyList();
+
+        List<Transaction> transactions = new ArrayList<>();
+        Map<String, Double> balances = new HashMap<>();
 
         // Calculate net balances
-        for (UserExpenseData userData : data.values()) {
-            userData.netBalance = userData.totalSpent - userData.totalShare;
+        currentData.forEach((userId, data) -> {
+            balances.put(userId, data.netBalance);
+        });
+
+        while (true) {
+            String maxDebtor = null, maxCreditor = null;
+            double maxDebt = 0, maxCredit = 0;
+
+            for (Map.Entry<String, Double> entry : balances.entrySet()) {
+                double balance = entry.getValue();
+                if (balance < 0 && Math.abs(balance) > maxDebt) {
+                    maxDebtor = entry.getKey();
+                    maxDebt = Math.abs(balance);
+                } else if (balance > 0 && balance > maxCredit) {
+                    maxCreditor = entry.getKey();
+                    maxCredit = balance;
+                }
+            }
+
+            if (maxDebtor == null || maxCreditor == null) break;
+
+            double amount = Math.min(maxDebt, maxCredit);
+            String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(System.currentTimeMillis());
+            String transactionId = "SETTLE_" + System.currentTimeMillis();
+
+            // maxDebtor owes maxCreditor, so maxDebtor is payerId and maxCreditor is friendId
+            transactions.add(new Transaction(
+                    getFriendName(maxCreditor),  // friendName (creditor's name)
+                    amount,                      // amount
+                    date,                        // date
+                    "PENDING",                   // status
+                    transactionId,               // transactionId
+                    "Simplified settlement",     // upiApp
+                    maxCreditor,                 // friendId (creditor)
+                    maxDebtor                    // payerId (debtor)
+            ));
+
+            // Update balances
+            balances.put(maxDebtor, balances.get(maxDebtor) + amount);
+            balances.put(maxCreditor, balances.get(maxCreditor) - amount);
         }
 
-        userExpenseData.setValue(data);
-        expenses.setValue(expenseList);
-        groupAmount.setValue(groupAmountValue);
-        updateGroupAmountInFirestore(groupAmountValue);
+        return transactions;
     }
-
     public void migrateExistingExpenses(Runnable onComplete) {
         firestore.collection("groups").document(groupId).collection("expenses")
                 .get()
@@ -347,11 +373,142 @@ public class ExpenseManager {
                 });
     }
 
-    private void updateGroupAmountInFirestore(double groupAmountValue) {
-        firestore.collection("groups").document(groupId)
-                .update("amount", groupAmountValue)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Updated group amount in Firestore to: " + groupAmountValue))
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to update group amount in Firestore: ", e));
+    public void removeListener() {
+        if (expenseListener != null) {
+            expenseListener.remove();
+            expenseListener = null;
+        }
+        if (groupListener != null) {
+            groupListener.remove();
+            groupListener = null;
+        }
+    }
+
+    private void fetchGroupMembersAndSetupListeners() {
+        groupListener = firestore.collection("groups").document(groupId)
+                .addSnapshotListener((doc, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error fetching group data", e);
+                        memberIds = new ArrayList<>();
+                        return;
+                    }
+
+                    if (doc != null && doc.exists()) {
+                        memberIds = (List<String>) doc.get("memberIds");
+                        if (memberIds == null) memberIds = new ArrayList<>();
+                        setupExpenseListener();
+                    } else {
+                        memberIds = new ArrayList<>();
+                        handler.post(() -> {
+                            userExpenseData.setValue(new HashMap<>());
+                            expenses.setValue(new ArrayList<>());
+                            groupAmount.setValue(0.0);
+                        });
+                    }
+                });
+    }
+
+    private void setupExpenseListener() {
+        if (expenseListener != null) expenseListener.remove();
+
+        expenseListener = firestore.collection("groups").document(groupId).collection("expenses")
+                .orderBy("date", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error fetching expenses", e);
+                        handler.post(() -> {
+                            userExpenseData.setValue(new HashMap<>());
+                            expenses.setValue(new ArrayList<>());
+                            groupAmount.setValue(0.0);
+                        });
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        calculateExpenseData(snapshots);
+                    }
+                });
+    }
+
+    private void calculateExpenseData(QuerySnapshot snapshots) {
+        executor.execute(() -> {
+            Map<String, UserExpenseData> data = new HashMap<>();
+            List<Expense> expenseList = new ArrayList<>();
+            double groupAmountValue = 0.0;
+
+            // Initialize for all members
+            for (String userId : memberIds) {
+                data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
+            }
+
+            // Process expenses
+            for (QueryDocumentSnapshot doc : snapshots) {
+                try {
+                    Expense expense = Expense.fromMap(doc.getData());
+                    expense.setExpenseId(doc.getId());
+                    expenseList.add(expense);
+
+                    String paidBy = expense.getPaidBy();
+                    double amount = parseAmount(expense.getAmount());
+                    Map<String, Double> participants = expense.getParticipants();
+
+                    if (paidBy == null || participants == null) continue;
+
+                    groupAmountValue += amount;
+                    UserExpenseData payerData = data.get(paidBy);
+                    if (payerData != null) {
+                        payerData.totalSpent += amount;
+                    }
+
+                    // Calculate shares
+                    double totalShares = participants.values().stream()
+                            .mapToDouble(share -> share != null ? share : 0.0)
+                            .sum();
+
+                    if (totalShares <= 0) {
+                        // Equal split if no shares specified
+                        double equalShare = amount / participants.size();
+                        participants.replaceAll((k, v) -> equalShare);
+                        totalShares = amount;
+                    }
+
+                    // Distribute shares
+                    for (Map.Entry<String, Double> entry : participants.entrySet()) {
+                        String userId = entry.getKey();
+                        double share = entry.getValue() != null ?
+                                (entry.getValue() / totalShares) * amount : 0.0;
+
+                        UserExpenseData userData = data.get(userId);
+                        if (userData != null) {
+                            userData.totalShare += share;
+
+                            if (!userId.equals(paidBy)) {
+                                userData.debts.merge(paidBy, share, Double::sum);
+                                if (payerData != null) {
+                                    payerData.credits.merge(userId, share, Double::sum);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error processing expense", e);
+                }
+            }
+
+            // Calculate net balances
+            data.forEach((userId, userData) -> {
+                userData.netBalance = userData.totalSpent - userData.totalShare;
+            });
+
+            // Update LiveData on main thread
+            double finalGroupAmountValue = groupAmountValue;
+            handler.post(() -> {
+                userExpenseData.setValue(data);
+                expenses.setValue(expenseList);
+                groupAmount.setValue(finalGroupAmountValue);
+                updateGroupAmountInFirestore(finalGroupAmountValue);
+            });
+        });
     }
 
     private void recalculateExpenses() {
@@ -359,76 +516,63 @@ public class ExpenseManager {
                 .get()
                 .addOnSuccessListener(this::calculateExpenseData)
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to recalculate expenses: ", e);
-                    userExpenseData.setValue(new HashMap<>());
-                    expenses.setValue(new ArrayList<>());
-                    groupAmount.setValue(0.0);
-                    updateGroupAmountInFirestore(0.0);
+                    Log.e(TAG, "Failed to recalculate expenses", e);
+                    handler.post(() -> {
+                        userExpenseData.setValue(new HashMap<>());
+                        expenses.setValue(new ArrayList<>());
+                        groupAmount.setValue(0.0);
+                    });
                 });
     }
 
-    public void settleDebt(String debtorId, String creditorId, double amount) {
-        Map<String, UserExpenseData> currentData = userExpenseData.getValue();
-        if (currentData == null || !currentData.containsKey(debtorId) || !currentData.containsKey(creditorId)) {
-            Log.w(TAG, "Invalid user data for settlement");
+    private void updateGroupAmountInFirestore(double groupAmountValue) {
+        if (!isCurrentUserGroupMember()) {
+            Log.w(TAG, "User not authorized to update group amount");
             return;
         }
 
-        UserExpenseData debtorData = currentData.get(debtorId);
-        UserExpenseData creditorData = currentData.get(creditorId);
-        double currentDebt = debtorData.debts.getOrDefault(creditorId, 0.0);
-
-        if (amount <= 0 || currentDebt < amount) {
-            Log.w(TAG, "Invalid settlement amount: " + amount + " vs debt: " + currentDebt);
-            return;
-        }
-
-        debtorData.debts.put(creditorId, currentDebt - amount);
-        creditorData.credits.put(debtorId, creditorData.credits.getOrDefault(debtorId, 0.0) - amount);
-        userExpenseData.setValue(currentData);
+        firestore.collection("groups").document(groupId)
+                .update("amount", groupAmountValue)
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update group amount", e));
     }
 
-    public List<Transaction> simplifyDebts() {
-        Map<String, UserExpenseData> data = userExpenseData.getValue();
-        if (data == null) return new ArrayList<>();
-
-        Map<String, Double> netBalances = new HashMap<>();
-        for (Map.Entry<String, UserExpenseData> entry : data.entrySet()) {
-            netBalances.put(entry.getKey(), entry.getValue().netBalance);
-        }
-
-        List<Transaction> simplifiedTransactions = new ArrayList<>();
-        while (!netBalances.isEmpty()) {
-            String maxDebtor = null, maxCreditor = null;
-            double maxDebt = 0.0, maxCredit = 0.0;
-
-            for (Map.Entry<String, Double> entry : netBalances.entrySet()) {
-                double balance = entry.getValue();
-                if (balance < 0 && Math.abs(balance) > maxDebt) {
-                    maxDebtor = entry.getKey();
-                    maxDebt = Math.abs(balance);
-                } else if (balance > 0 && balance > maxCredit) {
-                    maxCreditor = entry.getKey();
-                    maxCredit = balance;
-                }
-            }
-
-            if (maxDebtor == null || maxCreditor == null) break;
-
-            double amount = Math.min(maxDebt, maxCredit);
-            simplifiedTransactions.add(new Transaction(maxDebtor, amount, "", "PENDING", maxCreditor, "Simplified"));
-            settleDebt(maxDebtor, maxCreditor, amount);
-
-            netBalances.put(maxDebtor, netBalances.get(maxDebtor) + amount);
-            netBalances.put(maxCreditor, netBalances.get(maxCreditor) - amount);
-            netBalances.entrySet().removeIf(entry -> Math.abs(entry.getValue()) < 0.01);
-        }
-
-        return simplifiedTransactions;
+    private boolean isCurrentUserGroupMember() {
+        String currentUser = getCurrentUserUid();
+        return memberIds.contains(currentUser);
     }
 
-    public void removeListener() {
-        if (expenseListener != null) expenseListener.remove();
-        if (groupListener != null) groupListener.remove();
+    private String getFriendName(String userId) {
+        final String[] name = {"Unknown"};
+        firestore.collection("users").document(userId).get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String fname = document.getString("fname");
+                        String lname = document.getString("lname");
+                        name[0] = (fname != null ? fname : "") + " " + (lname != null ? lname : "");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch friend name", e));
+        return name[0]; // Note: This is synchronous fallback; ideally use async callback
+    }
+
+    private boolean validateExpenseData(Map<String, Object> expenseData) {
+        return expenseData.containsKey("paidBy") &&
+                expenseData.containsKey("amount") &&
+                expenseData.containsKey("participants") &&
+                expenseData.get("amount") instanceof String;
+    }
+
+    private double parseAmount(String amountStr) {
+        try {
+            return Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            Log.w(TAG, "Invalid amount format: " + amountStr);
+            return 0.0;
+        }
+    }
+
+    private String getCurrentUserUid() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        return currentUser != null ? currentUser.getUid() : "unknown_user";
     }
 }

@@ -131,17 +131,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view" />
 
-        <com.google.android.material.button.MaterialButton
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawablePadding="4dp"
-            android:text="Add"
+        <TextView
+            android:id="@+id/tv_menu_dots"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:gravity="center"
+            android:text="⋮"
+            android:textSize="24sp"
             android:textColor="#42A5F5"
-            app:layout_constraintBottom_toTopOf="@+id/cardview_balances"
-            app:layout_constraintEnd_toEndOf="@+id/cardview_balances"
-            app:strokeColor="@color/light_blue"
-            app:strokeWidth="2dp" />
+            android:background="@drawable/bg_menu_dots"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tv_group_members_label" />
 
         <!-- CardView for Group Members -->
         <androidx.cardview.widget.CardView

@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
 import com.example.splitaura.admin.BaseActivity;
@@ -41,6 +42,7 @@ public class Homepage extends BaseActivity {
     private boolean isCurvedBarVisible = false;
     private BottomNavigationView bottomNavigationView;
     private boolean hasShownUPIDialog = false;
+    private int previousItemId = R.id.nav_home; // Track previous navigation item for animation direction
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,14 +94,58 @@ public class Homepage extends BaseActivity {
             }
 
             if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.frame_layout, selectedFragment)
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+                // Determine animation direction based on navigation order
+                if (getNavigationIndex(itemId) > getNavigationIndex(previousItemId)) {
+                    transaction.setCustomAnimations(
+                            R.anim.slide_in_right,  // Enter animation for new fragment
+                            R.anim.slide_out_left   // Exit animation for old fragment
+                    );
+                } else {
+                    transaction.setCustomAnimations(
+                            R.anim.slide_in_left,   // Enter animation for new fragment (backwards)
+                            R.anim.slide_out_right  // Exit animation for old fragment (backwards)
+                    );
+                }
+
+                transaction.replace(R.id.frame_layout, selectedFragment)
                         .commit();
+                previousItemId = itemId; // Update previous item
             }
             return true;
         });
+
+        // Handle back stack for consistent animations
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                // Ensure proper animation when returning to the initial fragment
+                Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+                if (currentFragment != null && !(currentFragment instanceof HomeFragment)) {
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.setCustomAnimations(
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                    );
+                    transaction.replace(R.id.frame_layout, new HomeFragment()).commit();
+                    bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                    previousItemId = R.id.nav_home;
+                }
+            }
+        });
+
         handleNavigationIntent(getIntent());
         checkUPIStatus();
+    }
+
+    // Helper method to determine navigation order for animation direction
+    private int getNavigationIndex(int itemId) {
+        if (itemId == R.id.nav_home) return 0;
+        if (itemId == R.id.nav_groups) return 1;
+        if (itemId == R.id.nav_spotlight) return 2;
+        if (itemId == R.id.nav_payments) return 3;
+        if (itemId == R.id.nav_profile) return 4;
+        return -1;
     }
 
     private void toggleCurvedBracket() {
@@ -183,6 +229,12 @@ public class Homepage extends BaseActivity {
     public void navigateToAddFriendFragment() {
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_groups);
+        }
+    }
+
+    public void navigateToPaymentFragments() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_payments);
         }
     }
 
@@ -299,13 +351,6 @@ public class Homepage extends BaseActivity {
                 });
     }
 
-
-    public void navigateToPaymentFragments() {
-        if (bottomNavigationView != null) {
-            bottomNavigationView.setSelectedItemId(R.id.nav_payments);
-        }
-    }
-
     private void handleNavigationIntent(Intent intent) {
         if (intent != null && intent.getBooleanExtra("navigateToPayment", false)) {
             navigateToPaymentFragments();
@@ -315,7 +360,7 @@ public class Homepage extends BaseActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        setIntent(intent); // Update the intent
+        setIntent(intent);
         handleNavigationIntent(intent);
     }
 }

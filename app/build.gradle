@@ -48,7 +48,9 @@ dependencies {
     androidTestImplementation libs.espresso.core
     implementation libs.viewpager2
     implementation libs.dotsindicator
-    implementation 'com.google.android.gms:play-services-maps:19.1.0'
+    implementation libs.play.services.maps
+    implementation 'com.google.android.gms:play-services-auth:20.7.0' // or latest version
+
 
 //    Animation and UI Dependency
     implementation libs.lottie

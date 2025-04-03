@@ -97,16 +97,18 @@ public class Homepage extends BaseActivity {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
                 // Determine animation direction based on navigation order
-                if (getNavigationIndex(itemId) > getNavigationIndex(previousItemId)) {
-                    transaction.setCustomAnimations(
-                            R.anim.slide_in_right,  // Enter animation for new fragment
-                            R.anim.slide_out_left   // Exit animation for old fragment
-                    );
-                } else {
-                    transaction.setCustomAnimations(
-                            R.anim.slide_in_left,   // Enter animation for new fragment (backwards)
-                            R.anim.slide_out_right  // Exit animation for old fragment (backwards)
-                    );
+                if (getNavigationIndex(itemId) != getNavigationIndex(previousItemId)) {
+                    if (getNavigationIndex(itemId) > getNavigationIndex(previousItemId)) {
+                        transaction.setCustomAnimations(
+                                R.anim.slide_in_right,  // Enter animation for new fragment
+                                R.anim.slide_out_left   // Exit animation for old fragment
+                        );
+                    } else {
+                        transaction.setCustomAnimations(
+                                R.anim.slide_in_left,   // Enter animation for new fragment (backwards)
+                                R.anim.slide_out_right  // Exit animation for old fragment (backwards)
+                        );
+                    }
                 }
 
                 transaction.replace(R.id.frame_layout, selectedFragment)

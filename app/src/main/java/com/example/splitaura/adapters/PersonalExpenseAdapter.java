@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,17 +24,12 @@ import java.util.Random;
 public class PersonalExpenseAdapter extends RecyclerView.Adapter<PersonalExpenseAdapter.PersonalExpenseViewHolder> {
     private final Context context;
     private final List<PersonalExpense> expenseList;
+    private final OnExpenseClickListener listener;
 
-    public PersonalExpenseAdapter(Context context, List<PersonalExpense> expenseList) {
+    public PersonalExpenseAdapter(Context context, List<PersonalExpense> expenseList, OnExpenseClickListener listener) {
         this.context = context;
         this.expenseList = expenseList != null ? expenseList : new ArrayList<>();
-    }
-
-    @NonNull
-    @Override
-    public PersonalExpenseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_expense, parent, false);
-        return new PersonalExpenseViewHolder(view);
+        this.listener = listener;
     }
 
     @Override
@@ -60,7 +54,22 @@ public class PersonalExpenseAdapter extends RecyclerView.Adapter<PersonalExpense
         setCategoryIcon(holder.categoryIcon, category);
 
         // On item click, display the document id as a Toast message
-        holder.itemView.setOnClickListener(v -> Toast.makeText(context, "Document ID: " + expense.getDocumentId(), Toast.LENGTH_SHORT).show());
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onExpenseClick(expense);
+            }
+        });
+    }
+
+    @NonNull
+    @Override
+    public PersonalExpenseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_expense, parent, false);
+        return new PersonalExpenseViewHolder(view);
+    }
+
+    public interface OnExpenseClickListener {
+        void onExpenseClick(PersonalExpense expense);
     }
 
     private void setCategoryIcon(ImageView categoryIcon, String category) {

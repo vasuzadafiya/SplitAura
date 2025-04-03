@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.splitaura.GroupExpensesActivity;
 import com.example.splitaura.R;
@@ -35,20 +34,21 @@ import java.util.List;
 
 public class GroupInfoFragment extends Fragment {
     private static final String TAG = "GroupInfoFragment";
+    private static final String GROUPS = "groups";
+    private static final String ERROR = "Error";
 
-    private final ViewPager2 viewPager;
     private RecyclerView recyclerViewMembers;
-    private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent, tvMenuDots;
+    private TextView tvGroupTitle;
+    private TextView tvDescriptionContent;
+    private TextView tvCurrencyContent;
+    private TextView tvCategoryContent;
+    private TextView tvMenuDots;
     private MemberAdapter memberAdapter;
     private String groupId;
     private String currentUserId;
     private FirebaseFirestore db;
     private ListenerRegistration groupListener;
     private LoadingDialog loadingDialog;
-
-    public GroupInfoFragment(ViewPager2 viewPager) {
-        this.viewPager = viewPager;
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -79,7 +79,7 @@ public class GroupInfoFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerViewMembers.setLayoutManager(new LinearLayoutManager(getContext()));
         memberAdapter = new MemberAdapter(new ArrayList<>(), getContext(),
-                requireActivity().getSupportFragmentManager(), viewPager);
+                requireActivity().getSupportFragmentManager());
         recyclerViewMembers.setAdapter(memberAdapter);
     }
 
@@ -103,7 +103,7 @@ public class GroupInfoFragment extends Fragment {
 
     private void verifyUserIsCreator() {
         loadingDialog.show();
-        db.collection("groups").document(groupId)
+        db.collection(GROUPS).document(groupId)
                 .get()
                 .addOnSuccessListener(document -> {
                     loadingDialog.hide();
@@ -153,9 +153,9 @@ public class GroupInfoFragment extends Fragment {
 
     private void deleteGroup() {
         WriteBatch batch = db.batch();
-        batch.delete(db.collection("groups").document(groupId));
+        batch.delete(db.collection(GROUPS).document(groupId));
 
-        db.collection("groups").document(groupId).collection("expenses")
+        db.collection(GROUPS).document(groupId).collection("expenses")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     for (DocumentSnapshot doc : querySnapshot) {
@@ -194,43 +194,39 @@ public class GroupInfoFragment extends Fragment {
 
     private void handleDeletionFailure(Exception e) {
         String errorMsg = "Failed to delete group";
+
         if (e instanceof FirebaseFirestoreException) {
             FirebaseFirestoreException firestoreEx = (FirebaseFirestoreException) e;
-            switch (firestoreEx.getCode()) {
-                case PERMISSION_DENIED:
-                    errorMsg = "You don't have permission to delete this group";
-                    break;
-                case NOT_FOUND:
-                    errorMsg = "Group not found - it may have already been deleted";
-                    break;
-                case UNAVAILABLE:
-                    errorMsg = "Network error - please check your connection";
-                    break;
+
+            if (firestoreEx.getCode() == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                errorMsg = "You don't have permission to delete this group";
+            } else if (firestoreEx.getCode() == FirebaseFirestoreException.Code.UNAVAILABLE) {
+                errorMsg = "Network error - please check your connection";
             }
         }
+
         showErrorDialog("Deletion Failed", errorMsg);
     }
 
+
     private void observeGroupData() {
         if (groupId == null) {
-            showErrorDialog("Error", "Group ID not found");
+            showErrorDialog(ERROR, "Group ID not found");
             return;
         }
 
         loadingDialog.show();
-        groupListener = db.collection("groups").document(groupId)
+        groupListener = db.collection(GROUPS).document(groupId)
                 .addSnapshotListener((doc, e) -> {
                     loadingDialog.hide();
                     if (e != null) {
-                        showErrorDialog("Error", "Failed to load group data");
+                        showErrorDialog(ERROR, "Failed to load group data");
                         return;
                     }
 
                     if (doc != null && doc.exists()) {
                         updateGroupUI(doc);
                         fetchMembers(doc);
-                    } else {
-                        showErrorDialog("Error", "Group not found");
                     }
                 });
     }
@@ -273,7 +269,7 @@ public class GroupInfoFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     loadingDialog.hide();
-                    showErrorDialog("Error", "Failed to load members");
+                    showErrorDialog(ERROR, "Failed to load members");
                 });
     }
 

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/group_back">
@@ -26,31 +25,33 @@
                 android:paddingBottom="24dp">
 
                 <!-- Top Curve with Gradient -->
-                <ImageView
-                    android:id="@+id/topCurve"
-                    android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/top_curve_gradient"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- Profile Picture with Shadow and Border -->
                 <ImageView
+                    android:id="@+id/topCurve"
+                    android:layout_width="match_parent"
+                    android:layout_height="222dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/top_curve_gradient"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- User Name with Better Typography -->
+
+                <ImageView
                     android:id="@+id/profileImage"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="120dp"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_marginTop="104dp"
                     android:elevation="12dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/obsmallmen2"
-                    app:layout_constraintBottom_toTopOf="@id/userName"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@id/topCurve" />
 
-                <!-- User Name with Better Typography -->
                 <TextView
                     android:id="@+id/userName"
                     android:layout_width="wrap_content"
@@ -88,6 +89,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginEnd="12dp"
                         android:layout_weight="1"
+                        android:visibility="visible"
                         app:cardBackgroundColor="@color/white"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="4dp">
@@ -125,7 +127,6 @@
                         android:id="@+id/friend_cardview"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="12dp"
                         android:layout_weight="1"
                         app:cardBackgroundColor="@color/white"
                         app:cardCornerRadius="16dp"
@@ -208,10 +209,10 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
+                            android:layout_height="3dp"
                             android:layout_marginStart="56dp"
                             android:layout_marginEnd="16dp"
-                            android:background="#F0F0F0" />
+                            android:background="@drawable/dashed_line" />
 
                         <!-- Mobile Item -->
                         <LinearLayout
@@ -241,10 +242,10 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
+                            android:layout_height="3dp"
                             android:layout_marginStart="56dp"
                             android:layout_marginEnd="16dp"
-                            android:background="#F0F0F0" />
+                            android:background="@drawable/dashed_line" />
 
                         <!-- Gender Item -->
                         <LinearLayout
@@ -274,10 +275,10 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
+                            android:layout_height="3dp"
                             android:layout_marginStart="56dp"
                             android:layout_marginEnd="16dp"
-                            android:background="#F0F0F0" />
+                            android:background="@drawable/dashed_line" />
 
                         <!-- UPI Item -->
                         <LinearLayout
@@ -329,10 +330,10 @@
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:text="Edit Profile"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="@color/white"
                         android:textSize="16sp"
                         app:cornerRadius="12dp"
-                        app:strokeColor="@color/colorPrimary"
+                        app:strokeColor="@color/white"
                         app:strokeWidth="1dp" />
 
                     <!-- Logout Button -->

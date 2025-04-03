@@ -1,6 +1,6 @@
 package com.example.splitaura;
 
-import static android.content.ContentValues.TAG;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 import android.app.Dialog;
 import android.graphics.Color;
@@ -51,33 +51,29 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 
 public class PersonalExpenseActivity extends BaseActivity {
+    // Constants
     private static final String EXPENSE = "expenses";
     private static final String USERS = "users";
     private static final String TIME_STAMP = "timestamp";
+    private static final String TAG = "PersonalExpenseActivity";
+    private static final String USER_ID = FirebaseAuth.getInstance().getCurrentUser() != null
+            ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
     private static final String GENERAL = "General";
-    private static final String USER_ID = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-    private TextView categorySelector;
-    private Spinner paymentMethod;
+    // Used to store selections across dialogs
     private final List<String> selectedCategories = new ArrayList<>();
-    private String selectedMethod; // Payment method selection
+    private Spinner paymentMethod;
     private EditText searchBox;
-
-    //    You have to calculate and show total amount dynamically to the user
     private TextView totalAmount;
-
     private PersonalExpenseAdapter adapter;
-    private List<PersonalExpense> allExpenses = new ArrayList<>();
-
-    // Store the Firestore listener registration
+    // UI components
+    private TextView categorySelector;
     private ListenerRegistration expenseListenerRegistration;
-
-    // Loading Dialog
-    private Dialog loadingDialog;
+    // Data
+    private List<PersonalExpense> allExpenses = new ArrayList<>();
+    private String selectedMethod; // Payment method selection
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,41 +81,45 @@ public class PersonalExpenseActivity extends BaseActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.personal_expense);
 
-        // Initialize Loading Dialog
         initLoadingDialog();
+        setupRecyclerView();
+        setupSearchBox();
+        setupFilterSpinner();
+        setupButtons();
+    }
 
-        // Setup RecyclerView and adapter
-        RecyclerView recyclerView;
-        TextView chartButton;
-        recyclerView = findViewById(R.id.recycler_view);
-        chartButton = findViewById(R.id.chart_button);
-
-        Spinner filterSpinner;
-        filterSpinner = findViewById(R.id.filter_spinner);
+    //region UI Setup Methods
+    private void setupRecyclerView() {
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        TextView chartButton = findViewById(R.id.chart_button);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new PersonalExpenseAdapter(this, new ArrayList<>());
+        adapter = new PersonalExpenseAdapter(this, new ArrayList<>(), this::openUpdateExpenseDialog);
         recyclerView.setAdapter(adapter);
+        chartButton.setOnClickListener(v -> showChart());
+    }
 
-        // Initialize and setup search box listener
+    private void setupSearchBox() {
         searchBox = findViewById(R.id.search_box);
         searchBox.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not used
+                //not used
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterExpenses(searchBox.getText().toString());
+                filterExpenses(s.toString());
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Not used
+                //not used
             }
         });
+    }
 
-        // Set up the filter spinner listener
+    private void setupFilterSpinner() {
+        Spinner filterSpinner = findViewById(R.id.filter_spinner);
         filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -129,41 +129,279 @@ public class PersonalExpenseActivity extends BaseActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Default to "All" if nothing is selected
                 applyDateFilter("All");
             }
         });
-
-        // Load expenses initially (the spinner listener will trigger data load)
-
-        Button addExpenseButton = findViewById(R.id.fab_add_expense);
-        addExpenseButton.setOnClickListener(view -> addExpense());
-        totalAmount = findViewById(R.id.totalTextView);
-
-        chartButton.setOnClickListener(v -> showChart());
     }
 
+    private void setupButtons() {
+        Button addExpenseButton = findViewById(R.id.fab_add_expense);
+        addExpenseButton.setOnClickListener(v -> addExpense());
+        totalAmount = findViewById(R.id.totalTextView);
+    }
+
+    private DialogData createExpenseDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.add_expense_dialog, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.CustomDialogTheme);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
+        return new DialogData(dialog, dialogView);
+    }
+
+    // Initializes common controls in the expense dialog
+    private void initializeExpenseDialog(View dialogView) {
+        categorySelector = dialogView.findViewById(R.id.category_selector);
+        paymentMethod = dialogView.findViewById(R.id.spinner_currency);
+        categorySelector.setOnClickListener(v -> showCategoryDialog());
+        setupPaymentMethodSpinner();
+    }
+
+    //region Expense Dialogs
+    private void openUpdateExpenseDialog(PersonalExpense expense) {
+        DialogData dialogData = createExpenseDialog();
+        View dialogView = dialogData.view;
+        // Get references
+        TextView heading = dialogView.findViewById(R.id.heading);
+        EditText titleEditText = dialogView.findViewById(R.id.title_edit_text);
+        EditText amountEditText = dialogView.findViewById(R.id.amount_edit_text);
+        EditText notesEditText = dialogView.findViewById(R.id.notes_edit_text);
+        Button nextButton = dialogView.findViewById(R.id.next_button);
+
+        // Initialize common UI elements
+        initializeExpenseDialog(dialogView);
+
+        // Populate fields with existing expense data
+        titleEditText.setText(expense.getTitle());
+        amountEditText.setText(String.valueOf(expense.getAmount()));
+        notesEditText.setText(expense.getNotes());
+        heading.setText("Update Expense");
+        nextButton.setText("Update");
+
+        nextButton.setOnClickListener(v -> {
+            String updatedTitle = titleEditText.getText().toString().trim();
+            String updatedAmountText = amountEditText.getText().toString().trim();
+            String updatedNotes = notesEditText.getText().toString().trim();
+
+            if (updatedTitle.isEmpty() || updatedAmountText.isEmpty()) {
+                showToast("Title and amount are required");
+                return;
+            }
+            double updatedAmount;
+            try {
+                updatedAmount = Double.parseDouble(updatedAmountText);
+            } catch (NumberFormatException e) {
+                showToast("Please enter a valid amount");
+                return;
+            }
+            // Prepare updated data
+            Map<String, Object> updatedData = new HashMap<>();
+            updatedData.put("title", updatedTitle);
+            updatedData.put("amount", updatedAmount);
+            updatedData.put("notes", updatedNotes);
+            updatedData.put(TIME_STAMP, Timestamp.now());
+            updatedData.put("paymentMethod", selectedMethod);
+            if (!selectedCategories.isEmpty()) {
+                updatedData.put("categories", new ArrayList<>(selectedCategories));
+            }
+            // Update Firestore document
+            FirebaseFirestore.getInstance()
+                    .collection(USERS).document(USER_ID)
+                    .collection(EXPENSE).document(expense.getDocumentId())
+                    .update(updatedData)
+                    .addOnSuccessListener(aVoid -> {
+                        showToast("Expense updated successfully");
+                        dialogData.dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> showToast("Update failed: " + e.getMessage()));
+            selectedCategories.clear();
+        });
+    }
+
+    private void addExpense() {
+        DialogData dialogData = createExpenseDialog();
+        View dialogView = dialogData.view;
+        // Get references
+        EditText titleEditText = dialogView.findViewById(R.id.title_edit_text);
+        EditText amountEditText = dialogView.findViewById(R.id.amount_edit_text);
+        EditText notesEditText = dialogView.findViewById(R.id.notes_edit_text);
+        Button nextButton = dialogView.findViewById(R.id.next_button);
+
+        // Initialize common UI elements
+        initializeExpenseDialog(dialogView);
+
+        nextButton.setOnClickListener(v -> {
+            String titleText = titleEditText.getText().toString().trim();
+            String amountText = amountEditText.getText().toString().trim();
+            String notesText = notesEditText.getText().toString().trim();
+
+            if (titleText.isEmpty() || amountText.isEmpty()) {
+                showToast("Title and amount are required");
+                return;
+            }
+            double amountValue;
+            try {
+                amountValue = Double.parseDouble(amountText);
+            } catch (NumberFormatException e) {
+                showToast("Please enter a valid amount");
+                return;
+            }
+            if (selectedCategories.isEmpty()) {
+                showToast("Please select at least one category");
+                return;
+            }
+            // Prepare expense data
+            Map<String, Object> expense = new HashMap<>();
+            expense.put("title", titleText);
+            expense.put("amount", amountValue);
+            expense.put("notes", notesText.isEmpty() ? "-" : notesText);
+            expense.put(TIME_STAMP, Timestamp.now());
+            expense.put("paymentMethod", selectedMethod);
+            expense.put("categories", new ArrayList<>(selectedCategories));
+
+            // Add expense to Firestore
+            FirebaseFirestore.getInstance()
+                    .collection(USERS).document(USER_ID)
+                    .collection(EXPENSE).add(expense)
+                    .addOnSuccessListener(documentReference -> {
+                        showToast("Expense added successfully");
+                        dialogData.dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        showToast("Failed to add expense");
+                        Log.e(TAG, "Error adding expense: " + e.getMessage());
+                    });
+            selectedCategories.clear();
+        });
+    }
+
+    // Common method to process Firestore snapshots
+    private void processExpenseSnapshot(QuerySnapshot snapshots) {
+        List<PersonalExpense> expenses = new ArrayList<>();
+        for (DocumentSnapshot doc : snapshots.getDocuments()) {
+            PersonalExpense expense = doc.toObject(PersonalExpense.class);
+            if (expense != null) {
+                expense.setDocumentId(doc.getId());
+                expenses.add(expense);
+            }
+        }
+        allExpenses = expenses;
+        filterExpenses(searchBox.getText().toString());
+    }
+
+    // Fetch expenses with an optional cutoff date (for "All", "7 days", etc.)
+    private void fetchFilteredExpenses(Date cutoffDate) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Query query = db.collection(USERS).document(USER_ID).collection(EXPENSE);
+        if (cutoffDate != null) {
+            query = query.whereGreaterThanOrEqualTo(TIME_STAMP, new Timestamp(cutoffDate));
+        }
+        if (expenseListenerRegistration != null) {
+            expenseListenerRegistration.remove();
+        }
+        expenseListenerRegistration = query.addSnapshotListener((snapshots, error) -> {
+            if (error != null) {
+                showToast("Error fetching expenses");
+                Log.e(TAG, "Error fetching expenses: " + error.getMessage());
+                return;
+            }
+            if (snapshots != null) {
+                processExpenseSnapshot(snapshots);
+            }
+        });
+    }
+
+    // Overloaded method for fetching expenses within a custom date range
+    private void fetchFilteredExpenses(Date startDate, Date endDate) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Query query = db.collection(USERS).document(USER_ID).collection(EXPENSE)
+                .whereGreaterThanOrEqualTo(TIME_STAMP, new Timestamp(startDate))
+                .whereLessThanOrEqualTo(TIME_STAMP, new Timestamp(endDate));
+        if (expenseListenerRegistration != null) {
+            expenseListenerRegistration.remove();
+        }
+        expenseListenerRegistration = query.addSnapshotListener((snapshots, error) -> {
+            if (error != null) {
+                showToast("Error fetching expenses");
+                Log.e(TAG, "Error fetching expenses: " + error.getMessage());
+                return;
+            }
+            if (snapshots != null) {
+                processExpenseSnapshot(snapshots);
+            }
+        });
+    }
+
+    // Filters expenses by matching title or notes with the query
+    private void filterExpenses(String query) {
+        List<PersonalExpense> filteredList;
+        if (query == null || query.trim().isEmpty()) {
+            filteredList = new ArrayList<>(allExpenses);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            filteredList = new ArrayList<>();
+            for (PersonalExpense expense : allExpenses) {
+                if ((expense.getTitle() != null && expense.getTitle().toLowerCase().contains(lowerCaseQuery))
+                        || (expense.getNotes() != null && expense.getNotes().toLowerCase().contains(lowerCaseQuery))) {
+                    filteredList.add(expense);
+                }
+            }
+        }
+        adapter.updateExpenses(filteredList);
+        double total = 0.0;
+        for (PersonalExpense expense : filteredList) {
+            total += expense.getAmount();
+        }
+        totalAmount.setText("Total: " + String.format("%.2f", total));
+    }
+
+    // Applies date filter based on the selected option
+    private void applyDateFilter(String filterOption) {
+        long currentTime = System.currentTimeMillis();
+        switch (filterOption) {
+            case "7 days":
+                fetchFilteredExpenses(new Date(currentTime - (7L * 24 * 60 * 60 * 1000)));
+                break;
+            case "15 days":
+                fetchFilteredExpenses(new Date(currentTime - (15L * 24 * 60 * 60 * 1000)));
+                break;
+            case "30 days":
+                fetchFilteredExpenses(new Date(currentTime - (30L * 24 * 60 * 60 * 1000)));
+                break;
+            case "Custom":
+                showCustomDateRangePicker();
+                break;
+            case "All":
+            default:
+                fetchFilteredExpenses(null);
+                break;
+        }
+    }
+
+    //region Miscellaneous Helpers
     private void initLoadingDialog() {
+        Dialog loadingDialog;
         loadingDialog = new Dialog(this, R.style.CustomLoadingDialog);
         loadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         loadingDialog.setCancelable(false);
         loadingDialog.setContentView(R.layout.loadingbar_layout);
-
         LottieAnimationView animationView = loadingDialog.findViewById(R.id.animation_view);
         animationView.playAnimation();
-
         if (loadingDialog.getWindow() != null) {
-            loadingDialog.getWindow().setLayout(-1, -1);
+            loadingDialog.getWindow().setLayout(
+                    MATCH_PARENT, MATCH_PARENT);
             loadingDialog.getWindow().setFlags(
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-            );
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
             loadingDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
     }
+    //endregion
 
-    // Remove the listener when the activity stops (or you can call this when the user logs out)
     @Override
     protected void onStop() {
         super.onStop();
@@ -173,33 +411,8 @@ public class PersonalExpenseActivity extends BaseActivity {
         }
     }
 
-    // Applies the date filter based on spinner selection
-// 1. Update applyDateFilter() to handle "Custom" selection
-    private void applyDateFilter(String filterOption) {
-        long currentTime = System.currentTimeMillis();
-        Date cutoffDate;
-        switch (filterOption) {
-            case "7 days":
-                cutoffDate = new Date(currentTime - (7L * 24 * 60 * 60 * 1000));
-                fetchFilteredExpenses(cutoffDate);
-                break;
-            case "15 days":
-                cutoffDate = new Date(currentTime - (15L * 24 * 60 * 60 * 1000));
-                fetchFilteredExpenses(cutoffDate);
-                break;
-            case "30 days":
-                cutoffDate = new Date(currentTime - (30L * 24 * 60 * 60 * 1000));
-                fetchFilteredExpenses(cutoffDate);
-                break;
-            case "Custom":
-                // Show date range selector dialog.
-                showCustomDateRangePicker();
-                break;
-            case "All":
-            default:
-                fetchFilteredExpenses(null);
-                break;
-        }
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     // 2. Add a method to show custom date range picker dialogs
@@ -217,186 +430,6 @@ public class PersonalExpenseActivity extends BaseActivity {
             fetchFilteredExpenses(startDate, endDate);
         });
     }
-
-    // 3. Overload fetchFilteredExpenses to handle a custom date range.
-    private void fetchFilteredExpenses(Date startDate, Date endDate) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-        // Build Firestore query with both start and end date restrictions.
-        Query query = db.collection(USERS).document(userId).collection(EXPENSE)
-                .whereGreaterThanOrEqualTo(TIME_STAMP, new Timestamp(startDate))
-                .whereLessThanOrEqualTo(TIME_STAMP, new Timestamp(endDate));
-
-        // Remove any existing listener
-        if (expenseListenerRegistration != null) {
-            expenseListenerRegistration.remove();
-        }
-
-        // Attach realtime listener for the custom range
-        expenseListenerRegistration = query.addSnapshotListener((QuerySnapshot queryDocumentSnapshots,
-                                                                 com.google.firebase.firestore.FirebaseFirestoreException error) -> {
-            if (error != null) {
-                Toast.makeText(PersonalExpenseActivity.this, "Error fetching expenses", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Error fetching expenses: " + error.getMessage());
-                return;
-            }
-            List<PersonalExpense> expenses = new ArrayList<>();
-            assert queryDocumentSnapshots != null;
-            for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                PersonalExpense expense = doc.toObject(PersonalExpense.class);
-                if (expense != null) {
-                    expense.setDocumentId(doc.getId());
-                    expenses.add(expense);
-                }
-            }
-            // Save full list for search filtering
-            allExpenses = expenses;
-            filterExpenses(searchBox.getText().toString());
-        });
-    }
-
-
-    // Fetches expenses from Firestore with an optional date cutoff
-    private void fetchFilteredExpenses(Date cutoffDate) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String userId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-        // Build Firestore query
-        Query query = db.collection(USERS).document(userId).collection(EXPENSE);
-        if (cutoffDate != null) {
-            Timestamp cutoffTimestamp = new Timestamp(cutoffDate);
-            query = query.whereGreaterThanOrEqualTo(TIME_STAMP, cutoffTimestamp);
-        }
-
-        // Remove any existing listener
-        if (expenseListenerRegistration != null) {
-            expenseListenerRegistration.remove();
-        }
-
-        // Attach realtime listener
-        expenseListenerRegistration = query.addSnapshotListener((QuerySnapshot queryDocumentSnapshots, com.google.firebase.firestore.FirebaseFirestoreException error) -> {
-            if (error != null) {
-                Toast.makeText(PersonalExpenseActivity.this, "Error fetching expenses", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Error fetching expenses: " + error.getMessage());
-                return;
-            }
-            List<PersonalExpense> expenses = new ArrayList<>();
-            assert queryDocumentSnapshots != null;
-            for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                PersonalExpense expense = doc.toObject(PersonalExpense.class);
-                if (expense != null) {
-                    expense.setDocumentId(doc.getId());
-                    expenses.add(expense);
-                }
-            }
-            // Save full list for search filtering
-            allExpenses = expenses;
-            filterExpenses(searchBox.getText().toString());
-        });
-    }
-
-    // Filters expenses by matching the query with title or notes
-    private void filterExpenses(String query) {
-        List<PersonalExpense> filteredList = new ArrayList<>();
-        if (query == null || query.trim().isEmpty()) {
-            filteredList.addAll(allExpenses);
-        } else {
-            String lowerCaseQuery = query.toLowerCase();
-            for (PersonalExpense expense : allExpenses) {
-                if ((expense.getTitle() != null && expense.getTitle().toLowerCase().contains(lowerCaseQuery)) || (expense.getNotes() != null && expense.getNotes().toLowerCase().contains(lowerCaseQuery))) {
-                    filteredList.add(expense);
-                }
-            }
-        }
-        adapter.updateExpenses(filteredList);
-
-        // Calculate the total amount from the filtered expenses
-        double total = 0.0;
-        for (PersonalExpense expense : filteredList) {
-            total += expense.getAmount();
-        }
-        String totals = "Total: ".concat(String.format("%.2f", total));
-        totalAmount.setText(totals);
-    }
-
-    private void addExpense() {
-        // Inflate the dialog layout
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.add_expense_dialog, null);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(dialogView);
-        AlertDialog dialog = builder.create();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        }
-        dialog.show();
-
-        // Get references to input fields
-        EditText titleEditText = dialogView.findViewById(R.id.title_edit_text);
-        EditText amountEditText = dialogView.findViewById(R.id.amount_edit_text);
-        EditText notesEditText = dialogView.findViewById(R.id.notes_edit_text);
-        Button nextButton = dialogView.findViewById(R.id.next_button);
-        categorySelector = dialogView.findViewById(R.id.category_selector);
-        paymentMethod = dialogView.findViewById(R.id.spinner_currency);
-
-        // Set up category selector click listener to show category selection dialog
-        categorySelector.setOnClickListener(v -> showCategoryDialog());
-        // Set up payment method spinner
-        setupPaymentMethodSpinner();
-
-        nextButton.setOnClickListener(v -> {
-            String titleText = titleEditText.getText().toString().trim();
-            String amountText = amountEditText.getText().toString().trim();
-            String notesText = notesEditText.getText().toString().trim(); // optional field
-
-            // Validate required fields: title and amount
-            if (titleText.isEmpty() || amountText.isEmpty()) {
-                Toast.makeText(PersonalExpenseActivity.this, "Title and amount are required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Parse amount safely
-            double amountValue;
-            try {
-                amountValue = Double.parseDouble(amountText);
-            } catch (NumberFormatException e) {
-                Toast.makeText(PersonalExpenseActivity.this, "Please enter a valid amount", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (selectedCategories.isEmpty()) {
-                Toast.makeText(PersonalExpenseActivity.this, "Please select at least one category", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            // Create expense object with required fields and optional notes/categories
-            Map<String, Object> expense = new HashMap<>();
-            expense.put("title", titleText);
-            expense.put("amount", amountValue);
-            if (!notesText.isEmpty()) {
-                expense.put("notes", notesText);
-            }
-            expense.put(TIME_STAMP, Timestamp.now());
-            expense.put("paymentMethod", selectedMethod);
-            if (!selectedCategories.isEmpty()) {
-                expense.put("categories", new ArrayList<>(selectedCategories));
-            }
-
-            // Write expense to Firestore under user's expenses subcollection
-            db.collection(USERS).document(USER_ID).collection(EXPENSE).add(expense).addOnSuccessListener(documentReference -> {
-                Toast.makeText(PersonalExpenseActivity.this, "Expense added successfully", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            }).addOnFailureListener(e -> {
-                Toast.makeText(PersonalExpenseActivity.this, "Failed to add expense", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Error adding expense: " + e.getMessage());
-            });
-        });
-    }
-
     private void showChart() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.charts, null);
@@ -616,5 +649,17 @@ public class PersonalExpenseActivity extends BaseActivity {
                 selectedMethod = paymentMethods[0];
             }
         });
+    }
+
+    //region Dialog Creation Helpers
+    // Helper container for dialog and its inflated view
+    private static class DialogData {
+        AlertDialog dialog;
+        View view;
+
+        DialogData(AlertDialog dialog, View view) {
+            this.dialog = dialog;
+            this.view = view;
+        }
     }
 }

@@ -208,7 +208,7 @@ public class GroupExpensesActivity extends BaseActivity {
                 case 2:
                     return new TotalsFragment();
                 case 3:
-                    return new GroupInfoFragment(viewPager); // Pass ViewPager2 to GroupInfoFragment
+                    return new GroupInfoFragment();
                 default:
                     return new ExpensesFragment();
             }

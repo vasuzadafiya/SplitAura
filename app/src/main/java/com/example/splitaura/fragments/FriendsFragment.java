@@ -130,7 +130,7 @@ public class FriendsFragment extends Fragment {
         // Set a custom alert text.
         alertTextView.setText("Are you sure you want to remove this friend?");
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.CustomDialogTheme);
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
         if (dialog.getWindow() != null) {

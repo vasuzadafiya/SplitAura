@@ -50,10 +50,10 @@
                     android:textColor="@android:color/white"
                     android:textSize="@dimen/text_size_large"
                     android:textStyle="bold"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.359" />
 
                 <TextView
@@ -73,9 +73,9 @@
                     android:contentDescription="@string/profile_picture"
                     android:scaleType="centerCrop"
                     android:src="@drawable/obsmallmen2"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:shapeAppearanceOverlay="@style/CircleImageViewStyle" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
@@ -138,7 +138,44 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:nestedScrollingEnabled="false"
-                        android:paddingTop="@dimen/padding_medium" />
+                        android:paddingTop="@dimen/padding_medium"
+                        android:visibility="visible" />
+
+                    <LinearLayout
+                        android:id="@+id/group_placeholder2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:layout_marginVertical="@dimen/default_margin"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <ImageView
+                            android:id="@+id/imageView"
+                            android:layout_width="250dp"
+                            android:layout_height="250dp"
+                            android:contentDescription="@string/placeholder_image"
+                            android:src="@drawable/group_placeholder2" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Where’s everyone?"
+                            android:textColor="@color/f_pass_color"
+                            android:textSize="28sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Create a group to start tracking expenses together."
+                            android:textColor="@color/gray"
+                            android:textSize="15sp"
+                            android:textStyle="italic" />
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

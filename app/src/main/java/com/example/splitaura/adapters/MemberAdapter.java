@@ -1,9 +1,7 @@
 package com.example.splitaura.adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,7 +12,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
@@ -27,13 +24,11 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
     private List<Friend> membersList;
     private final Context context;
     private final FragmentManager fragmentManager;
-    private ViewPager2 viewPager;
 
-    public MemberAdapter(List<Friend> membersList, Context context, FragmentManager fragmentManager, ViewPager2 viewPager) {
+    public MemberAdapter(List<Friend> membersList, Context context, FragmentManager fragmentManager) {
         this.membersList = membersList;
         this.context = context;
         this.fragmentManager = fragmentManager;
-        this.viewPager = viewPager;
     }
 
     @NonNull
@@ -48,7 +43,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         Friend friend = membersList.get(position);
         holder.friendNameTextView.setText(friend.getFname() + " " + friend.getLname());
         holder.friendEmailTextView.setText(friend.getEmail());
-        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, friend, position));
+        holder.menuDots.setOnClickListener(v -> showPopupMenu(v, friend));
 
         Glide.with(context)
                 .load(friend.getProfile_picture())
@@ -82,21 +77,12 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         }
     }
 
-    private void showPopupMenu(View view, Friend friend, int position) {
+    private void showPopupMenu(View view, Friend friend) {
         PopupMenu popup = new PopupMenu(view.getContext(), view);
         popup.getMenu().add("View Profile");
-        popup.getMenu().add("Remove Member");
 
         popup.setOnMenuItemClickListener(item -> {
-            String action = item.getTitle().toString();
-            switch (action) {
-                case "View Profile":
-                    navigateToProfile(friend.getUid());
-                    break;
-                case "Remove Member":
-                    Toast.makeText(context, "Remove Member " + friend.getFname(), Toast.LENGTH_SHORT).show();
-                    break;
-            }
+            navigateToProfile(friend.getUid());
             return true;
         });
 
@@ -107,7 +93,6 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.MemberView
         if (fragmentManager != null && userUid != null) {
             ProfileBottomSheetDialog bottomSheetDialog = ProfileBottomSheetDialog.newInstance(userUid);
             bottomSheetDialog.show(fragmentManager, "ProfileBottomSheetDialog");
-            Toast.makeText(context, "Viewing profile of " + userUid, Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "Unable to view profile", Toast.LENGTH_SHORT).show();
         }

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -31,6 +32,8 @@ public class GroupFragment extends Fragment {
     private GroupAdapter groupAdapter;
     private ImageView profilePic;
     private TextView sizeofGroup;
+    private LinearLayout placeholder;
+    private RecyclerView groupRecyclerView;
 
     public GroupFragment() {
         // Required empty public constructor
@@ -47,11 +50,11 @@ public class GroupFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        RecyclerView groupRecyclerView;
         groupRecyclerView = view.findViewById(R.id.group_recyclerView);
         groupRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         profilePic = view.findViewById(R.id.profile_picture);
         sizeofGroup = view.findViewById(R.id.number_of_groups);  // Initialize the TextView here
+        placeholder = view.findViewById(R.id.group_placeholder2);
 
         // Initialize group list and
         List<GroupItem> groupList;
@@ -66,8 +69,18 @@ public class GroupFragment extends Fragment {
         groupViewModel.getGroupList().observe(getViewLifecycleOwner(), groups -> {
             groupAdapter.setGroupList(groups);
             sizeofGroup.setText("You are in " + groups.size() + " groups");
+
+            // Show/hide placeholder based on group count
+            if (groups.isEmpty()) {
+                placeholder.setVisibility(View.VISIBLE);
+                groupRecyclerView.setVisibility(View.GONE);
+            } else {
+                groupRecyclerView.setVisibility(View.VISIBLE);
+                placeholder.setVisibility(View.GONE);
+            }
         });
     }
+
 
     private void setupProfilePic() {
         HomeViewModel homeViewModel;

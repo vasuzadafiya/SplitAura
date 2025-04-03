@@ -243,7 +243,7 @@ public class FriendRequestFragment extends Fragment {
         // Set a custom alert text for rejection.
         alertTextView.setText("Are you sure you want to reject this friend request?");
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.CustomDialogTheme);
         builder.setView(dialogView);
         AlertDialog confirmDialog = builder.create();
         if (confirmDialog.getWindow() != null) {

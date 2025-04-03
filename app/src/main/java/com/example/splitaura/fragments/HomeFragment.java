@@ -39,7 +39,6 @@ import com.example.splitaura.adapters.FriendBalanceAdapter;
 import com.example.splitaura.adapters.GroupAdapter;
 import com.example.splitaura.models.FriendBalance;
 import com.example.splitaura.models.GroupItem;
-import com.example.splitaura.utils.Utill;
 import com.example.splitaura.viewmodels.GroupViewModel;
 import com.example.splitaura.viewmodels.HomeViewModel;
 import com.google.firebase.auth.FirebaseAuth;
@@ -68,6 +67,9 @@ public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
     private static final String PREFS_NAME = "FriendsCache";
     private static final String KEY_FRIENDS_DATA = "friends_data";
+    private static final String MEMBER_IDS = "memberIds";
+    private static final String USERS = "users";
+    private static final String SAVING = "saving";
     private static final int MAX_GROUPS_TO_DISPLAY = 2;
     private static final int MAX_FRIENDS_TO_DISPLAY = 4; // Changed to show 4 friends
     private static final int EXPENSE_DATA_TIMEOUT_SECONDS = 5;
@@ -82,7 +84,6 @@ public class HomeFragment extends Fragment {
     private ImageView profilePicture;
     private TextView username;
     private TextView viewAllGroups;
-    private TextView viewAllFriends;
     private RecyclerView groupRecyclerView;
     private RecyclerView friendRecyclerView;
     private TextView savingTextView;
@@ -101,8 +102,9 @@ public class HomeFragment extends Fragment {
     private LinearLayout savingLayout;
     private SharedPreferences sharedPreferences;
     private List<String> groupIds;
-    private GroupViewModel groupViewModel;
     private ListenerRegistration groupsListener;
+    private LinearLayout groupPlaceholder;
+    private LinearLayout peoplePlaceholder;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -157,7 +159,6 @@ public class HomeFragment extends Fragment {
 
             // Initialize buttons and clickable views
             viewAllGroups = rootView.findViewById(R.id.view_all_groups);
-            viewAllFriends = rootView.findViewById(R.id.btn_view_all_friends);
             groupCardView = rootView.findViewById(R.id.group_cardview);
             friendCardView = rootView.findViewById(R.id.friend_cardview);
             payButton = rootView.findViewById(R.id.btn_pay);
@@ -165,6 +166,9 @@ public class HomeFragment extends Fragment {
             withdrawButton = rootView.findViewById(R.id.btn_withdraw_saving);
             historyButton = rootView.findViewById(R.id.btn_history);
             addIncomeButton = rootView.findViewById(R.id.btn_add_income);
+            groupPlaceholder = rootView.findViewById(R.id.placeholder);
+            peoplePlaceholder = rootView.findViewById(R.id.people_placeholder);
+
         } catch (Exception e) {
             Log.e(TAG, "Error initializing views", e);
             if (getContext() != null) {
@@ -174,13 +178,14 @@ public class HomeFragment extends Fragment {
     }
 
     private void initializeViewModels() {
+        GroupViewModel groupViewModel;
         try {
             homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
             groupViewModel = new ViewModelProvider(requireActivity()).get(GroupViewModel.class);
 
             // Observe group deletion events
             groupViewModel.getGroupDeleted().observe(getViewLifecycleOwner(), deleted -> {
-                if (deleted) {
+                if (Boolean.TRUE.equals(deleted)) {
                     refreshGroups();
                     groupViewModel.setGroupDeleted(false);
                 }
@@ -236,7 +241,6 @@ public class HomeFragment extends Fragment {
         try {
             viewAllGroups.setOnClickListener(v -> navigateToGroupFragment());
             groupCardView.setOnClickListener(v -> navigateToGroupFragment());
-            viewAllFriends.setOnClickListener(v -> navigateToManageFriends());
             friendCardView.setOnClickListener(v -> navigateToManageFriends());
 
             payButton.setOnClickListener(v -> navigateToPaymentFragment());
@@ -262,7 +266,7 @@ public class HomeFragment extends Fragment {
             groupRecyclerView.setAdapter(groupAdapter);
 
             groupsListener = db.collection("groups")
-                    .whereArrayContains("memberIds", currentUserId)
+                    .whereArrayContains(MEMBER_IDS, currentUserId)
                     .addSnapshotListener((value, error) -> {
                         if (error != null) {
                             Log.e(TAG, "Listen failed.", error);
@@ -285,6 +289,13 @@ public class HomeFragment extends Fragment {
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parsing group document: " + doc.getId(), e);
                             }
+                        }
+                        if (updatedGroups.isEmpty()) {
+                            groupPlaceholder.setVisibility(View.VISIBLE);
+                            groupRecyclerView.setVisibility(View.GONE);
+                        } else {
+                            groupPlaceholder.setVisibility(View.GONE);
+                            groupRecyclerView.setVisibility(View.VISIBLE);
                         }
 
                         updateGroupList(updatedGroups, groupAdapter);
@@ -365,7 +376,8 @@ public class HomeFragment extends Fragment {
             String friendsJson = sharedPreferences.getString(KEY_FRIENDS_DATA, null);
             if (friendsJson != null) {
                 Gson gson = new Gson();
-                Type type = new TypeToken<List<FriendBalance>>() {}.getType();
+                Type type = new TypeToken<List<FriendBalance>>() {
+                }.getType();
                 List<FriendBalance> cachedFriends = gson.fromJson(friendsJson, type);
 
                 if (cachedFriends != null && !cachedFriends.isEmpty()) {
@@ -405,7 +417,7 @@ public class HomeFragment extends Fragment {
             expenseManagers.clear();
 
             db.collection("groups")
-                    .whereArrayContains("memberIds", currentUserId)
+                    .whereArrayContains(MEMBER_IDS, currentUserId)
                     .get()
                     .addOnSuccessListener(query -> {
                         if (!isAdded()) return;
@@ -418,7 +430,7 @@ public class HomeFragment extends Fragment {
                                 groupIds.add(groupId);
                                 expenseManagers.put(groupId, new ExpenseManager(groupId));
 
-                                List<String> memberIds = (List<String>) groupDoc.get("memberIds");
+                                List<String> memberIds = (List<String>) groupDoc.get(MEMBER_IDS);
                                 if (memberIds != null) {
                                     for (String memberId : memberIds) {
                                         if (!memberId.equals(currentUserId)) {
@@ -434,7 +446,11 @@ public class HomeFragment extends Fragment {
                         if (uniqueFriendIds.isEmpty()) {
                             Log.d(TAG, "No friends found in groups");
                             updateEmptyFriendState();
+                            peoplePlaceholder.setVisibility(View.VISIBLE);
+                            friendRecyclerView.setVisibility(View.GONE);
                         } else {
+                            peoplePlaceholder.setVisibility(View.GONE);
+                            friendRecyclerView.setVisibility(View.VISIBLE);
                             fetchFriendDetails(new ArrayList<>(uniqueFriendIds));
                         }
                     })
@@ -455,8 +471,6 @@ public class HomeFragment extends Fragment {
             friendBalanceList.clear();
             friendBalanceAdapter.notifyDataSetChanged();
             cacheFriendsData();
-
-            viewAllFriends.setVisibility(View.GONE);
         });
     }
 
@@ -472,7 +486,7 @@ public class HomeFragment extends Fragment {
                 friendBalances.put(friendId, 0.0);
             }
 
-            db.collection("users")
+            db.collection(USERS)
                     .whereIn("uid", friendIds)
                     .get()
                     .addOnSuccessListener(query -> {
@@ -485,11 +499,26 @@ public class HomeFragment extends Fragment {
                                 String lname = userDoc.getString("lname");
                                 String profilePic = userDoc.getString("profile_picture");
 
-                                if (fname != null && lname != null) {
-                                    String friendName = fname + " " + lname.charAt(0) + ".";
+                                // Check for null to avoid NullPointerException
+                                fname = (fname != null) ? fname.trim() : "";
+                                lname = (lname != null) ? lname.trim() : "";
+
+                                // Only process if at least one of fname or lname is non-empty.
+                                if (!fname.isEmpty() || !lname.isEmpty()) {
+                                    StringBuilder friendNameBuilder = new StringBuilder();
+                                    if (!fname.isEmpty()) {
+                                        friendNameBuilder.append(fname);
+                                    }
+                                    if (!lname.isEmpty()) {
+                                        // If there's a first name already, add a space before the last name initial
+                                        if (friendNameBuilder.length() > 0) {
+                                            friendNameBuilder.append(" ");
+                                        }
+                                        friendNameBuilder.append(lname.charAt(0)).append(".");
+                                    }
+                                    String friendName = friendNameBuilder.toString();
                                     friendNames.put(friendId, friendName);
-                                    friendProfilePictures.put(friendId,
-                                            profilePic != null ? profilePic : "");
+                                    friendProfilePictures.put(friendId, profilePic != null ? profilePic : "");
                                 }
                             } catch (Exception e) {
                                 Log.e(TAG, "Error processing friend document", e);
@@ -647,9 +676,6 @@ public class HomeFragment extends Fragment {
 
             friendBalanceAdapter.notifyDataSetChanged();
             cacheFriendsData();
-
-            viewAllFriends.setVisibility(friendBalances.size() > MAX_FRIENDS_TO_DISPLAY
-                    ? View.VISIBLE : View.GONE);
         } catch (Exception e) {
             Log.e(TAG, "Error updating friend balance list", e);
         }
@@ -713,13 +739,13 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateSavings(double amount, boolean isDeposit, AlertDialog dialog) {
-        db.collection("users").document(currentUserId)
+        db.collection(USERS).document(currentUserId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (!isAdded()) return;
 
-                    double currentSaving = documentSnapshot.getDouble("saving") != null
-                            ? documentSnapshot.getDouble("saving") : 0.0;
+                    double currentSaving = documentSnapshot.getDouble(SAVING) != null
+                            ? documentSnapshot.getDouble(SAVING) : 0.0;
 
                     double newSaving = isDeposit
                             ? currentSaving + amount
@@ -734,8 +760,8 @@ public class HomeFragment extends Fragment {
                         return;
                     }
 
-                    db.collection("users").document(currentUserId)
-                            .update("saving", newSaving)
+                    db.collection(USERS).document(currentUserId)
+                            .update(SAVING, newSaving)
                             .addOnSuccessListener(aVoid -> {
                                 dialog.dismiss();
                                 if (isAdded()) {

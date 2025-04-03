@@ -66,8 +66,6 @@
             android:backgroundTint="@color/light_blue"
             style="@style/Widget.MaterialComponents.Button" />
 
-
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,7 +6,8 @@ Here's a detailed template for your **SplitAura** repository's README on GitHub.
 
 **SplitAura** is a mobile application designed to help users easily manage and split expenses among groups. With features like expense tracking, image handling, and a clean UI, it provides an intuitive solution for managing shared costs. The app ensures transparency and simplicity, offering functionality for group activities, trips, or household expenses.
 
-![SplitAura Logo](path_to_your_logo.png) ( to be Uploaded )
+![SplitAura Logo](![SplitAura](https://github.com/user-attachments/assets/f240c343-df5c-4bef-8d0a-aca295f2443e)
+) ( to be Uploaded )
 
 ---
 

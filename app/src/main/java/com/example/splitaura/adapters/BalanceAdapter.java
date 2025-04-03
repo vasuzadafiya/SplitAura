@@ -56,11 +56,11 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
         Balance balance = balances.get(position);
         String userId = balance.getName();
 
-        // Display "Loading..." or the cached name
+        // Display cached name or loading placeholder.
         String displayName = userNamesCache.getOrDefault(userId, "Loading...");
         holder.nameTextView.setText(displayName);
 
-        // Format the balance amount with sign and currency symbol
+        // Format the balance amount with sign and currency symbol.
         String amountText;
         if (balance.getAmount() >= 0) {
             amountText = String.format("+ ₹%.2f", balance.getAmount());
@@ -84,6 +84,9 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
         notifyDataSetChanged();
     }
 
+    /**
+     * Fetches user names from Firestore based on the list of user IDs present in the balances.
+     */
     private void fetchUserNames() {
         if (balances.isEmpty()) return;
 
@@ -101,9 +104,13 @@ public class BalanceAdapter extends RecyclerView.Adapter<BalanceAdapter.BalanceV
                 .get()
                 .addOnSuccessListener(query -> {
                     for (QueryDocumentSnapshot doc : query) {
-                        String fullName = (doc.getString("fname") != null ? doc.getString("fname") : "") + " " +
-                                (doc.getString("lname") != null ? doc.getString("lname") : "");
-                        userNamesCache.put(doc.getId(), fullName.trim());
+                        String fname = doc.getString("fname");
+                        String lname = doc.getString("lname");
+                        String fullName = ((fname != null ? fname : "") + " " + (lname != null ? lname : "")).trim();
+                        if (fullName.isEmpty()) {
+                            fullName = "User " + doc.getId();
+                        }
+                        userNamesCache.put(doc.getId(), fullName);
                     }
                     notifyDataSetChanged();
                 })

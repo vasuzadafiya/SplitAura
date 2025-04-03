@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.splitaura.models.OweRelationship;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -16,14 +17,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
-import com.example.splitaura.models.Transaction;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -35,6 +32,9 @@ public class ExpenseManager {
     private final MutableLiveData<Map<String, UserExpenseData>> userExpenseData = new MutableLiveData<>(new HashMap<>());
     private final MutableLiveData<List<Expense>> expenses = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<Double> groupAmount = new MutableLiveData<>(0.0);
+    // New LiveData for the simplified owe relationships.
+    private final MutableLiveData<List<OweRelationship>> minimalOweTransactions = new MutableLiveData<>(new ArrayList<>());
+
     private ListenerRegistration expenseListener;
     private ListenerRegistration groupListener;
     private List<String> memberIds = new ArrayList<>();
@@ -147,6 +147,11 @@ public class ExpenseManager {
         return groupAmount;
     }
 
+    // New LiveData accessor for minimal owe transactions.
+    public LiveData<List<OweRelationship>> getMinimalOweTransactions() {
+        return minimalOweTransactions;
+    }
+
     public void addExpense(Map<String, Object> expenseData, Runnable onSuccess, Runnable onFailure) {
         if (!isCurrentUserGroupMember()) {
             Log.w(TAG, "User not authorized to add expense");
@@ -255,6 +260,7 @@ public class ExpenseManager {
             userExpenseData.setValue(new HashMap<>());
             expenses.setValue(new ArrayList<>());
             groupAmount.setValue(0.0);
+            minimalOweTransactions.setValue(new ArrayList<>());
         });
         removeListener();
     }
@@ -283,94 +289,6 @@ public class ExpenseManager {
         creditorData.netBalance = creditorData.totalSpent - creditorData.totalShare;
 
         userExpenseData.setValue(currentData);
-    }
-
-    public List<Transaction> simplifyDebts() {
-        Map<String, UserExpenseData> currentData = userExpenseData.getValue();
-        if (currentData == null) return Collections.emptyList();
-
-        List<Transaction> transactions = new ArrayList<>();
-        Map<String, Double> balances = new HashMap<>();
-
-        // Calculate net balances
-        currentData.forEach((userId, data) -> {
-            balances.put(userId, data.netBalance);
-        });
-
-        while (true) {
-            String maxDebtor = null, maxCreditor = null;
-            double maxDebt = 0, maxCredit = 0;
-
-            for (Map.Entry<String, Double> entry : balances.entrySet()) {
-                double balance = entry.getValue();
-                if (balance < 0 && Math.abs(balance) > maxDebt) {
-                    maxDebtor = entry.getKey();
-                    maxDebt = Math.abs(balance);
-                } else if (balance > 0 && balance > maxCredit) {
-                    maxCreditor = entry.getKey();
-                    maxCredit = balance;
-                }
-            }
-
-            if (maxDebtor == null || maxCreditor == null) break;
-
-            double amount = Math.min(maxDebt, maxCredit);
-            String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(System.currentTimeMillis());
-            String transactionId = "SETTLE_" + System.currentTimeMillis();
-
-            // maxDebtor owes maxCreditor, so maxDebtor is payerId and maxCreditor is friendId
-            transactions.add(new Transaction(
-                    getFriendName(maxCreditor),  // friendName (creditor's name)
-                    amount,                      // amount
-                    date,                        // date
-                    "PENDING",                   // status
-                    transactionId,               // transactionId
-                    "Simplified settlement",     // upiApp
-                    maxCreditor,                 // friendId (creditor)
-                    maxDebtor                    // payerId (debtor)
-            ));
-
-            // Update balances
-            balances.put(maxDebtor, balances.get(maxDebtor) + amount);
-            balances.put(maxCreditor, balances.get(maxCreditor) - amount);
-        }
-
-        return transactions;
-    }
-    public void migrateExistingExpenses(Runnable onComplete) {
-        firestore.collection("groups").document(groupId).collection("expenses")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    WriteBatch batch = firestore.batch();
-                    int migratedCount = 0;
-
-                    for (QueryDocumentSnapshot doc : querySnapshot) {
-                        if (!doc.contains("addedBy")) {
-                            batch.update(doc.getReference(), "addedBy", "legacy_expense");
-                            migratedCount++;
-                        }
-                    }
-
-                    if (migratedCount > 0) {
-                        int finalMigratedCount = migratedCount;
-                        batch.commit()
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Migrated " + finalMigratedCount + " expenses");
-                                    onComplete.run();
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e(TAG, "Migration failed", e);
-                                    onComplete.run();
-                                });
-                    } else {
-                        Log.d(TAG, "No expenses need migration");
-                        onComplete.run();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting expenses for migration", e);
-                    onComplete.run();
-                });
     }
 
     public void removeListener() {
@@ -403,6 +321,7 @@ public class ExpenseManager {
                             userExpenseData.setValue(new HashMap<>());
                             expenses.setValue(new ArrayList<>());
                             groupAmount.setValue(0.0);
+                            minimalOweTransactions.setValue(new ArrayList<>());
                         });
                     }
                 });
@@ -420,6 +339,7 @@ public class ExpenseManager {
                             userExpenseData.setValue(new HashMap<>());
                             expenses.setValue(new ArrayList<>());
                             groupAmount.setValue(0.0);
+                            minimalOweTransactions.setValue(new ArrayList<>());
                         });
                         return;
                     }
@@ -441,7 +361,7 @@ public class ExpenseManager {
                 data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
             }
 
-            // Process expenses
+            // Process each expense
             for (QueryDocumentSnapshot doc : snapshots) {
                 try {
                     Expense expense = Expense.fromMap(doc.getData());
@@ -460,19 +380,19 @@ public class ExpenseManager {
                         payerData.totalSpent += amount;
                     }
 
-                    // Calculate shares
+                    // Calculate total shares.
                     double totalShares = participants.values().stream()
                             .mapToDouble(share -> share != null ? share : 0.0)
                             .sum();
 
                     if (totalShares <= 0) {
-                        // Equal split if no shares specified
+                        // Equal split if no shares specified.
                         double equalShare = amount / participants.size();
                         participants.replaceAll((k, v) -> equalShare);
                         totalShares = amount;
                     }
 
-                    // Distribute shares
+                    // Distribute shares.
                     for (Map.Entry<String, Double> entry : participants.entrySet()) {
                         String userId = entry.getKey();
                         double share = entry.getValue() != null ?
@@ -495,17 +415,26 @@ public class ExpenseManager {
                 }
             }
 
-            // Calculate net balances
+            // Calculate net balances.
             data.forEach((userId, userData) -> {
                 userData.netBalance = userData.totalSpent - userData.totalShare;
             });
 
-            // Update LiveData on main thread
+            // Prepare a map of net balances.
+            Map<String, Double> netBalances = new HashMap<>();
+            for (Map.Entry<String, UserExpenseData> entry : data.entrySet()) {
+                netBalances.put(entry.getKey(), entry.getValue().netBalance);
+            }
+
+            // Compute minimal owe transactions.
+            List<OweRelationship> minimalTransactions = DebtSettlementCalculator.calculateMinimalOwe(netBalances);
+
             double finalGroupAmountValue = groupAmountValue;
             handler.post(() -> {
                 userExpenseData.setValue(data);
                 expenses.setValue(expenseList);
                 groupAmount.setValue(finalGroupAmountValue);
+                minimalOweTransactions.setValue(minimalTransactions);
                 updateGroupAmountInFirestore(finalGroupAmountValue);
             });
         });
@@ -521,6 +450,7 @@ public class ExpenseManager {
                         userExpenseData.setValue(new HashMap<>());
                         expenses.setValue(new ArrayList<>());
                         groupAmount.setValue(0.0);
+                        minimalOweTransactions.setValue(new ArrayList<>());
                     });
                 });
     }
@@ -552,7 +482,7 @@ public class ExpenseManager {
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch friend name", e));
-        return name[0]; // Note: This is synchronous fallback; ideally use async callback
+        return name[0]; // Synchronous fallback; ideally, use an asynchronous callback.
     }
 
     private boolean validateExpenseData(Map<String, Object> expenseData) {

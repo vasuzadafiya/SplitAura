@@ -36,7 +36,7 @@ import java.util.List;
 public class GroupInfoFragment extends Fragment {
     private static final String TAG = "GroupInfoFragment";
 
-    private ViewPager2 viewPager;
+    private final ViewPager2 viewPager;
     private RecyclerView recyclerViewMembers;
     private TextView tvGroupTitle, tvDescriptionContent, tvCurrencyContent, tvCategoryContent, tvMenuDots;
     private MemberAdapter memberAdapter;
@@ -131,7 +131,7 @@ public class GroupInfoFragment extends Fragment {
                     deleteGroup();
                 })
                 .setNegativeButton("Cancel", null)
-                .setIcon(R.drawable.ic_warning)
+                .setIcon(com.razorpay.R.drawable.ic_alert)
                 .show();
     }
 

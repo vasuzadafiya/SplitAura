@@ -15,11 +15,12 @@ import com.bumptech.glide.Glide;
 import com.example.splitaura.R;
 import com.example.splitaura.models.Friend;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
 
-    private final List<Friend> friends;
+    private List<Friend> friends;
     private final List<Friend> selectedFriends;
     private final OnItemClickListener listener;
 
@@ -28,6 +29,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         this.selectedFriends = selectedFriends;
         this.listener = listener;
     }
+
 
     @NonNull
     @Override
@@ -53,6 +55,11 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     public void updateList(List<Friend> newList) {
         friends.clear();
         friends.addAll(newList);
+        notifyDataSetChanged();
+    }
+
+    public void updateFriendsList(List<Friend> newFriends) {
+        this.friends = newFriends != null ? newFriends : new ArrayList<>();
         notifyDataSetChanged();
     }
 

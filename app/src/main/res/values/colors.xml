@@ -55,6 +55,8 @@
     <color name="surface">#FFFFFF</color>        <!-- White -->
     <color name="surfaceVariant">#EDF2F7</color>  <!-- Light Gray -->
 
+    <color name="on_surface">#1D1B20</color>
+    <color name="on_surface_variant">#49454F</color>
     <!-- Text Colors -->
     <color name="textPrimary">#1A202C</color>    <!-- Very Dark Gray -->
     <color name="textSecondary">#718096</color>   <!-- Gray -->
@@ -78,10 +80,13 @@
 <color name="onError">#FFFFFF</color>
 <color name="errorContainer">#F9DEDC</color>
 <color name="onErrorContainer">#410E0B</color>
-
+    <color name="pendingCardBackground">#FFF3E0</color> <!-- Light orange to indicate urgency -->
 <color name="onBackground">#1C1B1F</color>
+    <color name="accentPrimary">#4A90E2</color>
+    <color name="accentSecondary">#4A90E2</color>
 <color name="onSurface">#1C1B1F</color>
 <color name="onSurfaceVariant">#49454F</color>
 
-</resources>
+<color name="cardBackground">#FFFFFF</color>
 
+</resources>

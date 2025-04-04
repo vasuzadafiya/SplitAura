@@ -117,7 +117,7 @@ public class FriendRequestFragment extends Fragment {
                     return;
                 }
 
-                // Update request status to "Accepted".
+                // Update request status to "Accepted"
                 snapshot.getReference().update("status", "Accepted")
                         .addOnSuccessListener(unused -> {
                             String senderUid = snapshot.getString("sender_uid");
@@ -129,7 +129,7 @@ public class FriendRequestFragment extends Fragment {
                                 return;
                             }
 
-                            // Fetch sender details.
+                            // Fetch sender details
                             db.collection(USER).document(senderUid).get()
                                     .addOnSuccessListener(documentSnapshotSender -> {
                                         if (!documentSnapshotSender.exists()) {
@@ -141,6 +141,7 @@ public class FriendRequestFragment extends Fragment {
                                         String senderFname = documentSnapshotSender.getString(FNAME);
                                         String senderLname = documentSnapshotSender.getString(LNAME);
                                         String senderProfilePicture = documentSnapshotSender.getString(PROFILE_PICTURE);
+                                        String senderUpi = documentSnapshotSender.getString("upi"); // Fetch UPI
 
                                         Map<String, Object> senderData = new HashMap<>();
                                         senderData.put(EMAIL, senderEmail);
@@ -148,8 +149,9 @@ public class FriendRequestFragment extends Fragment {
                                         senderData.put(LNAME, senderLname);
                                         senderData.put(PROFILE_PICTURE, senderProfilePicture);
                                         senderData.put(UID, senderUid);
+                                        senderData.put("upi", senderUpi != null ? senderUpi : "default@upi"); // Include UPI with fallback
 
-                                        // Fetch receiver details.
+                                        // Fetch receiver details
                                         db.collection(USER).document(receiverUid).get()
                                                 .addOnSuccessListener(documentSnapshotReceiver -> {
                                                     if (!documentSnapshotReceiver.exists()) {
@@ -161,6 +163,7 @@ public class FriendRequestFragment extends Fragment {
                                                     String receiverFname = documentSnapshotReceiver.getString(FNAME);
                                                     String receiverLname = documentSnapshotReceiver.getString(LNAME);
                                                     String receiverProfilePicture = documentSnapshotReceiver.getString(PROFILE_PICTURE);
+                                                    String receiverUpi = documentSnapshotReceiver.getString("upi"); // Fetch UPI
 
                                                     Map<String, Object> receiverData = new HashMap<>();
                                                     receiverData.put(EMAIL, receiverEmail);
@@ -168,8 +171,9 @@ public class FriendRequestFragment extends Fragment {
                                                     receiverData.put(LNAME, receiverLname);
                                                     receiverData.put(PROFILE_PICTURE, receiverProfilePicture);
                                                     receiverData.put(UID, receiverUid);
+                                                    receiverData.put("upi", receiverUpi != null ? receiverUpi : "default@upi"); // Include UPI with fallback
 
-                                                    // Add each other as friends.
+                                                    // Add each other as friends
                                                     Task<Void> task1 = db.collection(USER).document(senderUid)
                                                             .collection("friends").document(receiverUid)
                                                             .set(receiverData);
@@ -181,7 +185,7 @@ public class FriendRequestFragment extends Fragment {
                                                             .addOnSuccessListener(task -> {
                                                                 Toast.makeText(requireContext(),
                                                                         "Friend request accepted and friends added", Toast.LENGTH_SHORT).show();
-                                                                // Refresh fragment.
+                                                                // Refresh fragment
                                                                 getParentFragmentManager().beginTransaction()
                                                                         .detach(FriendRequestFragment.this)
                                                                         .attach(FriendRequestFragment.this)

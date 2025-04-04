@@ -46,6 +46,10 @@ public class ExpenseManager {
         fetchGroupMembersAndSetupListeners();
     }
 
+    public String getGroupId() {
+        return groupId;
+    }
+
     public static class Expense {
         private String expenseId;
         private String title;
@@ -440,7 +444,7 @@ public class ExpenseManager {
         });
     }
 
-    private void recalculateExpenses() {
+    public void recalculateExpenses() {
         firestore.collection("groups").document(groupId).collection("expenses")
                 .get()
                 .addOnSuccessListener(this::calculateExpenseData)

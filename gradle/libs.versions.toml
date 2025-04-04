@@ -27,6 +27,7 @@ firebaseCrashlytics = "19.4.0"
 googleFirebaseCrashlytics = "3.0.3"
 gridlayout = "1.0.0"
 firebaseMessaging = "24.1.0"
+navigationRuntime = "2.8.9"
 
 [libraries]
 cloudinary-android-v302 = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroidVersion" }
@@ -56,6 +57,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime", version.ref = "navigationRuntime" }
 
 
 [plugins]

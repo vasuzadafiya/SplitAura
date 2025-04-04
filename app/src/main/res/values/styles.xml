@@ -60,6 +60,31 @@
         <item name="iconTint">@android:color/white</item>
     </style>
 
+    <style name="PendingActionButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="CurrencyInputStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/outline</item>
+        <item name="hintTextColor">@color/material_on_surface_disabled</item>
+        <item name="android:textColorHint">@color/material_on_surface_disabled</item>
+        <item name="android:textColor">@color/textPrimary</item>
+        <item name="prefixTextColor">@color/textPrimary</item>
+    </style>
+
+    <style name="PendingActionButton.Positive">
+        <item name="android:backgroundTint">@android:color/holo_green_dark</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="PendingActionButton.Negative">
+        <item name="android:backgroundTint">@android:color/holo_red_dark</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
     <style name="CustomDialogTheme" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">true</item>

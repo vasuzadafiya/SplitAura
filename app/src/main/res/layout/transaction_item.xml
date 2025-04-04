@@ -3,95 +3,96 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/card_margin_horizontal"
-    android:layout_marginVertical="@dimen/card_margin_vertical"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="@dimen/card_corner_radius"
-    app:cardElevation="@dimen/card_elevation">
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@drawable/ledger_background">
 
-        <!-- Friend Name -->
-        <TextView
-            android:id="@+id/tv_friend_name"
+        <!-- Status Icon -->
+        <ImageView
+            android:id="@+id/iv_status_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_transaction_success"
+            android:contentDescription="Transaction Status" />
+
+        <!-- Main Content -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Friend Name"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/tv_amount"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
 
-        <!-- Amount -->
-        <TextView
-            android:id="@+id/tv_amount"
+            <!-- Friend Name and Description -->
+            <TextView
+                android:id="@+id/tv_friend_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Friend Name"
+                android:textColor="@color/textPrimary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/tv_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Date"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp" />
+
+            <!-- Method -->
+            <TextView
+                android:id="@+id/tv_method"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Method: Unknown"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Amount and Status -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="₹0.00"
-            android:textColor="@color/teal_500"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tv_friend_name" />
+            android:orientation="vertical"
+            android:gravity="end">
 
-        <!-- Date -->
-        <TextView
-            android:id="@+id/tv_date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date"
-            android:textColor="@color/gray"
-            android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="@+id/tv_amount"
-            app:layout_constraintTop_toBottomOf="@+id/tv_amount" />
+            <!-- Amount -->
+            <TextView
+                android:id="@+id/tv_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₹0.00"
+                android:textColor="@color/accentPrimary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-        <!-- Transaction ID -->
-
-        <!-- UPI App -->
-
-        <!-- Status Indicator -->
-        <TextView
-            android:id="@+id/tv_transaction_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Transaction ID: N/A"
-            android:textColor="@color/gray"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@+id/tv_upi_app"
-            app:layout_constraintTop_toBottomOf="@+id/tv_upi_app" />
-
-        <TextView
-            android:id="@+id/tv_upi_app"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="UPI App: Unknown"
-            android:textColor="@color/gray"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="@+id/tv_friend_name"
-            app:layout_constraintTop_toBottomOf="@+id/tv_friend_name" />
-
-        <TextView
-            android:id="@+id/tv_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/status_background"
-            android:paddingHorizontal="@dimen/status_padding_horizontal"
-            android:paddingVertical="@dimen/status_padding_vertical"
-            android:text="Status"
-            android:textSize="14sp"
-            app:cardCornerRadius="@dimen/status_corner_radius"
-            app:layout_constraintStart_toStartOf="@+id/tv_transaction_id"
-            app:layout_constraintTop_toBottomOf="@+id/tv_transaction_id" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Status -->
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:text="Status"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:background="@drawable/status_background" />
+        </LinearLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

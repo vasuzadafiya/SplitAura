@@ -83,11 +83,11 @@ public class Friend {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Friend friend = (Friend) o;
-        return Objects.equals(email, friend.email);
+        return Objects.equals(uid, friend.uid);
     }
 
     @Override
     public int hashCode() {
-        return email != null ? email.hashCode() : 0;
+        return uid != null ? uid.hashCode() : 0;
     }
 }

@@ -1,80 +1,41 @@
 package com.example.splitaura.models;
 
 public class Transaction {
-    private String friendName;
-    private double amount;
-    private String date;
-    private String status; // "SUCCESS", "FAILED", or "PENDING"
-    private String transactionId; // Added field for transaction ID
-    private String upiApp;       // Added field for UPI app
+    private String description; // Brief description (e.g., "Payment to John")
+    private double amount;      // Amount transacted
+    private String recordedAt;  // String date (e.g., "03 Apr 2025, 19:45")
+    private String paymentStatus; // "PENDING", "SUCCESS", "FAILED"
+    private String paymentId;   // Unique ID for this transaction
+    private String method;      // "QR", "UPI", "CASH"
+    private String recipientId; // Who received the payment
 
-    // Constructor for dummy data (without transactionId and upiApp)
-    public Transaction(String friendName, double amount, String date, String status) {
-        this.friendName = friendName;
+    // Default constructor for Firestore
+    public Transaction() {}
+
+    public Transaction(String description, double amount, String recordedAt, String paymentStatus,
+                       String paymentId, String method, String recipientId) {
+        this.description = description;
         this.amount = amount;
-        this.date = date;
-        this.status = status;
-        this.transactionId = "N/A"; // Default value
-        this.upiApp = "Unknown";    // Default value
+        this.recordedAt = recordedAt;
+        this.paymentStatus = paymentStatus;
+        this.paymentId = paymentId;
+        this.method = method;
+        this.recipientId = recipientId;
     }
 
-    // Constructor for Firestore data (with transactionId and upiApp)
-    public Transaction(String friendName, double amount, String date, String status, String transactionId, String upiApp) {
-        this.friendName = friendName;
-        this.amount = amount;
-        this.date = date;
-        this.status = status;
-        this.transactionId = transactionId != null ? transactionId : "N/A";
-        this.upiApp = upiApp != null ? upiApp : "Unknown";
-    }
-
-    // Getters
-    public String getFriendName() {
-        return friendName;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public String getUpiApp() {
-        return upiApp;
-    }
-
-    // Setters
-    public void setFriendName(String friendName) {
-        this.friendName = friendName;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId != null ? transactionId : "N/A";
-    }
-
-    public void setUpiApp(String upiApp) {
-        this.upiApp = upiApp != null ? upiApp : "Unknown";
-    }
+    // Getters and Setters
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
+    public String getRecordedAt() { return recordedAt; }
+    public void setRecordedAt(String recordedAt) { this.recordedAt = recordedAt; }
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    public String getPaymentId() { return paymentId; }
+    public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
+    public String getMethod() { return method; }
+    public void setMethod(String method) { this.method = method; }
+    public String getRecipientId() { return recipientId; }
+    public void setRecipientId(String recipientId) { this.recipientId = recipientId; }
 }

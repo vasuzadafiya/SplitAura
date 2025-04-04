@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,9 +69,13 @@ public class PersonalExpenseActivity extends BaseActivity {
     private EditText searchBox;
     private TextView totalAmount;
     private PersonalExpenseAdapter adapter;
+    private RecyclerView recyclerView;
+
     // UI components
     private TextView categorySelector;
     private ListenerRegistration expenseListenerRegistration;
+    private LinearLayout placeholder;
+    private TextView chartButton;
     // Data
     private List<PersonalExpense> allExpenses = new ArrayList<>();
     private String selectedMethod; // Payment method selection
@@ -80,6 +85,8 @@ public class PersonalExpenseActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.personal_expense);
+        placeholder = findViewById(R.id.personal_placeholder);
+        recyclerView = findViewById(R.id.recycler_view);
 
         initLoadingDialog();
         setupRecyclerView();
@@ -90,8 +97,8 @@ public class PersonalExpenseActivity extends BaseActivity {
 
     //region UI Setup Methods
     private void setupRecyclerView() {
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        TextView chartButton = findViewById(R.id.chart_button);
+
+        chartButton = findViewById(R.id.chart_button);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new PersonalExpenseAdapter(this, new ArrayList<>(), this::openUpdateExpenseDialog);
         recyclerView.setAdapter(adapter);
@@ -289,6 +296,26 @@ public class PersonalExpenseActivity extends BaseActivity {
             }
         }
         allExpenses = expenses;
+        if (expenses.isEmpty()) {
+            placeholder.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+            chartButton.setAlpha(.7f);
+            chartButton.setClickable(false);
+            chartButton.setFocusable(false);
+            searchBox.setAlpha(.7f);
+            searchBox.setClickable(false);
+            searchBox.setFocusable(false);
+        } else {
+            placeholder.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+            chartButton.setAlpha(1);
+            chartButton.setClickable(true);
+            chartButton.setFocusable(true);
+            searchBox.setAlpha(1);
+            searchBox.setClickable(true);
+            searchBox.setFocusable(true);
+
+        }
         filterExpenses(searchBox.getText().toString());
     }
 
@@ -430,6 +457,7 @@ public class PersonalExpenseActivity extends BaseActivity {
             fetchFilteredExpenses(startDate, endDate);
         });
     }
+
     private void showChart() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.charts, null);

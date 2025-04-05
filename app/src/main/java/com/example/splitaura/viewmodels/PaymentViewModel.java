@@ -276,16 +276,6 @@ public class PaymentViewModel extends ViewModel {
         Log.d(TAG, "Total balance calculated: " + totalBalance);
     }
 
-    public void updateNotificationStatus(Notification notification, boolean accept) {
-        String newStatus = accept ? "CONFIRMED" : "REJECTED";
-        db.collection("notifications").document(notification.getActionId())
-                .update("actionStatus", newStatus)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification status updated: " + notification.getActionId() + " to " + newStatus);
-                    refreshData();
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to update notification status", e));
-    }
 
     public void loadFriends() {
         String currentUserId = getCurrentUserId();

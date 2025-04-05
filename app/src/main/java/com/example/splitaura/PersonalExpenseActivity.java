@@ -299,22 +299,21 @@ public class PersonalExpenseActivity extends BaseActivity {
         if (expenses.isEmpty()) {
             placeholder.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
+
             chartButton.setAlpha(.7f);
-            chartButton.setClickable(false);
-            chartButton.setFocusable(false);
+            chartButton.setEnabled(false);  // Instead of setClickable & setFocusable
+
             searchBox.setAlpha(.7f);
-            searchBox.setClickable(false);
-            searchBox.setFocusable(false);
+            searchBox.setEnabled(false);  // Instead of setClickable & setFocusable
         } else {
             placeholder.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
-            chartButton.setAlpha(1);
-            chartButton.setClickable(true);
-            chartButton.setFocusable(true);
-            searchBox.setAlpha(1);
-            searchBox.setClickable(true);
-            searchBox.setFocusable(true);
 
+            chartButton.setAlpha(1);
+            chartButton.setEnabled(true);  // Enable chart button again
+
+            searchBox.setAlpha(1);
+            searchBox.setEnabled(true);  // Enable searchBox properly
         }
         filterExpenses(searchBox.getText().toString());
     }

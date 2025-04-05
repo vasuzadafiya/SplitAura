@@ -9,7 +9,7 @@
         <item name="strokeColor">@color/accentPrimary</item>
         <item name="strokeWidth">1dp</item>
         <item name="cornerRadius">8dp</item>
-        <item name="android:textColor">@color/accentPrimary</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
         <item name="iconTint">@color/accentPrimary</item>
         <item name="rippleColor">@color/accentSecondary</item>
     </style>

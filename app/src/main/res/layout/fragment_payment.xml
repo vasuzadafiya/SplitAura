@@ -5,7 +5,7 @@
     android:id="@+id/swipe_refresh_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@drawable/group_back">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -21,7 +21,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="22dp"
             app:cardBackgroundColor="@color/accentSecondary">
 
             <TextView
@@ -30,6 +30,8 @@
                 android:layout_height="wrap_content"
                 android:text="No pending actions"
                 android:textSize="14sp"
+                android:background="@color/green"
+                android:textStyle="bold"
                 android:textColor="@android:color/white"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"/>
@@ -59,11 +61,12 @@
                     android:id="@+id/tv_selected_friend"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter_medium"
+                    android:gravity="center"
                     android:text="Select a friend"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
                     android:textColor="@color/accentSecondary"
-                    android:gravity="center"/>
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tv_balance"
@@ -81,6 +84,7 @@
                     android:layout_height="wrap_content"
                     android:text="Settled up"
                     android:textSize="16sp"
+                    android:textStyle="italic"
                     android:layout_marginTop="8dp"
                     android:gravity="center"
                     android:textColor="@color/textSecondary"/>
@@ -120,7 +124,7 @@
                     android:id="@+id/amount_input_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Enter Amount"
+                    android:hint="Amount will be displayed here"
                     style="@style/CurrencyInputStyle"
                     app:startIconDrawable="@drawable/ic_currency_rupee"
                     app:boxStrokeColor="@color/accentPrimary"
@@ -132,6 +136,7 @@
                         android:id="@+id/et_amount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:focusable="false"
                         android:inputType="numberDecimal"
                         android:maxLength="10"
                         android:textColor="@color/textPrimary"/>
@@ -139,28 +144,34 @@
 
                 <!-- Action Buttons Grid -->
                 <androidx.gridlayout.widget.GridLayout
+                    android:id="@+id/button_grid"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     app:rowCount="2"
-                    app:columnCount="2">
+                    app:columnCount="2"
+                    app:orientation="horizontal">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_send"
+                        style="@style/BorderedButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Send"
-                        app:icon="@drawable/ic_payment"
-                        style="@style/BorderedButton"
                         android:layout_marginEnd="8dp"
                         android:layout_marginBottom="8dp"
-                        app:layout_columnWeight="1" />
+                        android:text="Send"
+                        android:visibility="visible"
+                        app:icon="@drawable/ic_payment"
+                        app:layout_column="0"
+                        app:layout_columnWeight="1"
+                        app:layout_row="0" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_request"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:text="Request"
+                        android:visibility="visible"
                         app:icon="@drawable/ic_request1"
                         style="@style/BorderedButton"
                         android:layout_marginBottom="8dp"

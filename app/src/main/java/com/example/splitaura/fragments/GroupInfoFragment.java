@@ -131,7 +131,7 @@ public class GroupInfoFragment extends Fragment {
                     deleteGroup();
                 })
                 .setNegativeButton("Cancel", null)
-                .setIcon(com.razorpay.R.drawable.ic_alert)
+                .setIcon(R.drawable.ic_warning)
                 .show();
     }
 

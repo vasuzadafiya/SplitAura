@@ -152,7 +152,7 @@
     </style>
 
     <style name="LightDialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/secondary</item>
+        <item name="android:textColor">@color/f_pass_color</item>
         <item name="android:textSize">14sp</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>

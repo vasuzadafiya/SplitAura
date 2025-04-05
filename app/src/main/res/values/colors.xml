@@ -18,6 +18,7 @@
     <color name="teal_500">#009688</color>
     <color name="blue_500">#2196F3</color>
     <color name="contrast_orange">#ff914d</color>
+    <color name="light_orange">#F6B084</color>
     <color name="colorPrimary">#B7D8F2</color>
     <color name="f_pass_color">#123977</color>
     <color name="gray">#808080</color>

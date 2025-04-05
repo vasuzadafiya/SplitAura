@@ -1,10 +1,15 @@
 package com.example.splitaura.fragments;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -48,16 +53,24 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,8 +101,7 @@ public class PaymentFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentPaymentBinding.inflate(inflater, container, false);
         Log.d(TAG, "View created");
         return binding.getRoot();
@@ -114,12 +126,7 @@ public class PaymentFragment extends Fragment {
     }
 
     private void showConfirmationDialog(String message, Runnable onConfirm) {
-        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
-                .setTitle("Confirm Action")
-                .setMessage(message)
-                .setPositiveButton("Yes", (dialog, which) -> onConfirm.run())
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .show();
+        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme).setTitle("Confirm Action").setMessage(message).setPositiveButton("Yes", (dialog, which) -> onConfirm.run()).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).show();
     }
 
     private void setupListeners() {
@@ -156,7 +163,7 @@ public class PaymentFragment extends Fragment {
         });
 
         binding.btnExportPdf.setOnClickListener(v -> {
-            String msg = String.format(Locale.getDefault(), "Are you sure you want to export the PDF?");
+            String msg = "Are you sure you want to export the PDF?";
             showConfirmationDialog(msg, this::generatePdf);
         });
         binding.btnQrPayment.setOnClickListener(v -> showQrPaymentDialog());
@@ -168,7 +175,8 @@ public class PaymentFragment extends Fragment {
     private void setupAmountInput() {
         binding.etAmount.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -194,6 +202,7 @@ public class PaymentFragment extends Fragment {
                 Log.w(TAG, "Balance is null");
                 return;
             }
+
             binding.tvBalance.setText(String.format(Locale.getDefault(), "₹%.2f", Math.abs(balance)));
             binding.tvBalanceStatus.setText(balance > 0 ? "You are owed" : balance < 0 ? "You owe" : "Settled up");
             binding.tvBalance.setTextColor(ContextCompat.getColor(requireContext(),
@@ -204,8 +213,14 @@ public class PaymentFragment extends Fragment {
 
         viewModel.getPendingNotifications().observe(getViewLifecycleOwner(), pending -> {
             if (pending == null) pending = new ArrayList<>();
-            binding.tvPendingCount.setText(pending.isEmpty() ? "No pending actions" :
-                    getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
+//            binding.tvPendingCount.setText(pending.isEmpty() ? "No pending actions" : getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
+            if (pending.isEmpty()) {
+                binding.tvPendingCount.setText("No pending actions");
+                binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.green));
+            } else {
+                binding.tvPendingCount.setText(getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
+                binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.red));
+            }
             pendingAdapter.updatePendingActions(pending);
             Log.d(TAG, "Pending notifications updated, count: " + pending.size());
         });
@@ -262,8 +277,7 @@ public class PaymentFragment extends Fragment {
                 requireActivity().runOnUiThread(() -> {
                     binding.tvBalance.setText(String.format(Locale.getDefault(), "₹%.2f", Math.abs(netAmount)));
                     binding.tvBalanceStatus.setText(netAmount > 0 ? "You are owed" : netAmount < 0 ? "You owe" : "Settled up");
-                    binding.tvBalance.setTextColor(ContextCompat.getColor(requireContext(),
-                            netAmount > 0 ? R.color.green : netAmount < 0 ? R.color.red : R.color.black));
+                    binding.tvBalance.setTextColor(ContextCompat.getColor(requireContext(), netAmount > 0 ? R.color.green : netAmount < 0 ? R.color.red : R.color.black));
 
                     boolean sendEnabled = netAmount < 0;
                     boolean requestEnabled = netAmount > 0;
@@ -305,7 +319,7 @@ public class PaymentFragment extends Fragment {
         for (ExpenseManager manager : expenseManagers) {
             Map<String, ExpenseManager.UserExpenseData> userExpenseData = manager.getUserExpenseData().getValue();
             if (userExpenseData == null) {
-                Log.w(TAG, "UserExpenseData is null for group: " + manager.toString());
+                Log.w(TAG, "UserExpenseData is null for group: " + manager);
                 continue;
             }
 
@@ -349,37 +363,26 @@ public class PaymentFragment extends Fragment {
 
                 // Create a Transaction if it's a PAYMENT_SENT
                 if (!isRequest) {
-                    Transaction transaction = new Transaction(
-                            "Payment to " + selectedFriend.getFullName(), amount, date, "PENDING",
-                            transactionId, "CASH", selectedFriend.getUid()
-                    );
-                    db.collection("users").document(currentUserId).collection("transactions")
-                            .document(transactionId).set(transaction)
-                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId))
-                            .addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
+                    Transaction transaction = new Transaction("Payment to " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "CASH", selectedFriend.getUid());
+                    db.collection("users").document(currentUserId).collection("transactions").document(transactionId).set(transaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId)).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
                 }
 
                 // Create a Notification
-                Notification notification = new Notification(
-                        isRequest ? "PAYMENT_REQUEST" : "PAYMENT_SENT",
-                        currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING"
-                );
+                Notification notification = new Notification(isRequest ? "PAYMENT_REQUEST" : "PAYMENT_SENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
 
-                db.collection("notifications").document(transactionId).set(notification)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Notification created: " + transactionId + ", type: " + notification.getActionType());
-                            requireActivity().runOnUiThread(() -> {
-                                showToast(isRequest ? "Payment request sent" : "Payment initiated");
-                                loadingDialog.hide();
-                            });
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to create notification: " + transactionId, e);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Error initiating payment");
-                                loadingDialog.hide();
-                            });
-                        });
+                db.collection("notifications").document(transactionId).set(notification).addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notification created: " + transactionId + ", type: " + notification.getActionType());
+                    requireActivity().runOnUiThread(() -> {
+                        showToast(isRequest ? "Payment request sent" : "Payment initiated");
+                        loadingDialog.hide();
+                    });
+                }).addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to create notification: " + transactionId, e);
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("Error initiating payment");
+                        loadingDialog.hide();
+                    });
+                });
             } catch (Exception e) {
                 Log.e(TAG, "Payment initiation failed", e);
                 requireActivity().runOnUiThread(() -> {
@@ -403,36 +406,26 @@ public class PaymentFragment extends Fragment {
                 String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
 
                 // Create a Transaction
-                Transaction transaction = new Transaction(
-                        "Settlement with " + selectedFriend.getFullName(), amount, date, "PENDING",
-                        transactionId, "SETTLEMENT", selectedFriend.getUid()
-                );
-                db.collection("users").document(currentUserId).collection("transactions")
-                        .document(transactionId).set(transaction)
-                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId))
-                        .addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
+                Transaction transaction = new Transaction("Settlement with " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "SETTLEMENT", selectedFriend.getUid());
+                db.collection("users").document(currentUserId).collection("transactions").document(transactionId).set(transaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId)).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
 
                 // Create a Notification
-                Notification notification = new Notification(
-                        "SETTLEMENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING"
-                );
+                Notification notification = new Notification("SETTLEMENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
 
-                db.collection("notifications").document(transactionId).set(notification)
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Settlement notification created: " + transactionId);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Settlement initiated, awaiting confirmation");
-                                loadingDialog.hide();
-                                viewModel.refreshData();
-                            });
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to create settlement notification: " + transactionId, e);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Error initiating settlement");
-                                loadingDialog.hide();
-                            });
-                        });
+                db.collection("notifications").document(transactionId).set(notification).addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Settlement notification created: " + transactionId);
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("Settlement initiated, awaiting confirmation");
+                        loadingDialog.hide();
+                        viewModel.refreshData();
+                    });
+                }).addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to create settlement notification: " + transactionId, e);
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("Error initiating settlement");
+                        loadingDialog.hide();
+                    });
+                });
             } catch (Exception e) {
                 Log.e(TAG, "Settlement failed", e);
                 requireActivity().runOnUiThread(() -> {
@@ -444,17 +437,12 @@ public class PaymentFragment extends Fragment {
     }
 
     private void logTransaction(String userId, Friend friend, double amount, String date, String paymentId, String method) {
-        Transaction transaction = new Transaction(
-                "Payment to " + friend.getFullName(), amount, date, "PENDING", paymentId, method, friend.getUid()
-        );
+        Transaction transaction = new Transaction("Payment to " + friend.getFullName(), amount, date, "PENDING", paymentId, method, friend.getUid());
 
-        db.collection("users").document(userId).collection("transactions").document(paymentId)
-                .set(transaction)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Transaction logged: " + paymentId + ", method: " + method);
-                    viewModel.refreshData();
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + paymentId, e));
+        db.collection("users").document(userId).collection("transactions").document(paymentId).set(transaction).addOnSuccessListener(aVoid -> {
+            Log.d(TAG, "Transaction logged: " + paymentId + ", method: " + method);
+            viewModel.refreshData();
+        }).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + paymentId, e));
     }
 
     void handlePendingAction(Notification notification, boolean accept) {
@@ -476,85 +464,54 @@ public class PaymentFragment extends Fragment {
 
                     // If PAYMENT_SENT is accepted, log a transaction for the receiver
                     if (accept && "PAYMENT_SENT".equals(notification.getActionType())) {
-                        db.collection("users").document(notification.getSenderId())
-                                .collection("transactions").document(notification.getTransactionId())
-                                .get()
-                                .addOnSuccessListener(senderTxDoc -> {
-                                    if (senderTxDoc.exists()) {
-                                        Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
-                                        if (senderTransaction != null) {
-                                            String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                            Friend senderFriend = findFriendByUid(notification.getSenderId());
-                                            String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                                            Transaction receiverTransaction = new Transaction(
-                                                    "Payment Accepted from " + senderName,
-                                                    senderTransaction.getAmount(), date, "SUCCESS",
-                                                    notification.getTransactionId() + "_ACCEPTED", senderTransaction.getMethod(),
-                                                    notification.getSenderId()
-                                            );
-                                            db.collection("users").document(notification.getReceiverId())
-                                                    .collection("transactions")
-                                                    .document(receiverTransaction.getPaymentId())
-                                                    .set(receiverTransaction)
-                                                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId()))
-                                                    .addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                                        }
-                                    } else {
-                                        Log.w(TAG, "Sender transaction not found: " + notification.getTransactionId());
-                                    }
-                                })
-                                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
+                        db.collection("users").document(notification.getSenderId()).collection("transactions").document(notification.getTransactionId()).get().addOnSuccessListener(senderTxDoc -> {
+                            if (senderTxDoc.exists()) {
+                                Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
+                                if (senderTransaction != null) {
+                                    String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+                                    Friend senderFriend = findFriendByUid(notification.getSenderId());
+                                    String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
+                                    Transaction receiverTransaction = new Transaction("Payment Accepted from " + senderName, senderTransaction.getAmount(), date, "SUCCESS", notification.getTransactionId() + "_ACCEPTED", senderTransaction.getMethod(), notification.getSenderId());
+                                    db.collection("users").document(notification.getReceiverId()).collection("transactions").document(receiverTransaction.getPaymentId()).set(receiverTransaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId())).addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
+                                }
+                            } else {
+                                Log.w(TAG, "Sender transaction not found: " + notification.getTransactionId());
+                            }
+                        }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
                     }
                 } else if (accept && "PAYMENT_REQUEST".equals(notification.getActionType())) {
                     // Fetch the sender's friend object
                     Friend senderFriend = findFriendByUid(notification.getSenderId());
                     String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                    db.collection("users").document(notification.getSenderId())
-                            .collection("transactions").document(notification.getTransactionId())
-                            .get()
-                            .addOnSuccessListener(senderTxDoc -> {
-                                if (senderTxDoc.exists()) {
-                                    Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
-                                    if (senderTransaction != null) {
-                                        String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                        Transaction receiverTransaction = new Transaction(
-                                                "Payment to " + senderName,
-                                                senderTransaction.getAmount(), date, "SUCCESS",
-                                                notification.getTransactionId() + "_TX", "CASH",
-                                                notification.getSenderId()
-                                        );
-                                        db.collection("users").document(notification.getReceiverId())
-                                                .collection("transactions")
-                                                .document(receiverTransaction.getPaymentId())
-                                                .set(receiverTransaction)
-                                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId()))
-                                                .addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                                    }
-                                } else {
-                                    Log.w(TAG, "Sender transaction not found for request: " + notification.getTransactionId());
-                                }
-                            })
-                            .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
+                    db.collection("users").document(notification.getSenderId()).collection("transactions").document(notification.getTransactionId()).get().addOnSuccessListener(senderTxDoc -> {
+                        if (senderTxDoc.exists()) {
+                            Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
+                            if (senderTransaction != null) {
+                                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+                                Transaction receiverTransaction = new Transaction("Payment to " + senderName, senderTransaction.getAmount(), date, "SUCCESS", notification.getTransactionId() + "_TX", "CASH", notification.getSenderId());
+                                db.collection("users").document(notification.getReceiverId()).collection("transactions").document(receiverTransaction.getPaymentId()).set(receiverTransaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId())).addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
+                            }
+                        } else {
+                            Log.w(TAG, "Sender transaction not found for request: " + notification.getTransactionId());
+                        }
+                    }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
                 }
 
                 // Delete the notification
-                db.collection("notifications").document(notification.getActionId())
-                        .delete()
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Notification deleted: " + notification.getActionId());
-                            viewModel.refreshData();
-                            requireActivity().runOnUiThread(() -> {
-                                loadingDialog.hide();
-                                showToast(accept ? "Action confirmed" : "Action rejected");
-                            });
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to delete notification: " + notification.getActionId(), e);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Error updating action");
-                                loadingDialog.hide();
-                            });
-                        });
+                db.collection("notifications").document(notification.getActionId()).delete().addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Notification deleted: " + notification.getActionId());
+                    viewModel.refreshData();
+                    requireActivity().runOnUiThread(() -> {
+                        loadingDialog.hide();
+                        showToast(accept ? "Action confirmed" : "Action rejected");
+                    });
+                }).addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to delete notification: " + notification.getActionId(), e);
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("Error updating action");
+                        loadingDialog.hide();
+                    });
+                });
             } catch (Exception e) {
                 Log.e(TAG, "Error handling pending action", e);
                 requireActivity().runOnUiThread(() -> {
@@ -566,10 +523,7 @@ public class PaymentFragment extends Fragment {
     }
 
     private void updateTransactionStatus(String userId, String transactionId, String status) {
-        db.collection("users").document(userId).collection("transactions").document(transactionId)
-                .update("paymentStatus", status)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction " + transactionId + " updated to " + status))
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to update transaction: " + transactionId, e));
+        db.collection("users").document(userId).collection("transactions").document(transactionId).update("paymentStatus", status).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction " + transactionId + " updated to " + status)).addOnFailureListener(e -> Log.e(TAG, "Failed to update transaction: " + transactionId, e));
     }
 
     private void showFriendSelectionDialog() {
@@ -584,9 +538,7 @@ public class PaymentFragment extends Fragment {
             rvFriends.setLayoutManager(new LinearLayoutManager(requireContext()));
 
             List<Friend> tempSelected = new ArrayList<>();
-            contactsAdapter = new ContactsAdapter(
-                    viewModel.getFriends().getValue() != null ? viewModel.getFriends().getValue() : new ArrayList<>(),
-                    tempSelected, friend -> {
+            contactsAdapter = new ContactsAdapter(viewModel.getFriends().getValue() != null ? viewModel.getFriends().getValue() : new ArrayList<>(), tempSelected, friend -> {
                 tempSelected.clear();
                 tempSelected.add(friend);
                 contactsAdapter.notifyDataSetChanged();
@@ -642,69 +594,60 @@ public class PaymentFragment extends Fragment {
                 Log.d(TAG, "Selected friend UID: " + selectedFriend.getUid());
 
                 // Fetch the friend's UPI ID from Firestore asynchronously
-                db.collection("users")
-                        .document(selectedFriend.getUid())
-                        .get()
-                        .addOnSuccessListener(friendDoc -> {
-                            try {
-                                Log.d(TAG, "Firestore query successful for user: " + selectedFriend.getUid());
-                                if (friendDoc == null || !friendDoc.exists()) {
-                                    throw new IllegalStateException("Friend's data not found in Firestore");
-                                }
+                db.collection("users").document(selectedFriend.getUid()).get().addOnSuccessListener(friendDoc -> {
+                    try {
+                        Log.d(TAG, "Firestore query successful for user: " + selectedFriend.getUid());
+                        if (friendDoc == null || !friendDoc.exists()) {
+                            throw new IllegalStateException("Friend's data not found in Firestore");
+                        }
 
-                                String upiId = friendDoc.getString("upi");
-                                if (TextUtils.isEmpty(upiId)) {
-                                    throw new IllegalStateException("Friend's UPI ID not available");
-                                }
-                                Log.d(TAG, "UPI ID fetched: " + upiId);
+                        String upiId = friendDoc.getString("upi");
+                        if (TextUtils.isEmpty(upiId)) {
+                            throw new IllegalStateException("Friend's UPI ID not available");
+                        }
+                        Log.d(TAG, "UPI ID fetched: " + upiId);
 
-                                // Generate UPI payment string
-                                String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment",
-                                        upiId, amount);
-                                Log.d(TAG, "UPI string generated: " + upiString);
+                        // Generate UPI payment string
+                        String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment", upiId, amount);
+                        Log.d(TAG, "UPI string generated: " + upiString);
 
-                                // Generate QR code
-                                Bitmap qrBitmap = generateQrCode(upiString);
-                                if (qrBitmap == null) {
-                                    throw new Exception("Failed to generate QR code bitmap");
-                                }
-                                Log.d(TAG, "QR code generated successfully");
+                        // Generate QR code
+                        Bitmap qrBitmap = generateQrCode(upiString);
+                        if (qrBitmap == null) {
+                            throw new Exception("Failed to generate QR code bitmap");
+                        }
+                        Log.d(TAG, "QR code generated successfully");
 
-                                // Log the transaction
-                                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                String paymentId = "QR_" + System.currentTimeMillis();
-                                logTransaction(viewModel.getCurrentUserId(), selectedFriend, amount, date, paymentId, "QR");
-                                Log.d(TAG, "Transaction logged with paymentId: " + paymentId);
+                        // Log the transaction
+                        String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+                        String paymentId = "QR_" + System.currentTimeMillis();
+                        logTransaction(viewModel.getCurrentUserId(), selectedFriend, amount, date, paymentId, "QR");
+                        Log.d(TAG, "Transaction logged with paymentId: " + paymentId);
 
-                                // Show the QR code dialog on the UI thread
-                                requireActivity().runOnUiThread(() -> {
-                                    View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null);
-                                    ImageView ivQrCode = dialogView.findViewById(R.id.iv_qr_code);
-                                    ivQrCode.setImageBitmap(qrBitmap);
+                        // Show the QR code dialog on the UI thread
+                        requireActivity().runOnUiThread(() -> {
+                            View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null);
+                            ImageView ivQrCode = dialogView.findViewById(R.id.iv_qr_code);
+                            ivQrCode.setImageBitmap(qrBitmap);
 
-                                    new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
-                                            .setTitle(String.format(Locale.getDefault(), "Scan to Pay ₹%.2f", amount))
-                                            .setView(dialogView)
-                                            .setPositiveButton("Done", null)
-                                            .show();
-                                    loadingDialog.hide();
-                                    Log.d(TAG, "QR payment dialog shown, transaction logged: " + paymentId);
-                                });
-                            } catch (Exception e) {
-                                Log.e(TAG, "QR payment error after Firestore query", e);
-                                requireActivity().runOnUiThread(() -> {
-                                    showToast("Error generating QR code: " + e.getMessage());
-                                    loadingDialog.hide();
-                                });
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Firestore query failed for user: " + selectedFriend.getUid(), e);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Error fetching friend's UPI ID: " + e.getMessage());
-                                loadingDialog.hide();
-                            });
+                            new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme).setTitle(String.format(Locale.getDefault(), "Scan to Pay ₹%.2f", amount)).setView(dialogView).setPositiveButton("Done", null).show();
+                            loadingDialog.hide();
+                            Log.d(TAG, "QR payment dialog shown, transaction logged: " + paymentId);
                         });
+                    } catch (Exception e) {
+                        Log.e(TAG, "QR payment error after Firestore query", e);
+                        requireActivity().runOnUiThread(() -> {
+                            showToast("Error generating QR code: " + e.getMessage());
+                            loadingDialog.hide();
+                        });
+                    }
+                }).addOnFailureListener(e -> {
+                    Log.e(TAG, "Firestore query failed for user: " + selectedFriend.getUid(), e);
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("Error fetching friend's UPI ID: " + e.getMessage());
+                        loadingDialog.hide();
+                    });
+                });
             } catch (Exception e) {
                 Log.e(TAG, "QR payment error before Firestore query", e);
                 requireActivity().runOnUiThread(() -> {
@@ -738,185 +681,218 @@ public class PaymentFragment extends Fragment {
         loadingDialog.show();
         executor.execute(() -> {
             try {
-                // Create the PDF file
-                File file = new File(requireContext().getExternalFilesDir(null),
-                        "Transactions_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".pdf");
-                PdfWriter writer = new PdfWriter(new FileOutputStream(file));
+                String date = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(new Date());
+                String fileName = "SplitAura_Report_" + date + ".pdf";
+
+                OutputStream outputStream;
+                Uri pdfUri = null;
+                File pdfFile = null;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.Downloads.MIME_TYPE, "application/pdf");
+                    values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                    ContentResolver resolver = requireContext().getContentResolver();
+                    pdfUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (pdfUri == null)
+                        throw new IOException("Failed to create new MediaStore record.");
+                    outputStream = resolver.openOutputStream(pdfUri);
+                } else {
+                    File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    if (!dir.exists()) dir.mkdirs();
+
+                    pdfFile = new File(dir, fileName);
+                    outputStream = new FileOutputStream(pdfFile);
+                    pdfUri = FileProvider.getUriForFile(requireContext(), "com.example.splitaura.fileprovider", pdfFile);
+                }
+
+                PdfWriter writer = new PdfWriter(outputStream);
                 PdfDocument pdf = new PdfDocument(writer);
                 Document document = new Document(pdf);
+                document.setMargins(20, 20, 20, 20);
 
-                // Add App Logo
+                // Add logo
                 try {
                     Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.applogo);
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     logoBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                     byte[] logoBytes = stream.toByteArray();
                     Image logoImage = new Image(ImageDataFactory.create(logoBytes));
-                    logoImage.setWidth(100);
-                    logoImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+                    logoImage.setWidth(120);
+                    logoImage.setHorizontalAlignment(HorizontalAlignment.CENTER);
                     document.add(logoImage);
                 } catch (Exception e) {
-                    Log.e(TAG, "Error adding logo to PDF", e);
-                    document.add(new Paragraph("Error loading logo").setItalic());
+                    Log.e(TAG, "Logo add failed", e);
+                    document.add(new Paragraph("SplitAura").setBold().setFontSize(16).setTextAlignment(TextAlignment.CENTER));
                 }
 
                 // Title
-                document.add(new Paragraph("SplitAura Transaction Report")
-                        .setFontSize(18)
-                        .setBold()
-                        .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER)
-                        .setMarginTop(10));
+                document.add(new Paragraph("SplitAura Transaction Report").setFontSize(22).setBold().setTextAlignment(TextAlignment.CENTER));
 
-                // Fetch transactions from ViewModel
-                List<Transaction> transactions = viewModel.getTransactions().getValue() != null ?
-                        new ArrayList<>(viewModel.getTransactions().getValue()) : new ArrayList<>();
+                // Transactions
+                List<Transaction> transactions = viewModel.getTransactions().getValue() != null ? new ArrayList<>(viewModel.getTransactions().getValue()) : new ArrayList<>();
 
-                // Calculate period
+                // Period
                 String period = "No transactions";
                 if (!transactions.isEmpty()) {
+                    transactions.sort((t1, t2) -> {
+                        try {
+                            SimpleDateFormat parseFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
+                            Date date1 = parseFormat.parse(t1.getRecordedAt());
+                            Date date2 = parseFormat.parse(t2.getRecordedAt());
+                            return date2.compareTo(date1);
+                        } catch (Exception e) {
+                            return 0;
+                        }
+                    });
+
                     try {
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
                         SimpleDateFormat parseFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
-                        transactions.sort((t1, t2) -> {
-                            try {
-                                Date date1 = parseFormat.parse(t1.getRecordedAt());
-                                Date date2 = parseFormat.parse(t2.getRecordedAt());
-                                return date2.compareTo(date1);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Error sorting transactions", e);
-                                return 0;
-                            }
-                        });
-                        String startDate = "Unknown";
-                        String endDate = "Unknown";
-                        try {
-                            Date start = parseFormat.parse(transactions.get(transactions.size() - 1).getRecordedAt());
-                            if (start != null) {
-                                startDate = dateFormat.format(start);
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error parsing start date", e);
-                        }
-                        try {
-                            Date end = parseFormat.parse(transactions.get(0).getRecordedAt());
-                            if (end != null) {
-                                endDate = dateFormat.format(end);
-                            }
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error parsing end date", e);
-                        }
+
+                        Date start = parseFormat.parse(transactions.get(transactions.size() - 1).getRecordedAt());
+                        Date end = parseFormat.parse(transactions.get(0).getRecordedAt());
+
+                        String startDate = start != null ? dateFormat.format(start) : "Unknown";
+                        String endDate = end != null ? dateFormat.format(end) : "Unknown";
+
                         period = String.format("Period: %s to %s", startDate, endDate);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error calculating period", e);
                         period = "Period: Unknown";
                     }
                 }
-                document.add(new Paragraph(period)
-                        .setFontSize(12)
-                        .setItalic()
-                        .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER)
-                        .setMarginBottom(20));
 
-                // Table for transactions
+                document.add(new Paragraph(period).setFontSize(14).setItalic().setTextAlignment(TextAlignment.CENTER));
+
+                // Table
                 if (!transactions.isEmpty()) {
-                    Table table = new Table(7).useAllAvailableWidth();
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Friend").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Amount").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Date").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Status").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Transaction ID").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("UPI").setBold()));
-                    table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph("Method").setBold()));
+                    Table table = new Table(new float[]{2.5f, 2f, 2.5f, 2f, 2.5f, 2f, 2f});
+                    table.setWidth(UnitValue.createPercentValue(100));
+
+                    // Header
+                    String[] headers = {"Friend", "Amount", "Date", "Status", "Transaction ID", "UPI", "Method"};
+                    for (String header : headers) {
+                        table.addHeaderCell(new Cell().add(new Paragraph(header).setFontSize(14).setBold().setTextAlignment(TextAlignment.CENTER).setMarginTop(5).setMarginBottom(5)));
+                    }
 
                     List<Task<DocumentSnapshot>> upiTasks = new ArrayList<>();
                     for (Transaction tx : transactions) {
-                        Task<DocumentSnapshot> task = db.collection("users")
-                                .document(tx.getRecipientId())
-                                .get();
+                        Task<DocumentSnapshot> task = db.collection("users").document(tx.getRecipientId()).get();
                         upiTasks.add(task);
                     }
+
+                    Uri finalPdfUri1 = pdfUri;
+
 
                     Tasks.whenAllSuccess(upiTasks).addOnSuccessListener(results -> {
                         for (int i = 0; i < transactions.size(); i++) {
                             Transaction tx = transactions.get(i);
                             DocumentSnapshot friendDoc = (DocumentSnapshot) results.get(i);
+
                             String upi = "N/A";
                             if (friendDoc != null && friendDoc.exists()) {
                                 upi = friendDoc.getString("upi") != null ? friendDoc.getString("upi") : "N/A";
-                            } else {
-                                Log.w(TAG, "Friend document not found for recipient: " + tx.getRecipientId());
                             }
 
-                            // Fetch friend name
+                            String status = tx.getPaymentStatus() != null ? tx.getPaymentStatus() : "Unknown";
+                            DeviceRgb statusColor;
+                            DeviceRgb rowColor;
+
+                            switch (status.toUpperCase(Locale.ROOT)) {
+                                case "SUCCESS":
+                                    statusColor = new DeviceRgb(0, 128, 0); // Green
+                                    rowColor = new DeviceRgb(220, 255, 220);
+                                    break;
+                                case "FAILED":
+                                    statusColor = new DeviceRgb(220, 20, 60); // Red
+                                    rowColor = new DeviceRgb(255, 220, 220); // Light red
+                                    break;
+                                case "PENDING":
+                                    statusColor = new DeviceRgb(255, 165, 0); // Orange
+                                    rowColor = new DeviceRgb(255, 245, 200); // Light yellow/orange
+                                    break;
+                                default:
+                                    statusColor = new DeviceRgb(0, 0, 0); // Default black
+                                    rowColor = new DeviceRgb(245, 245, 245); // Light gray
+                                    break;
+                            }
+
                             Friend friend = findFriendByUid(tx.getRecipientId());
                             String friendName = friend != null ? friend.getFullName() : (tx.getDescription() != null ? tx.getDescription().replace("Payment to ", "") : "Unknown");
 
-                            // Add row to table
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(friendName)));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(String.format(Locale.getDefault(), "₹%.2f", tx.getAmount()))));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(tx.getRecordedAt() != null ? tx.getRecordedAt() : "Unknown")));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(tx.getPaymentStatus() != null ? tx.getPaymentStatus() : "Unknown")));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(tx.getPaymentId() != null ? tx.getPaymentId() : "N/A")));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(upi)));
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(tx.getMethod() != null ? tx.getMethod() : "Unknown")));
+                            table.addCell(new Cell().add(new Paragraph(friendName)).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
+
+                            // Amount (with red color and bold)
+                            table.addCell(new Cell().add(new Paragraph(String.format(Locale.getDefault(), "₹%.2f", tx.getAmount())).setTextAlignment(TextAlignment.CENTER).setBold().setFontColor(new DeviceRgb(255, 0, 0)))// red font
+                                    .setBackgroundColor(rowColor).setVerticalAlignment(VerticalAlignment.MIDDLE));
+                            table.addCell(new Cell().add(new Paragraph(tx.getRecordedAt() != null ? tx.getRecordedAt() : "Unknown")).setVerticalAlignment(VerticalAlignment.MIDDLE).setBackgroundColor(rowColor));
+
+                            // For Payment Status
+                            table.addCell(new Cell().add(new Paragraph(status)).setTextAlignment(TextAlignment.CENTER).setVerticalAlignment(VerticalAlignment.MIDDLE).setFontColor(statusColor).setBackgroundColor(rowColor).setBold());
+
+                            table.addCell(new Cell().add(new Paragraph(tx.getPaymentId() != null ? tx.getPaymentId() : "N/A")).setFontSize(10).setWidth(80).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
+
+                            table.addCell(new Cell().add(new Paragraph(upi)).setWidth(80).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
+
+                            table.addCell(new Cell().add(new Paragraph(tx.getMethod() != null ? tx.getMethod() : "Unknown")).setBold().setBackgroundColor(rowColor).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER));
                         }
+
                         document.add(table);
                         document.close();
 
-                        // Share the PDF
+                        Uri finalPdfUri = finalPdfUri1;
                         requireActivity().runOnUiThread(() -> {
-                            showToast("PDF saved to: " + file.getAbsolutePath());
-                            Uri fileUri = FileProvider.getUriForFile(requireContext(),
-                                    requireContext().getPackageName() + ".fileprovider", file);
-                            Intent viewIntent = new Intent(Intent.ACTION_VIEW);
-                            viewIntent.setDataAndType(fileUri, "application/pdf");
-                            viewIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            try {
-                                startActivity(Intent.createChooser(viewIntent, "Open PDF"));
-                            } catch (Exception e) {
-                                showToast("No PDF viewer found on device");
-                            }
+                            showToast("PDF saved to Downloads: " + fileName);
+                            openPdf(finalPdfUri);
                             loadingDialog.hide();
-                            Log.d(TAG, "PDF generated: " + file.getAbsolutePath());
                         });
+
                     }).addOnFailureListener(e -> {
-                        Log.e(TAG, "Error fetching UPI IDs for PDF", e);
-                        document.add(new Paragraph("Error fetching UPI IDs").setItalic());
+                        Log.e(TAG, "UPI fetch failed", e);
+                        document.add(new Paragraph("Error fetching UPI data").setItalic());
                         document.close();
                         requireActivity().runOnUiThread(() -> {
-                            showToast("Error generating PDF: " + e.getMessage());
+                            showToast("Failed to generate PDF: " + e.getMessage());
                             loadingDialog.hide();
                         });
                     });
                 } else {
                     document.add(new Paragraph("No transactions found").setItalic());
                     document.close();
-
-                    // Share the PDF
+                    Uri finalUri = pdfUri;
                     requireActivity().runOnUiThread(() -> {
-                        showToast("PDF saved to: " + file.getAbsolutePath());
-                        Uri fileUri = FileProvider.getUriForFile(requireContext(),
-                                requireContext().getPackageName() + ".fileprovider", file);
-                        Intent viewIntent = new Intent(Intent.ACTION_VIEW);
-                        viewIntent.setDataAndType(fileUri, "application/pdf");
-                        viewIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        try {
-                            startActivity(Intent.createChooser(viewIntent, "Open PDF"));
-                        } catch (Exception e) {
-                            showToast("No PDF viewer found on device");
-                        }
+                        showToast("PDF saved to Downloads: " + fileName);
+                        openPdf(finalUri);
                         loadingDialog.hide();
-                        Log.d(TAG, "PDF generated: " + file.getAbsolutePath());
                     });
                 }
             } catch (Exception e) {
                 Log.e(TAG, "PDF generation error", e);
                 requireActivity().runOnUiThread(() -> {
-                    showToast("Error generating PDF: " + e.getMessage());
+                    showToast("Error: " + e.getMessage());
                     loadingDialog.hide();
                 });
             }
         });
+    }
+
+    private void openPdf(Uri uri) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/pdf");
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+            Intent chooser = Intent.createChooser(intent, "Open PDF with");
+            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+                startActivity(chooser);
+            } else {
+                showToast("No PDF viewer found. File is saved.");
+            }
+        } catch (Exception e) {
+            showToast("Failed to open PDF.");
+        }
     }
 
     private Friend findFriendByUid(String uid) {

@@ -15,7 +15,6 @@
                 android:useLevel="false" />
         </shape>
     </item>
-    <!--    1750a3 light blue-->
 
     <!-- Diagonal Linear Accent for Dynamic Movement -->
     <item>
@@ -55,7 +54,7 @@
             <gradient
                 android:centerX="50%"
                 android:centerY="50%"
-                android:endColor="#AA000000"
+                android:endColor="#AA013764"
                 android:gradientRadius="900dp"
                 android:startColor="#00000000"
                 android:type="radial"

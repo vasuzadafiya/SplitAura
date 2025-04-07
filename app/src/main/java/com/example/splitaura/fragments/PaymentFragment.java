@@ -43,6 +43,7 @@ import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Notification;
 import com.example.splitaura.models.Transaction;
 import com.example.splitaura.viewmodels.PaymentViewModel;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
@@ -139,14 +140,6 @@ public class PaymentFragment extends Fragment {
             showConfirmationDialog(message, () -> initiateRequestPayment(amount, selectedFriend), false);
         });
 
-        binding.btnSettle.setOnClickListener(v -> {
-            if (!validateInput()) return;
-            Friend selectedFriend = viewModel.getSelectedFriend().getValue();
-            double amount = Double.parseDouble(binding.etAmount.getText().toString());
-            String message = String.format(Locale.getDefault(), "Are you sure you want to settle ₹%.2f with %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, () -> initiateSettlePayment(amount, selectedFriend), false);
-        });
-
         binding.btnQrPayment.setOnClickListener(v -> initiateQrPayment());
 
         binding.btnExportPdf.setOnClickListener(v -> {
@@ -207,10 +200,12 @@ public class PaymentFragment extends Fragment {
             if (pending == null) pending = new ArrayList<>();
             if (pending.isEmpty()) {
                 binding.tvPendingCount.setText("No pending actions");
-                binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.green));
+                binding.tvPendingCount.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.green));
+                binding.btnPendingActions.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green));
             } else {
                 binding.tvPendingCount.setText(getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
-                binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.red));
+                binding.tvPendingCount.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.red));
+                binding.btnPendingActions.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red));
             }
             Log.d(TAG, "Pending notifications updated, count: " + pending.size());
         });
@@ -240,7 +235,6 @@ public class PaymentFragment extends Fragment {
             }
         });
 
-        // Observe ExpenseManager updates
         for (ExpenseManager manager : viewModel.getExpenseManagers()) {
             manager.getUserExpenseData().observe(getViewLifecycleOwner(), data -> {
                 viewModel.calculateBalance();
@@ -258,7 +252,6 @@ public class PaymentFragment extends Fragment {
             binding.tvBalance.setTextColor(ContextCompat.getColor(requireContext(), R.color.black));
             binding.btnSend.setEnabled(false);
             binding.btnRequest.setEnabled(false);
-            binding.btnSettle.setEnabled(false);
             Log.d(TAG, "No friend selected, resetting debt info");
             return;
         }
@@ -273,11 +266,9 @@ public class PaymentFragment extends Fragment {
 
                     boolean sendEnabled = netAmount < 0;
                     boolean requestEnabled = netAmount > 0;
-                    boolean settleEnabled = netAmount != 0;
 
                     binding.btnSend.setEnabled(sendEnabled);
                     binding.btnRequest.setEnabled(requestEnabled);
-                    binding.btnSettle.setEnabled(settleEnabled);
 
                     if (sendEnabled) {
                         binding.amountInputLayout.setHint(String.format(Locale.getDefault(), "You owe ₹%.2f", -netAmount));
@@ -425,50 +416,6 @@ public class PaymentFragment extends Fragment {
         });
     }
 
-    private void initiateSettlePayment(double amount, Friend selectedFriend) {
-        loadingDialog.show();
-        String currentUserId = viewModel.getCurrentUserId();
-
-        executor.execute(() -> {
-            try {
-                String transactionId = "SET_" + System.currentTimeMillis();
-                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-
-                Transaction senderTx = new Transaction(
-                        "Settlement with " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "SETTLEMENT", selectedFriend.getUid());
-                Notification notification = new Notification(
-                        "SETTLEMENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
-
-                WriteBatch batch = db.batch();
-                batch.set(db.collection("users").document(currentUserId).collection("transactions").document(transactionId), senderTx);
-                batch.set(db.collection("notifications").document(transactionId), notification);
-
-                batch.commit()
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Settle payment initiated: " + transactionId);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Settlement initiated, awaiting confirmation");
-                                loadingDialog.hide();
-                                viewModel.refreshData();
-                            });
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to initiate settle payment: " + transactionId, e);
-                            requireActivity().runOnUiThread(() -> {
-                                showToast("Error settling payment: " + e.getMessage());
-                                loadingDialog.hide();
-                            });
-                        });
-            } catch (Exception e) {
-                Log.e(TAG, "Settle payment failed", e);
-                requireActivity().runOnUiThread(() -> {
-                    showToast("Error settling payment: " + e.getMessage());
-                    loadingDialog.hide();
-                });
-            }
-        });
-    }
-
     private void initiateQrPayment() {
         if (!validateInput()) return;
         loadingDialog.show();
@@ -488,7 +435,7 @@ public class PaymentFragment extends Fragment {
                                 String upiId = friendDoc.getString("upi");
                                 if (TextUtils.isEmpty(upiId)) throw new IllegalStateException("Friend's UPI ID not available");
 
-                                String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment", upiId, amount);
+                                String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment_%s", upiId, amount, transactionId);
                                 Bitmap qrBitmap = generateQrCode(upiString);
 
                                 Transaction senderTx = new Transaction(
@@ -502,13 +449,14 @@ public class PaymentFragment extends Fragment {
 
                                 batch.commit()
                                         .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "QR payment transaction logged: " + transactionId);
                                             requireActivity().runOnUiThread(() -> {
                                                 showQrDialog(qrBitmap, transactionId, amount);
                                                 loadingDialog.hide();
                                             });
                                         })
                                         .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Failed to initiate QR payment: " + transactionId, e);
+                                            Log.e(TAG, "Failed to log QR payment transaction: " + transactionId, e);
                                             requireActivity().runOnUiThread(() -> {
                                                 showToast("Error initiating QR payment: " + e.getMessage());
                                                 loadingDialog.hide();
@@ -554,13 +502,16 @@ public class PaymentFragment extends Fragment {
                 })
                 .setNegativeButton("Cancel", (d, w) -> {
                     updateTransactionStatus(viewModel.getCurrentUserId(), transactionId, "FAILED");
-                    db.collection("notifications").document(transactionId).delete();
+                    db.collection("notifications").document(transactionId).delete()
+                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Notification deleted for cancelled QR: " + transactionId))
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to delete notification: " + transactionId, e));
                     showToast("QR payment cancelled");
                     viewModel.refreshData();
                 })
                 .create();
 
         dialog.show();
+        Log.d(TAG, "QR dialog shown for transaction: " + transactionId);
     }
 
     private Bitmap generateQrCode(String data) throws Exception {
@@ -707,7 +658,6 @@ public class PaymentFragment extends Fragment {
 
         dialog.show();
     }
-
 
     private boolean validateInput() {
         String amountStr = binding.etAmount.getText().toString().trim();

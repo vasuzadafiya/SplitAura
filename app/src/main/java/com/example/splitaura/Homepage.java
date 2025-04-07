@@ -42,7 +42,7 @@ public class Homepage extends BaseActivity {
     private boolean isCurvedBarVisible = false;
     private BottomNavigationView bottomNavigationView;
     private boolean hasShownUPIDialog = false;
-    private int previousItemId = R.id.nav_home; // Track previous navigation item for animation direction
+    private int previousItemId = R.id.nav_home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,7 @@ public class Homepage extends BaseActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
         findViewById(R.id.personalContainer).setOnClickListener(v -> openPersonalActivity());
-        findViewById(R.id.groupContainer).setOnClickListener(v -> openGroupActivity());
+        findViewById(R.id.notificationsContainer).setOnClickListener(v -> openNotifications());
         findViewById(R.id.friendsContainer).setOnClickListener(v -> openFriendsActivity());
 
         shadowOverlay.setOnClickListener(v -> hideCurvedBracket());
@@ -96,32 +96,29 @@ public class Homepage extends BaseActivity {
             if (selectedFragment != null) {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-                // Determine animation direction based on navigation order
                 if (getNavigationIndex(itemId) != getNavigationIndex(previousItemId)) {
                     if (getNavigationIndex(itemId) > getNavigationIndex(previousItemId)) {
                         transaction.setCustomAnimations(
-                                R.anim.slide_in_right,  // Enter animation for new fragment
-                                R.anim.slide_out_left   // Exit animation for old fragment
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left
                         );
                     } else {
                         transaction.setCustomAnimations(
-                                R.anim.slide_in_left,   // Enter animation for new fragment (backwards)
-                                R.anim.slide_out_right  // Exit animation for old fragment (backwards)
+                                R.anim.slide_in_left,
+                                R.anim.slide_out_right
                         );
                     }
                 }
 
                 transaction.replace(R.id.frame_layout, selectedFragment)
                         .commit();
-                previousItemId = itemId; // Update previous item
+                previousItemId = itemId;
             }
             return true;
         });
 
-        // Handle back stack for consistent animations
         getSupportFragmentManager().addOnBackStackChangedListener(() -> {
             if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
-                // Ensure proper animation when returning to the initial fragment
                 Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
                 if (currentFragment != null && !(currentFragment instanceof HomeFragment)) {
                     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -140,7 +137,6 @@ public class Homepage extends BaseActivity {
         checkUPIStatus();
     }
 
-    // Helper method to determine navigation order for animation direction
     private int getNavigationIndex(int itemId) {
         if (itemId == R.id.nav_home) return 0;
         if (itemId == R.id.nav_groups) return 1;
@@ -189,25 +185,25 @@ public class Homepage extends BaseActivity {
 
     private void animateIcons() {
         LinearLayout personalIcon = findViewById(R.id.personalContainer);
-        LinearLayout groupIcon = findViewById(R.id.groupContainer);
+        LinearLayout notificationsIcon = findViewById(R.id.notificationsContainer);
         LinearLayout friendsIcon = findViewById(R.id.friendsContainer);
 
         personalIcon.setScaleX(0f);
         personalIcon.setScaleY(0f);
-        groupIcon.setScaleX(0f);
-        groupIcon.setScaleY(0f);
+        notificationsIcon.setScaleX(0f);
+        notificationsIcon.setScaleY(0f);
         friendsIcon.setScaleX(0f);
         friendsIcon.setScaleY(0f);
 
         ObjectAnimator personalScaleX = ObjectAnimator.ofFloat(personalIcon, View.SCALE_X, 1f);
         ObjectAnimator personalScaleY = ObjectAnimator.ofFloat(personalIcon, View.SCALE_Y, 1f);
-        ObjectAnimator groupScaleX = ObjectAnimator.ofFloat(groupIcon, View.SCALE_X, 1f);
-        ObjectAnimator groupScaleY = ObjectAnimator.ofFloat(groupIcon, View.SCALE_Y, 1f);
+        ObjectAnimator notificationsScaleX = ObjectAnimator.ofFloat(notificationsIcon, View.SCALE_X, 1f);
+        ObjectAnimator notificationsScaleY = ObjectAnimator.ofFloat(notificationsIcon, View.SCALE_Y, 1f);
         ObjectAnimator friendsScaleX = ObjectAnimator.ofFloat(friendsIcon, View.SCALE_X, 1f);
         ObjectAnimator friendsScaleY = ObjectAnimator.ofFloat(friendsIcon, View.SCALE_Y, 1f);
 
         AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(personalScaleX, personalScaleY, groupScaleX, groupScaleY, friendsScaleX, friendsScaleY);
+        animatorSet.playTogether(personalScaleX, personalScaleY, notificationsScaleX, notificationsScaleY, friendsScaleX, friendsScaleY);
         animatorSet.setDuration(400);
         animatorSet.setInterpolator(new AccelerateDecelerateInterpolator());
         animatorSet.start();
@@ -218,8 +214,10 @@ public class Homepage extends BaseActivity {
         hideCurvedBracket();
     }
 
-    private void openGroupActivity() {
-        Utill.showToast(this, "Coming Soon");
+    private void openNotifications() {
+        Intent intent = new Intent(this, PaymentDetailsActivity.class);
+        intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_PENDING);
+        startActivity(intent);
         hideCurvedBracket();
     }
 

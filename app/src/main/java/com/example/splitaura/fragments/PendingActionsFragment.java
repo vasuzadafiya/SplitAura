@@ -145,16 +145,11 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
 
                             WriteBatch batch = db.batch();
 
-                            // Update sender's transaction status
                             batch.update(db.collection("users").document(senderId)
                                             .collection("transactions").document(notification.getTransactionId()),
                                     "paymentStatus", transactionStatus);
 
-                            // Variables for debt settlement
-                            String debtorId = null;
-                            String creditorId = null;
                             Transaction receiverTx = null;
-
                             if (accept) {
                                 String actionType = notification.getActionType();
                                 switch (actionType) {
@@ -163,36 +158,14 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
                                         receiverTx = new Transaction(
                                                 "Payment from " + senderName, amount, date, "SUCCESS",
                                                 notification.getTransactionId() + "_RX", "CASH", senderId);
-                                        debtorId = senderId;
-                                        creditorId = currentUserId;
                                         break;
                                     case "PAYMENT_REQUEST":
                                         receiverTx = new Transaction(
                                                 "Payment to " + senderName, amount, date, "SUCCESS",
                                                 notification.getTransactionId() + "_RX", "CASH", senderId);
-                                        debtorId = currentUserId;
-                                        creditorId = senderId;
-                                        break;
-                                    case "SETTLEMENT":
-                                        receiverTx = new Transaction(
-                                                "Settlement with " + senderName, amount, date, "SUCCESS",
-                                                notification.getTransactionId() + "_RX", "SETTLEMENT", senderId);
-                                        double netOwed = senderFriend != null ? calculateNetAmountOwed(senderFriend) : 0.0;
-                                        if (netOwed < 0) {
-                                            debtorId = currentUserId;
-                                            creditorId = senderId;
-                                        } else if (netOwed > 0) {
-                                            debtorId = senderId;
-                                            creditorId = currentUserId;
-                                        } else {
-                                            debtorId = senderId;
-                                            creditorId = currentUserId;
-                                        }
                                         break;
                                     default:
                                         Log.w(TAG, "Unknown action type: " + actionType);
-                                        debtorId = senderId;
-                                        creditorId = currentUserId;
                                         break;
                                 }
 
@@ -202,21 +175,13 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
                                 }
                             }
 
-                            // Delete notification
                             batch.delete(db.collection("notifications").document(notification.getActionId()));
 
-                            String finalDebtorId = debtorId;
-                            String finalCreditorId = creditorId;
                             batch.commit()
                                     .addOnSuccessListener(aVoid -> {
                                         Log.d(TAG, "Action processed: " + notification.getActionId());
                                         requireActivity().runOnUiThread(() -> {
-                                            if (accept && finalDebtorId != null && finalCreditorId != null) {
-                                                viewModel.settleDebt(finalDebtorId, finalCreditorId, amount);
-                                                showToast("Action confirmed and debt settled");
-                                            } else if (!accept) {
-                                                showToast("Action rejected");
-                                            }
+                                            showToast(accept ? "Action confirmed" : "Action rejected");
                                             loadingDialog.hide();
                                             viewModel.refreshData();
                                         });

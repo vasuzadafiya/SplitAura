@@ -24,16 +24,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.Homepage;
 import com.example.splitaura.ManageFriends;
+import com.example.splitaura.PaymentDetailsActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.FriendBalanceAdapter;
 import com.example.splitaura.adapters.GroupAdapter;
@@ -71,7 +74,7 @@ public class HomeFragment extends Fragment {
     private static final String USERS = "users";
     private static final String SAVING = "saving";
     private static final int MAX_GROUPS_TO_DISPLAY = 2;
-    private static final int MAX_FRIENDS_TO_DISPLAY = 4; // Changed to show 4 friends
+    private static final int MAX_FRIENDS_TO_DISPLAY = 4;
     private static final int EXPENSE_DATA_TIMEOUT_SECONDS = 5;
 
     private final List<ListenerRegistration> firestoreListeners = new ArrayList<>();
@@ -93,7 +96,7 @@ public class HomeFragment extends Fragment {
     private List<FriendBalance> friendBalanceList;
     private HomeViewModel homeViewModel;
     private ImageButton payButton;
-    private ImageButton requestButton;
+    private ImageButton refreshButton;
     private ImageButton addIncomeButton;
     private ImageButton withdrawButton;
     private FirebaseFirestore db;
@@ -105,6 +108,7 @@ public class HomeFragment extends Fragment {
     private ListenerRegistration groupsListener;
     private LinearLayout groupPlaceholder;
     private LinearLayout peoplePlaceholder;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -131,12 +135,14 @@ public class HomeFragment extends Fragment {
         setupFriendBalanceAdapter();
         setupClickListeners();
 
+        // Do not call setupSwipeRefresh here; move it to onViewCreated
         return rootView;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupSwipeRefresh(view);  // Pass the rootView or use view directly
         fetchInitialData();
     }
 
@@ -151,23 +157,22 @@ public class HomeFragment extends Fragment {
             savingLayout = rootView.findViewById(R.id.saving_layout);
             savingTextView = rootView.findViewById(R.id.txt_saving);
 
-            // Initialize RecyclerViews
             groupRecyclerView = rootView.findViewById(R.id.group_recyclerView);
             groupRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
             friendRecyclerView = rootView.findViewById(R.id.friend_recyclerView);
             friendRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-            // Initialize buttons and clickable views
             viewAllGroups = rootView.findViewById(R.id.view_all_groups);
             groupCardView = rootView.findViewById(R.id.group_cardview);
             friendCardView = rootView.findViewById(R.id.friend_cardview);
             payButton = rootView.findViewById(R.id.btn_pay);
-            requestButton = rootView.findViewById(R.id.btn_request_amount);
+            refreshButton = rootView.findViewById(R.id.btn_refresh);
             withdrawButton = rootView.findViewById(R.id.btn_withdraw_saving);
             historyButton = rootView.findViewById(R.id.btn_history);
             addIncomeButton = rootView.findViewById(R.id.btn_add_income);
             groupPlaceholder = rootView.findViewById(R.id.placeholder);
             peoplePlaceholder = rootView.findViewById(R.id.people_placeholder);
+            swipeRefreshLayout = rootView.findViewById(R.id.swipeRefreshLayout);  // Initialize here
 
         } catch (Exception e) {
             Log.e(TAG, "Error initializing views", e);
@@ -183,7 +188,6 @@ public class HomeFragment extends Fragment {
             homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
             groupViewModel = new ViewModelProvider(requireActivity()).get(GroupViewModel.class);
 
-            // Observe group deletion events
             groupViewModel.getGroupDeleted().observe(getViewLifecycleOwner(), deleted -> {
                 if (Boolean.TRUE.equals(deleted)) {
                     refreshGroups();
@@ -244,12 +248,38 @@ public class HomeFragment extends Fragment {
             friendCardView.setOnClickListener(v -> navigateToManageFriends());
 
             payButton.setOnClickListener(v -> navigateToPaymentFragment());
-            requestButton.setOnClickListener(v -> navigateToPaymentFragment());
-            historyButton.setOnClickListener(v -> navigateToPaymentFragment());
+            refreshButton.setOnClickListener(v -> {  // Updated logic for refresh
+                fetchInitialData();
+                Toast.makeText(getContext(), "Refreshing...", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Refresh button clicked");
+            });
+            historyButton.setOnClickListener(v -> navigateToRecentTransactions());
             addIncomeButton.setOnClickListener(v -> showSavingDialog(true));
             withdrawButton.setOnClickListener(v -> showSavingDialog(false));
         } catch (Exception e) {
             Log.e(TAG, "Error setting up click listeners", e);
+        }
+    }
+
+    private void setupSwipeRefresh(View rootView) {
+        swipeRefreshLayout = rootView.findViewById(R.id.swipeRefreshLayout);
+        NestedScrollView nestedScrollView = rootView.findViewById(R.id.scrollView);
+
+        if (swipeRefreshLayout != null && nestedScrollView != null) {
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                fetchInitialData();
+                swipeRefreshLayout.setRefreshing(false);
+                Log.d(TAG, "Swipe refresh triggered");
+            });
+
+            // Monitor NestedScrollView scroll position
+            nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener)
+                    (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                        // Enable refresh only when at the top
+                        swipeRefreshLayout.setEnabled(scrollY == 0);
+                    });
+        } else {
+            Log.e(TAG, "SwipeRefreshLayout or NestedScrollView is null in setupSwipeRefresh");
         }
     }
 
@@ -376,8 +406,7 @@ public class HomeFragment extends Fragment {
             String friendsJson = sharedPreferences.getString(KEY_FRIENDS_DATA, null);
             if (friendsJson != null) {
                 Gson gson = new Gson();
-                Type type = new TypeToken<List<FriendBalance>>() {
-                }.getType();
+                Type type = new TypeToken<List<FriendBalance>>() {}.getType();
                 List<FriendBalance> cachedFriends = gson.fromJson(friendsJson, type);
 
                 if (cachedFriends != null && !cachedFriends.isEmpty()) {
@@ -499,18 +528,15 @@ public class HomeFragment extends Fragment {
                                 String lname = userDoc.getString("lname");
                                 String profilePic = userDoc.getString("profile_picture");
 
-                                // Check for null to avoid NullPointerException
                                 fname = (fname != null) ? fname.trim() : "";
                                 lname = (lname != null) ? lname.trim() : "";
 
-                                // Only process if at least one of fname or lname is non-empty.
                                 if (!fname.isEmpty() || !lname.isEmpty()) {
                                     StringBuilder friendNameBuilder = new StringBuilder();
                                     if (!fname.isEmpty()) {
                                         friendNameBuilder.append(fname);
                                     }
                                     if (!lname.isEmpty()) {
-                                        // If there's a first name already, add a space before the last name initial
                                         if (friendNameBuilder.length() > 0) {
                                             friendNameBuilder.append(" ");
                                         }
@@ -620,18 +646,14 @@ public class HomeFragment extends Fragment {
             ExpenseManager.UserExpenseData currentUserData = aggregatedData.get(currentUserId);
             friendBalances.clear();
 
-            // Calculate balances with all friends
             for (Map.Entry<String, String> friendEntry : friendNames.entrySet()) {
                 String friendId = friendEntry.getKey();
                 ExpenseManager.UserExpenseData friendData = aggregatedData.get(friendId);
 
-                // Calculate net balance between current user and this friend
                 double netBalance = 0.0;
 
                 if (friendData != null) {
-                    // What friend owes to current user (current user's credit)
                     double friendOwesYou = currentUserData.credits.getOrDefault(friendId, 0.0);
-                    // What current user owes to friend (current user's debt)
                     double youOweFriend = friendData.credits.getOrDefault(currentUserId, 0.0);
 
                     netBalance = friendOwesYou - youOweFriend;
@@ -664,11 +686,9 @@ public class HomeFragment extends Fragment {
                 }
             }
 
-            // Sort by absolute balance (highest first)
             friendBalanceList.sort((a, b) ->
                     Double.compare(Math.abs(b.getBalance()), Math.abs(a.getBalance())));
 
-            // Limit to MAX_FRIENDS_TO_DISPLAY (now 4)
             if (friendBalanceList.size() > MAX_FRIENDS_TO_DISPLAY) {
                 friendBalanceList = new ArrayList<>(
                         friendBalanceList.subList(0, MAX_FRIENDS_TO_DISPLAY));
@@ -812,6 +832,17 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    private void navigateToRecentTransactions() {
+        try {
+            Intent intent = new Intent(getActivity(), PaymentDetailsActivity.class);
+            intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_TRANSACTIONS);
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to recent transactions", e);
+            showErrorMessage(R.string.error_navigation);
+        }
+    }
+
     private void navigateToManageFriends() {
         try {
             Intent intent = new Intent(getActivity(), ManageFriends.class);
@@ -868,6 +899,7 @@ public class HomeFragment extends Fragment {
         }
 
         handler.removeCallbacksAndMessages(null);
+        swipeRefreshLayout = null;  // Clear reference to avoid memory leaks
     }
 
     @Override

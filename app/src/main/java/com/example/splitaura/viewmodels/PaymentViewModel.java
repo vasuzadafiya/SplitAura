@@ -211,14 +211,6 @@ public class PaymentViewModel extends ViewModel {
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + tx.getPaymentId(), e));
     }
 
-    public void settleDebt(String debtorId, String creditorId, double amount) {
-        for (ExpenseManager manager : expenseManagers) {
-            manager.settleDebt(debtorId, creditorId, amount);
-            Log.d(TAG, "Debt settled in ExpenseManager: " + debtorId + " -> " + creditorId + ": " + amount);
-        }
-        calculateBalance();
-    }
-
     public void calculateBalance() {
         String currentUserId = getCurrentUserId();
         if (currentUserId == null) {

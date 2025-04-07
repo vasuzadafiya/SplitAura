@@ -1,6 +1,7 @@
 package com.example.splitaura.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class PendingActionAdapter extends RecyclerView.Adapter<PendingActionAdapter.ViewHolder> {
     private final Context context;
@@ -46,20 +48,21 @@ public class PendingActionAdapter extends RecyclerView.Adapter<PendingActionAdap
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String senderName = documentSnapshot.exists() ?
-                            (documentSnapshot.getString("fname") + " " + documentSnapshot.getString("lname")) : "Unknown User";
+                            (documentSnapshot.getString("fname") + " " + (documentSnapshot.getString("lname") != null ? documentSnapshot.getString("lname") : "")) : "Unknown User";
                     holder.tvDetails.setText("From: " + senderName);
                 })
                 .addOnFailureListener(e -> {
                     holder.tvDetails.setText("From: Unknown User");
+                    Log.e("PendingActionAdapter", "Failed to fetch sender name: " + e.getMessage());
                 });
 
-        // Set other details
+        // Set action type and status
         holder.tvType.setText("Type: " + notification.getActionType());
         holder.tvStatus.setText("Status: " + notification.getActionStatus());
 
         // Style status and control button visibility
         boolean isPending = "PENDING".equals(notification.getActionStatus());
-        switch (notification.getActionStatus()) {
+        switch (notification.getActionStatus().toUpperCase(Locale.ROOT)) {
             case "PENDING":
                 holder.tvStatus.setBackgroundColor(context.getResources().getColor(android.R.color.holo_orange_dark));
                 holder.btnAccept.setVisibility(View.VISIBLE);
@@ -82,7 +85,7 @@ public class PendingActionAdapter extends RecyclerView.Adapter<PendingActionAdap
                 break;
         }
 
-        // Ensure buttons are only enabled for pending actions
+        // Enable buttons only for pending actions
         holder.btnAccept.setEnabled(isPending);
         holder.btnReject.setEnabled(isPending);
 
@@ -109,6 +112,7 @@ public class PendingActionAdapter extends RecyclerView.Adapter<PendingActionAdap
         pendingActions.clear();
         pendingActions.addAll(newActions);
         diffResult.dispatchUpdatesTo(this);
+        Log.d("PendingActionAdapter", "Pending actions updated, new count: " + pendingActions.size());
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -162,7 +166,8 @@ public class PendingActionAdapter extends RecyclerView.Adapter<PendingActionAdap
             return oldNotification.getActionId().equals(newNotification.getActionId()) &&
                     oldNotification.getActionStatus().equals(newNotification.getActionStatus()) &&
                     oldNotification.getActionType().equals(newNotification.getActionType()) &&
-                    oldNotification.getSenderId().equals(newNotification.getSenderId());
+                    oldNotification.getSenderId().equals(newNotification.getSenderId()) &&
+                    oldNotification.getReceiverId().equals(newNotification.getReceiverId());
         }
     }
 }

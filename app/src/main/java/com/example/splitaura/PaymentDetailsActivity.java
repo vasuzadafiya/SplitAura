@@ -2,9 +2,11 @@ package com.example.splitaura;
 
 import android.os.Bundle;
 import android.util.Log;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
 import com.example.splitaura.fragments.PendingActionsFragment;
 import com.example.splitaura.fragments.RecentTransactionsFragment;
 import com.example.splitaura.viewmodels.PaymentViewModel;
@@ -16,10 +18,10 @@ public class PaymentDetailsActivity extends AppCompatActivity {
     public static final String TYPE_PENDING = "pending";
     public static final String TYPE_TRANSACTIONS = "transactions";
 
-    private PaymentViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        PaymentViewModel viewModel;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment_details);
 
@@ -27,10 +29,8 @@ public class PaymentDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Initialize the ViewModel
         viewModel = new ViewModelProvider(this).get(PaymentViewModel.class);
 
-        // Load data
         Log.d(TAG, "Loading initial data in PaymentDetailsActivity");
         viewModel.loadInitialData();
         viewModel.loadFriends();

@@ -5,11 +5,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
 import com.example.splitaura.adapters.TransactionPaymentAdapter;
 import com.example.splitaura.databinding.FragmentRecentTransactionsBinding;
 import com.example.splitaura.dialogues.LoadingDialog;
@@ -50,7 +52,6 @@ public class RecentTransactionsFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // Observe loading state
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null && isLoading) {
                 loadingDialog.show();
@@ -61,7 +62,6 @@ public class RecentTransactionsFragment extends Fragment {
             }
         });
 
-        // Observe transactions
         viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
             if (transactions == null || transactions.isEmpty()) {
                 binding.tvEmptyTransactions.setVisibility(View.VISIBLE);

@@ -32,7 +32,6 @@ public class ExpenseManager {
     private final MutableLiveData<Map<String, UserExpenseData>> userExpenseData = new MutableLiveData<>(new HashMap<>());
     private final MutableLiveData<List<Expense>> expenses = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<Double> groupAmount = new MutableLiveData<>(0.0);
-    // New LiveData for the simplified owe relationships.
     private final MutableLiveData<List<OweRelationship>> minimalOweTransactions = new MutableLiveData<>(new ArrayList<>());
 
     private ListenerRegistration expenseListener;
@@ -66,7 +65,6 @@ public class ExpenseManager {
 
         public Expense() {}
 
-        // Getters and Setters
         public String getExpenseId() { return expenseId; }
         public void setExpenseId(String expenseId) { this.expenseId = expenseId; }
         public String getTitle() { return title; }
@@ -151,7 +149,6 @@ public class ExpenseManager {
         return groupAmount;
     }
 
-    // New LiveData accessor for minimal owe transactions.
     public LiveData<List<OweRelationship>> getMinimalOweTransactions() {
         return minimalOweTransactions;
     }
@@ -288,11 +285,11 @@ public class ExpenseManager {
         debtorData.debts.put(creditorId, currentDebt - amount);
         creditorData.credits.put(debtorId, creditorData.credits.getOrDefault(debtorId, 0.0) - amount);
 
-        // Update net balances
         debtorData.netBalance = debtorData.totalSpent - debtorData.totalShare;
         creditorData.netBalance = creditorData.totalSpent - creditorData.totalShare;
 
         userExpenseData.setValue(currentData);
+        Log.d(TAG, "Debt settled: " + debtorId + " -> " + creditorId + " for " + amount);
     }
 
     public void removeListener() {
@@ -360,12 +357,10 @@ public class ExpenseManager {
             List<Expense> expenseList = new ArrayList<>();
             double groupAmountValue = 0.0;
 
-            // Initialize for all members
             for (String userId : memberIds) {
                 data.put(userId, new UserExpenseData(0.0, 0.0, 0.0, new HashMap<>(), new HashMap<>()));
             }
 
-            // Process each expense
             for (QueryDocumentSnapshot doc : snapshots) {
                 try {
                     Expense expense = Expense.fromMap(doc.getData());
@@ -384,19 +379,16 @@ public class ExpenseManager {
                         payerData.totalSpent += amount;
                     }
 
-                    // Calculate total shares.
                     double totalShares = participants.values().stream()
                             .mapToDouble(share -> share != null ? share : 0.0)
                             .sum();
 
                     if (totalShares <= 0) {
-                        // Equal split if no shares specified.
                         double equalShare = amount / participants.size();
                         participants.replaceAll((k, v) -> equalShare);
                         totalShares = amount;
                     }
 
-                    // Distribute shares.
                     for (Map.Entry<String, Double> entry : participants.entrySet()) {
                         String userId = entry.getKey();
                         double share = entry.getValue() != null ?
@@ -419,18 +411,15 @@ public class ExpenseManager {
                 }
             }
 
-            // Calculate net balances.
             data.forEach((userId, userData) -> {
                 userData.netBalance = userData.totalSpent - userData.totalShare;
             });
 
-            // Prepare a map of net balances.
             Map<String, Double> netBalances = new HashMap<>();
             for (Map.Entry<String, UserExpenseData> entry : data.entrySet()) {
                 netBalances.put(entry.getKey(), entry.getValue().netBalance);
             }
 
-            // Compute minimal owe transactions.
             List<OweRelationship> minimalTransactions = DebtSettlementCalculator.calculateMinimalOwe(netBalances);
 
             double finalGroupAmountValue = groupAmountValue;
@@ -486,7 +475,7 @@ public class ExpenseManager {
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch friend name", e));
-        return name[0]; // Synchronous fallback; ideally, use an asynchronous callback.
+        return name[0];
     }
 
     private boolean validateExpenseData(Map<String, Object> expenseData) {

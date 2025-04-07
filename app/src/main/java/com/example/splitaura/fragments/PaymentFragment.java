@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
@@ -36,22 +37,19 @@ import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.PaymentDetailsActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.ContactsAdapter;
-import com.example.splitaura.adapters.PendingActionAdapter;
-import com.example.splitaura.adapters.TransactionPaymentAdapter;
 import com.example.splitaura.databinding.FragmentPaymentBinding;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Notification;
 import com.example.splitaura.models.Transaction;
 import com.example.splitaura.viewmodels.PaymentViewModel;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
+import com.itextpdf.io.exceptions.IOException;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -69,7 +67,6 @@ import com.itextpdf.layout.properties.VerticalAlignment;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -86,9 +83,8 @@ public class PaymentFragment extends Fragment {
     private PaymentViewModel viewModel;
     private LoadingDialog loadingDialog;
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private PendingActionAdapter pendingAdapter;
-    private TransactionPaymentAdapter transactionAdapter;
     private ContactsAdapter contactsAdapter;
+    private CountDownTimer confirmationTimer;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
@@ -110,23 +106,12 @@ public class PaymentFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupRecyclerViews();
         setupListeners();
         setupAmountInput();
         observeViewModel();
         viewModel.loadInitialData();
         viewModel.loadFriends();
         Log.d(TAG, "View setup complete, initial data loading started");
-    }
-
-    private void setupRecyclerViews() {
-        pendingAdapter = new PendingActionAdapter(requireContext(), this::handlePendingAction);
-        transactionAdapter = new TransactionPaymentAdapter(requireContext());
-        Log.d(TAG, "RecyclerView adapters initialized");
-    }
-
-    private void showConfirmationDialog(String message, Runnable onConfirm) {
-        new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme).setTitle("Confirm Action").setMessage(message).setPositiveButton("Yes", (dialog, which) -> onConfirm.run()).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).show();
     }
 
     private void setupListeners() {
@@ -143,7 +128,7 @@ public class PaymentFragment extends Fragment {
             Friend selectedFriend = viewModel.getSelectedFriend().getValue();
             double amount = Double.parseDouble(binding.etAmount.getText().toString());
             String message = String.format(Locale.getDefault(), "Are you sure you want to send ₹%.2f to %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, () -> initiatePayment(false));
+            showConfirmationDialog(message, () -> initiateSendPayment(amount, selectedFriend), false);
         });
 
         binding.btnRequest.setOnClickListener(v -> {
@@ -151,7 +136,7 @@ public class PaymentFragment extends Fragment {
             Friend selectedFriend = viewModel.getSelectedFriend().getValue();
             double amount = Double.parseDouble(binding.etAmount.getText().toString());
             String message = String.format(Locale.getDefault(), "Are you sure you want to request ₹%.2f from %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, () -> initiatePayment(true));
+            showConfirmationDialog(message, () -> initiateRequestPayment(amount, selectedFriend), false);
         });
 
         binding.btnSettle.setOnClickListener(v -> {
@@ -159,30 +144,38 @@ public class PaymentFragment extends Fragment {
             Friend selectedFriend = viewModel.getSelectedFriend().getValue();
             double amount = Double.parseDouble(binding.etAmount.getText().toString());
             String message = String.format(Locale.getDefault(), "Are you sure you want to settle ₹%.2f with %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, this::settleDebt);
+            showConfirmationDialog(message, () -> initiateSettlePayment(amount, selectedFriend), false);
         });
+
+        binding.btnQrPayment.setOnClickListener(v -> initiateQrPayment());
 
         binding.btnExportPdf.setOnClickListener(v -> {
             String msg = "Are you sure you want to export the PDF?";
-            showConfirmationDialog(msg, this::generatePdf);
+            showConfirmationDialog(msg, this::generatePdf, false);
         });
-        binding.btnQrPayment.setOnClickListener(v -> showQrPaymentDialog());
-        binding.btnPendingActions.setOnClickListener(v -> showPendingActionsDialog());
-        binding.btnRecentTransactions.setOnClickListener(v -> showRecentTransactionsDialog());
+
+        binding.btnPendingActions.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), PaymentDetailsActivity.class);
+            intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_PENDING);
+            startActivity(intent);
+        });
+
+        binding.btnRecentTransactions.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), PaymentDetailsActivity.class);
+            intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_TRANSACTIONS);
+            startActivity(intent);
+        });
         Log.d(TAG, "Button listeners set up");
     }
 
     private void setupAmountInput() {
         binding.etAmount.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 binding.amountInputLayout.setError(null);
             }
-
             @Override
             public void afterTextChanged(Editable s) {
                 Log.d(TAG, "Amount input changed: " + s.toString());
@@ -202,7 +195,6 @@ public class PaymentFragment extends Fragment {
                 Log.w(TAG, "Balance is null");
                 return;
             }
-
             binding.tvBalance.setText(String.format(Locale.getDefault(), "₹%.2f", Math.abs(balance)));
             binding.tvBalanceStatus.setText(balance > 0 ? "You are owed" : balance < 0 ? "You owe" : "Settled up");
             binding.tvBalance.setTextColor(ContextCompat.getColor(requireContext(),
@@ -213,7 +205,6 @@ public class PaymentFragment extends Fragment {
 
         viewModel.getPendingNotifications().observe(getViewLifecycleOwner(), pending -> {
             if (pending == null) pending = new ArrayList<>();
-//            binding.tvPendingCount.setText(pending.isEmpty() ? "No pending actions" : getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
             if (pending.isEmpty()) {
                 binding.tvPendingCount.setText("No pending actions");
                 binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.green));
@@ -221,14 +212,7 @@ public class PaymentFragment extends Fragment {
                 binding.tvPendingCount.setText(getResources().getQuantityString(R.plurals.pending_actions_count, pending.size(), pending.size()));
                 binding.tvPendingCount.setBackgroundColor(getResources().getColor(R.color.red));
             }
-            pendingAdapter.updatePendingActions(pending);
             Log.d(TAG, "Pending notifications updated, count: " + pending.size());
-        });
-
-        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
-            if (transactions == null) transactions = new ArrayList<>();
-            transactionAdapter.updateTransactions(transactions);
-            Log.d(TAG, "Transactions updated, count: " + transactions.size());
         });
 
         viewModel.getFriends().observe(getViewLifecycleOwner(), friends -> {
@@ -240,7 +224,7 @@ public class PaymentFragment extends Fragment {
 
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (!TextUtils.isEmpty(error)) {
-                showToast(error);
+                showToast("Error: " + error);
                 loadingDialog.hide();
                 Log.e(TAG, "Error message received: " + error);
             }
@@ -255,6 +239,14 @@ public class PaymentFragment extends Fragment {
                 Log.d(TAG, "Loading stopped");
             }
         });
+
+        // Observe ExpenseManager updates
+        for (ExpenseManager manager : viewModel.getExpenseManagers()) {
+            manager.getUserExpenseData().observe(getViewLifecycleOwner(), data -> {
+                viewModel.calculateBalance();
+                updateDebtInfo(viewModel.getSelectedFriend().getValue());
+            });
+        }
     }
 
     private void updateDebtInfo(Friend friend) {
@@ -301,7 +293,7 @@ public class PaymentFragment extends Fragment {
                 });
             } catch (Exception e) {
                 Log.e(TAG, "Error calculating debt for " + friend.getFullName(), e);
-                requireActivity().runOnUiThread(() -> showToast("Error calculating debt"));
+                requireActivity().runOnUiThread(() -> showToast("Error calculating debt: " + e.getMessage()));
             }
         });
     }
@@ -319,7 +311,7 @@ public class PaymentFragment extends Fragment {
         for (ExpenseManager manager : expenseManagers) {
             Map<String, ExpenseManager.UserExpenseData> userExpenseData = manager.getUserExpenseData().getValue();
             if (userExpenseData == null) {
-                Log.w(TAG, "UserExpenseData is null for group: " + manager);
+                Log.w(TAG, "UserExpenseData is null for group: " + manager.getGroupId());
                 continue;
             }
 
@@ -338,8 +330,6 @@ public class PaymentFragment extends Fragment {
                     netAmountOwed += creditFromFriend;
                     Log.d(TAG, friend.getFullName() + " owes current user: " + creditFromFriend);
                 }
-            } else {
-                Log.w(TAG, "Missing data for user " + currentUserId + " or friend " + friend.getUid());
             }
         }
 
@@ -347,334 +337,244 @@ public class PaymentFragment extends Fragment {
         return netAmountOwed;
     }
 
-    private void initiatePayment(boolean isRequest) {
-        if (!validateInput()) return;
+    private void initiateSendPayment(double amount, Friend selectedFriend) {
         loadingDialog.show();
         String currentUserId = viewModel.getCurrentUserId();
 
         executor.execute(() -> {
             try {
-                double amount = Double.parseDouble(binding.etAmount.getText().toString());
-                Friend selectedFriend = viewModel.getSelectedFriend().getValue();
-                if (selectedFriend == null) throw new IllegalStateException("No friend selected");
-
-                String transactionId = (isRequest ? "REQ_" : "PAY_") + System.currentTimeMillis();
+                String transactionId = "PAY_" + System.currentTimeMillis();
                 String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
 
-                // Create a Transaction if it's a PAYMENT_SENT
-                if (!isRequest) {
-                    Transaction transaction = new Transaction("Payment to " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "CASH", selectedFriend.getUid());
-                    db.collection("users").document(currentUserId).collection("transactions").document(transactionId).set(transaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId)).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
-                }
+                Transaction senderTx = new Transaction(
+                        "Payment to " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "CASH", selectedFriend.getUid());
+                Notification notification = new Notification(
+                        "PAYMENT_SENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
 
-                // Create a Notification
-                Notification notification = new Notification(isRequest ? "PAYMENT_REQUEST" : "PAYMENT_SENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
+                WriteBatch batch = db.batch();
+                batch.set(db.collection("users").document(currentUserId).collection("transactions").document(transactionId), senderTx);
+                batch.set(db.collection("notifications").document(transactionId), notification);
 
-                db.collection("notifications").document(transactionId).set(notification).addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification created: " + transactionId + ", type: " + notification.getActionType());
-                    requireActivity().runOnUiThread(() -> {
-                        showToast(isRequest ? "Payment request sent" : "Payment initiated");
-                        loadingDialog.hide();
-                    });
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to create notification: " + transactionId, e);
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("Error initiating payment");
-                        loadingDialog.hide();
-                    });
-                });
+                batch.commit()
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Send payment initiated: " + transactionId);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Payment sent, awaiting confirmation");
+                                loadingDialog.hide();
+                                viewModel.refreshData();
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to initiate send payment: " + transactionId, e);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Error sending payment: " + e.getMessage());
+                                loadingDialog.hide();
+                            });
+                        });
             } catch (Exception e) {
-                Log.e(TAG, "Payment initiation failed", e);
+                Log.e(TAG, "Send payment failed", e);
                 requireActivity().runOnUiThread(() -> {
-                    showToast("Error: " + e.getMessage());
+                    showToast("Error sending payment: " + e.getMessage());
                     loadingDialog.hide();
                 });
             }
         });
     }
 
-    private void settleDebt() {
+    private void initiateRequestPayment(double amount, Friend selectedFriend) {
+        loadingDialog.show();
+        String currentUserId = viewModel.getCurrentUserId();
+
+        executor.execute(() -> {
+            try {
+                String transactionId = "REQ_" + System.currentTimeMillis();
+                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+
+                Transaction senderTx = new Transaction(
+                        "Request from " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "CASH", selectedFriend.getUid());
+                Notification notification = new Notification(
+                        "PAYMENT_REQUEST", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
+
+                WriteBatch batch = db.batch();
+                batch.set(db.collection("users").document(currentUserId).collection("transactions").document(transactionId), senderTx);
+                batch.set(db.collection("notifications").document(transactionId), notification);
+
+                batch.commit()
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Request payment initiated: " + transactionId);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Payment request sent, awaiting response");
+                                loadingDialog.hide();
+                                viewModel.refreshData();
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to initiate request payment: " + transactionId, e);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Error requesting payment: " + e.getMessage());
+                                loadingDialog.hide();
+                            });
+                        });
+            } catch (Exception e) {
+                Log.e(TAG, "Request payment failed", e);
+                requireActivity().runOnUiThread(() -> {
+                    showToast("Error requesting payment: " + e.getMessage());
+                    loadingDialog.hide();
+                });
+            }
+        });
+    }
+
+    private void initiateSettlePayment(double amount, Friend selectedFriend) {
+        loadingDialog.show();
+        String currentUserId = viewModel.getCurrentUserId();
+
+        executor.execute(() -> {
+            try {
+                String transactionId = "SET_" + System.currentTimeMillis();
+                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+
+                Transaction senderTx = new Transaction(
+                        "Settlement with " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "SETTLEMENT", selectedFriend.getUid());
+                Notification notification = new Notification(
+                        "SETTLEMENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
+
+                WriteBatch batch = db.batch();
+                batch.set(db.collection("users").document(currentUserId).collection("transactions").document(transactionId), senderTx);
+                batch.set(db.collection("notifications").document(transactionId), notification);
+
+                batch.commit()
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d(TAG, "Settle payment initiated: " + transactionId);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Settlement initiated, awaiting confirmation");
+                                loadingDialog.hide();
+                                viewModel.refreshData();
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to initiate settle payment: " + transactionId, e);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Error settling payment: " + e.getMessage());
+                                loadingDialog.hide();
+                            });
+                        });
+            } catch (Exception e) {
+                Log.e(TAG, "Settle payment failed", e);
+                requireActivity().runOnUiThread(() -> {
+                    showToast("Error settling payment: " + e.getMessage());
+                    loadingDialog.hide();
+                });
+            }
+        });
+    }
+
+    private void initiateQrPayment() {
         if (!validateInput()) return;
         loadingDialog.show();
         String currentUserId = viewModel.getCurrentUserId();
         Friend selectedFriend = viewModel.getSelectedFriend().getValue();
+        double amount = Double.parseDouble(binding.etAmount.getText().toString());
 
         executor.execute(() -> {
             try {
-                double amount = Double.parseDouble(binding.etAmount.getText().toString());
-                String transactionId = "SET_" + System.currentTimeMillis();
+                String transactionId = "QR_" + System.currentTimeMillis();
                 String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
 
-                // Create a Transaction
-                Transaction transaction = new Transaction("Settlement with " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "SETTLEMENT", selectedFriend.getUid());
-                db.collection("users").document(currentUserId).collection("transactions").document(transactionId).set(transaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction logged: " + transactionId)).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + transactionId, e));
+                db.collection("users").document(selectedFriend.getUid()).get()
+                        .addOnSuccessListener(friendDoc -> {
+                            try {
+                                if (!friendDoc.exists()) throw new IllegalStateException("Friend's data not found");
+                                String upiId = friendDoc.getString("upi");
+                                if (TextUtils.isEmpty(upiId)) throw new IllegalStateException("Friend's UPI ID not available");
 
-                // Create a Notification
-                Notification notification = new Notification("SETTLEMENT", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
+                                String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment", upiId, amount);
+                                Bitmap qrBitmap = generateQrCode(upiString);
 
-                db.collection("notifications").document(transactionId).set(notification).addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Settlement notification created: " + transactionId);
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("Settlement initiated, awaiting confirmation");
-                        loadingDialog.hide();
-                        viewModel.refreshData();
-                    });
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to create settlement notification: " + transactionId, e);
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("Error initiating settlement");
-                        loadingDialog.hide();
-                    });
-                });
+                                Transaction senderTx = new Transaction(
+                                        "QR Payment to " + selectedFriend.getFullName(), amount, date, "PENDING", transactionId, "QR", selectedFriend.getUid());
+                                Notification notification = new Notification(
+                                        "QR", currentUserId, selectedFriend.getUid(), transactionId, transactionId, "PENDING");
+
+                                WriteBatch batch = db.batch();
+                                batch.set(db.collection("users").document(currentUserId).collection("transactions").document(transactionId), senderTx);
+                                batch.set(db.collection("notifications").document(transactionId), notification);
+
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> {
+                                            requireActivity().runOnUiThread(() -> {
+                                                showQrDialog(qrBitmap, transactionId, amount);
+                                                loadingDialog.hide();
+                                            });
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Failed to initiate QR payment: " + transactionId, e);
+                                            requireActivity().runOnUiThread(() -> {
+                                                showToast("Error initiating QR payment: " + e.getMessage());
+                                                loadingDialog.hide();
+                                            });
+                                        });
+                            } catch (Exception e) {
+                                Log.e(TAG, "QR payment error", e);
+                                requireActivity().runOnUiThread(() -> {
+                                    showToast("Error generating QR code: " + e.getMessage());
+                                    loadingDialog.hide();
+                                });
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Failed to fetch friend data", e);
+                            requireActivity().runOnUiThread(() -> {
+                                showToast("Error fetching friend's UPI ID: " + e.getMessage());
+                                loadingDialog.hide();
+                            });
+                        });
             } catch (Exception e) {
-                Log.e(TAG, "Settlement failed", e);
+                Log.e(TAG, "QR payment failed", e);
                 requireActivity().runOnUiThread(() -> {
-                    showToast("Error: " + e.getMessage());
+                    showToast("Error initiating QR payment: " + e.getMessage());
                     loadingDialog.hide();
                 });
             }
         });
     }
 
-    private void logTransaction(String userId, Friend friend, double amount, String date, String paymentId, String method) {
-        Transaction transaction = new Transaction("Payment to " + friend.getFullName(), amount, date, "PENDING", paymentId, method, friend.getUid());
+    private void showQrDialog(Bitmap qrBitmap, String transactionId, double amount) {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null);
+        ImageView ivQrCode = dialogView.findViewById(R.id.iv_qr_code);
+        ivQrCode.setImageBitmap(qrBitmap);
 
-        db.collection("users").document(userId).collection("transactions").document(paymentId).set(transaction).addOnSuccessListener(aVoid -> {
-            Log.d(TAG, "Transaction logged: " + paymentId + ", method: " + method);
-            viewModel.refreshData();
-        }).addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + paymentId, e));
-    }
-
-    void handlePendingAction(Notification notification, boolean accept) {
-        if (notification == null) {
-            Log.w(TAG, "Null notification in handlePendingAction");
-            return;
-        }
-        loadingDialog.show();
-        String currentUserId = viewModel.getCurrentUserId();
-
-        executor.execute(() -> {
-            try {
-                String newStatus = accept ? "CONFIRMED" : "REJECTED";
-                String transactionStatus = accept ? "SUCCESS" : "FAILED";
-
-                // Update the transaction status
-                if ("PAYMENT_SENT".equals(notification.getActionType()) || "SETTLEMENT".equals(notification.getActionType())) {
-                    updateTransactionStatus(notification.getSenderId(), notification.getTransactionId(), transactionStatus);
-
-                    // If PAYMENT_SENT is accepted, log a transaction for the receiver
-                    if (accept && "PAYMENT_SENT".equals(notification.getActionType())) {
-                        db.collection("users").document(notification.getSenderId()).collection("transactions").document(notification.getTransactionId()).get().addOnSuccessListener(senderTxDoc -> {
-                            if (senderTxDoc.exists()) {
-                                Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
-                                if (senderTransaction != null) {
-                                    String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                    Friend senderFriend = findFriendByUid(notification.getSenderId());
-                                    String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                                    Transaction receiverTransaction = new Transaction("Payment Accepted from " + senderName, senderTransaction.getAmount(), date, "SUCCESS", notification.getTransactionId() + "_ACCEPTED", senderTransaction.getMethod(), notification.getSenderId());
-                                    db.collection("users").document(notification.getReceiverId()).collection("transactions").document(receiverTransaction.getPaymentId()).set(receiverTransaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId())).addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                                }
-                            } else {
-                                Log.w(TAG, "Sender transaction not found: " + notification.getTransactionId());
-                            }
-                        }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
-                    }
-                } else if (accept && "PAYMENT_REQUEST".equals(notification.getActionType())) {
-                    // Fetch the sender's friend object
-                    Friend senderFriend = findFriendByUid(notification.getSenderId());
-                    String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                    db.collection("users").document(notification.getSenderId()).collection("transactions").document(notification.getTransactionId()).get().addOnSuccessListener(senderTxDoc -> {
-                        if (senderTxDoc.exists()) {
-                            Transaction senderTransaction = senderTxDoc.toObject(Transaction.class);
-                            if (senderTransaction != null) {
-                                String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                Transaction receiverTransaction = new Transaction("Payment to " + senderName, senderTransaction.getAmount(), date, "SUCCESS", notification.getTransactionId() + "_TX", "CASH", notification.getSenderId());
-                                db.collection("users").document(notification.getReceiverId()).collection("transactions").document(receiverTransaction.getPaymentId()).set(receiverTransaction).addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId())).addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                            }
-                        } else {
-                            Log.w(TAG, "Sender transaction not found for request: " + notification.getTransactionId());
-                        }
-                    }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction", e));
-                }
-
-                // Delete the notification
-                db.collection("notifications").document(notification.getActionId()).delete().addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Notification deleted: " + notification.getActionId());
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle(String.format(Locale.getDefault(), "Scan to Pay ₹%.2f", amount))
+                .setView(dialogView)
+                .setMessage("Share this QR code with your friend to confirm payment.")
+                .setPositiveButton("Done", (d, w) -> {
+                    showToast("QR payment sent, awaiting receiver confirmation");
                     viewModel.refreshData();
-                    requireActivity().runOnUiThread(() -> {
-                        loadingDialog.hide();
-                        showToast(accept ? "Action confirmed" : "Action rejected");
-                    });
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to delete notification: " + notification.getActionId(), e);
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("Error updating action");
-                        loadingDialog.hide();
-                    });
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "Error handling pending action", e);
-                requireActivity().runOnUiThread(() -> {
-                    showToast("Error: " + e.getMessage());
-                    loadingDialog.hide();
-                });
-            }
-        });
-    }
+                })
+                .setNegativeButton("Cancel", (d, w) -> {
+                    updateTransactionStatus(viewModel.getCurrentUserId(), transactionId, "FAILED");
+                    db.collection("notifications").document(transactionId).delete();
+                    showToast("QR payment cancelled");
+                    viewModel.refreshData();
+                })
+                .create();
 
-    private void updateTransactionStatus(String userId, String transactionId, String status) {
-        db.collection("users").document(userId).collection("transactions").document(transactionId).update("paymentStatus", status).addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction " + transactionId + " updated to " + status)).addOnFailureListener(e -> Log.e(TAG, "Failed to update transaction: " + transactionId, e));
-    }
-
-    private void showFriendSelectionDialog() {
-        try {
-            View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_category, null);
-            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext(), R.style.FullScreenDialog);
-            builder.setView(dialogView);
-
-            RecyclerView rvFriends = dialogView.findViewById(R.id.recyclerViewCategories);
-            TextView tvTitle = dialogView.findViewById(R.id.category_dialog_title);
-            tvTitle.setText("Select Friend");
-            rvFriends.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-            List<Friend> tempSelected = new ArrayList<>();
-            contactsAdapter = new ContactsAdapter(viewModel.getFriends().getValue() != null ? viewModel.getFriends().getValue() : new ArrayList<>(), tempSelected, friend -> {
-                tempSelected.clear();
-                tempSelected.add(friend);
-                contactsAdapter.notifyDataSetChanged();
-            });
-            rvFriends.setAdapter(contactsAdapter);
-
-            Button cancelButton = dialogView.findViewById(R.id.cancel_button);
-            Button okButton = dialogView.findViewById(R.id.ok_button);
-            AlertDialog dialog = builder.create();
-
-            cancelButton.setOnClickListener(v -> dialog.dismiss());
-            okButton.setOnClickListener(v -> {
-                if (!tempSelected.isEmpty()) {
-                    viewModel.setSelectedFriend(tempSelected.get(0));
-                    dialog.dismiss();
-                    Log.d(TAG, "Friend selected: " + tempSelected.get(0).getFullName());
-                } else {
-                    showToast("Please select a friend");
-                }
-            });
-
-            dialog.show();
-            Log.d(TAG, "Friend selection dialog shown");
-        } catch (Exception e) {
-            Log.e(TAG, "Error showing friend selection dialog", e);
-            showToast("Error showing friend selection");
-        }
-    }
-
-    private void showPendingActionsDialog() {
-        Intent intent = new Intent(requireContext(), PaymentDetailsActivity.class);
-        intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_PENDING);
-        startActivity(intent);
-    }
-
-    private void showRecentTransactionsDialog() {
-        Intent intent = new Intent(requireContext(), PaymentDetailsActivity.class);
-        intent.putExtra(PaymentDetailsActivity.EXTRA_TYPE, PaymentDetailsActivity.TYPE_TRANSACTIONS);
-        startActivity(intent);
-    }
-
-    private void showQrPaymentDialog() {
-        if (!validateInput()) return;
-        loadingDialog.show();
-
-        executor.execute(() -> {
-            try {
-                double amount = Double.parseDouble(binding.etAmount.getText().toString());
-                Friend selectedFriend = viewModel.getSelectedFriend().getValue();
-                if (selectedFriend == null) {
-                    throw new IllegalStateException("No friend selected");
-                }
-                Log.d(TAG, "Selected friend UID: " + selectedFriend.getUid());
-
-                // Fetch the friend's UPI ID from Firestore asynchronously
-                db.collection("users").document(selectedFriend.getUid()).get().addOnSuccessListener(friendDoc -> {
-                    try {
-                        Log.d(TAG, "Firestore query successful for user: " + selectedFriend.getUid());
-                        if (friendDoc == null || !friendDoc.exists()) {
-                            throw new IllegalStateException("Friend's data not found in Firestore");
-                        }
-
-                        String upiId = friendDoc.getString("upi");
-                        if (TextUtils.isEmpty(upiId)) {
-                            throw new IllegalStateException("Friend's UPI ID not available");
-                        }
-                        Log.d(TAG, "UPI ID fetched: " + upiId);
-
-                        // Generate UPI payment string
-                        String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment", upiId, amount);
-                        Log.d(TAG, "UPI string generated: " + upiString);
-
-                        // Generate QR code
-                        Bitmap qrBitmap = generateQrCode(upiString);
-                        if (qrBitmap == null) {
-                            throw new Exception("Failed to generate QR code bitmap");
-                        }
-                        Log.d(TAG, "QR code generated successfully");
-
-                        // Log the transaction
-                        String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                        String paymentId = "QR_" + System.currentTimeMillis();
-                        logTransaction(viewModel.getCurrentUserId(), selectedFriend, amount, date, paymentId, "QR");
-                        Log.d(TAG, "Transaction logged with paymentId: " + paymentId);
-
-                        // Show the QR code dialog on the UI thread
-                        requireActivity().runOnUiThread(() -> {
-                            View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null);
-                            ImageView ivQrCode = dialogView.findViewById(R.id.iv_qr_code);
-                            ivQrCode.setImageBitmap(qrBitmap);
-
-                            new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme).setTitle(String.format(Locale.getDefault(), "Scan to Pay ₹%.2f", amount)).setView(dialogView).setPositiveButton("Done", null).show();
-                            loadingDialog.hide();
-                            Log.d(TAG, "QR payment dialog shown, transaction logged: " + paymentId);
-                        });
-                    } catch (Exception e) {
-                        Log.e(TAG, "QR payment error after Firestore query", e);
-                        requireActivity().runOnUiThread(() -> {
-                            showToast("Error generating QR code: " + e.getMessage());
-                            loadingDialog.hide();
-                        });
-                    }
-                }).addOnFailureListener(e -> {
-                    Log.e(TAG, "Firestore query failed for user: " + selectedFriend.getUid(), e);
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("Error fetching friend's UPI ID: " + e.getMessage());
-                        loadingDialog.hide();
-                    });
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "QR payment error before Firestore query", e);
-                requireActivity().runOnUiThread(() -> {
-                    showToast("Error generating QR code: " + e.getMessage());
-                    loadingDialog.hide();
-                });
-            }
-        });
+        dialog.show();
     }
 
     private Bitmap generateQrCode(String data) throws Exception {
-        try {
-            MultiFormatWriter writer = new MultiFormatWriter();
-            BitMatrix bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512);
-            int width = bitMatrix.getWidth();
-            int height = bitMatrix.getHeight();
-            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-                }
+        MultiFormatWriter writer = new MultiFormatWriter();
+        BitMatrix bitMatrix = writer.encode(data, BarcodeFormat.QR_CODE, 512, 512);
+        int width = bitMatrix.getWidth();
+        int height = bitMatrix.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
             }
-            return bitmap;
-        } catch (Exception e) {
-            Log.e(TAG, "QR code generation failed", e);
-            throw e;
         }
+        return bitmap;
     }
 
     private void generatePdf() {
@@ -685,9 +585,7 @@ public class PaymentFragment extends Fragment {
                 String fileName = "SplitAura_Report_" + date + ".pdf";
 
                 OutputStream outputStream;
-                Uri pdfUri = null;
-                File pdfFile = null;
-
+                Uri pdfUri;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentValues values = new ContentValues();
                     values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
@@ -696,14 +594,12 @@ public class PaymentFragment extends Fragment {
 
                     ContentResolver resolver = requireContext().getContentResolver();
                     pdfUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (pdfUri == null)
-                        throw new IOException("Failed to create new MediaStore record.");
+                    if (pdfUri == null) throw new IOException("Failed to create new MediaStore record.");
                     outputStream = resolver.openOutputStream(pdfUri);
                 } else {
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     if (!dir.exists()) dir.mkdirs();
-
-                    pdfFile = new File(dir, fileName);
+                    File pdfFile = new File(dir, fileName);
                     outputStream = new FileOutputStream(pdfFile);
                     pdfUri = FileProvider.getUriForFile(requireContext(), "com.example.splitaura.fileprovider", pdfFile);
                 }
@@ -713,247 +609,208 @@ public class PaymentFragment extends Fragment {
                 Document document = new Document(pdf);
                 document.setMargins(20, 20, 20, 20);
 
-                // Add logo
-                try {
-                    Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.applogo);
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    logoBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte[] logoBytes = stream.toByteArray();
-                    Image logoImage = new Image(ImageDataFactory.create(logoBytes));
-                    logoImage.setWidth(120);
-                    logoImage.setHorizontalAlignment(HorizontalAlignment.CENTER);
-                    document.add(logoImage);
-                } catch (Exception e) {
-                    Log.e(TAG, "Logo add failed", e);
-                    document.add(new Paragraph("SplitAura").setBold().setFontSize(16).setTextAlignment(TextAlignment.CENTER));
-                }
+                Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.applogo);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                logoBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                Image logoImage = new Image(ImageDataFactory.create(stream.toByteArray()));
+                logoImage.setWidth(120);
+                logoImage.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                document.add(logoImage);
 
-                // Title
                 document.add(new Paragraph("SplitAura Transaction Report").setFontSize(22).setBold().setTextAlignment(TextAlignment.CENTER));
 
-                // Transactions
                 List<Transaction> transactions = viewModel.getTransactions().getValue() != null ? new ArrayList<>(viewModel.getTransactions().getValue()) : new ArrayList<>();
-
-                // Period
-                String period = "No transactions";
-                if (!transactions.isEmpty()) {
-                    transactions.sort((t1, t2) -> {
-                        try {
-                            SimpleDateFormat parseFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
-                            Date date1 = parseFormat.parse(t1.getRecordedAt());
-                            Date date2 = parseFormat.parse(t2.getRecordedAt());
-                            return date2.compareTo(date1);
-                        } catch (Exception e) {
-                            return 0;
-                        }
-                    });
-
-                    try {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
-                        SimpleDateFormat parseFormat = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
-
-                        Date start = parseFormat.parse(transactions.get(transactions.size() - 1).getRecordedAt());
-                        Date end = parseFormat.parse(transactions.get(0).getRecordedAt());
-
-                        String startDate = start != null ? dateFormat.format(start) : "Unknown";
-                        String endDate = end != null ? dateFormat.format(end) : "Unknown";
-
-                        period = String.format("Period: %s to %s", startDate, endDate);
-                    } catch (Exception e) {
-                        period = "Period: Unknown";
-                    }
-                }
-
+                String period = transactions.isEmpty() ? "No transactions" : "Period: " + transactions.get(transactions.size() - 1).getRecordedAt() + " to " + transactions.get(0).getRecordedAt();
                 document.add(new Paragraph(period).setFontSize(14).setItalic().setTextAlignment(TextAlignment.CENTER));
 
-                // Table
                 if (!transactions.isEmpty()) {
                     Table table = new Table(new float[]{2.5f, 2f, 2.5f, 2f, 2.5f, 2f, 2f});
                     table.setWidth(UnitValue.createPercentValue(100));
 
-                    // Header
                     String[] headers = {"Friend", "Amount", "Date", "Status", "Transaction ID", "UPI", "Method"};
                     for (String header : headers) {
-                        table.addHeaderCell(new Cell().add(new Paragraph(header).setFontSize(14).setBold().setTextAlignment(TextAlignment.CENTER).setMarginTop(5).setMarginBottom(5)));
+                        table.addHeaderCell(new Cell().add(new Paragraph(header).setFontSize(14).setBold().setTextAlignment(TextAlignment.CENTER)));
                     }
 
-                    List<Task<DocumentSnapshot>> upiTasks = new ArrayList<>();
                     for (Transaction tx : transactions) {
-                        Task<DocumentSnapshot> task = db.collection("users").document(tx.getRecipientId()).get();
-                        upiTasks.add(task);
+                        Friend friend = findFriendByUid(tx.getRecipientId());
+                        String friendName = friend != null ? friend.getFullName() : "Unknown";
+                        String upi = friend != null && friend.getUpi() != null ? friend.getUpi() : "N/A";
+                        String status = tx.getPaymentStatus();
+
+                        DeviceRgb statusColor = status.equals("SUCCESS") ? new DeviceRgb(0, 128, 0) : status.equals("FAILED") ? new DeviceRgb(220, 20, 60) : new DeviceRgb(255, 165, 0);
+
+                        table.addCell(new Cell().add(new Paragraph(friendName)).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER));
+                        table.addCell(new Cell().add(new Paragraph(String.format(Locale.getDefault(), "₹%.2f", tx.getAmount()))).setTextAlignment(TextAlignment.CENTER).setBold());
+                        table.addCell(new Cell().add(new Paragraph(tx.getRecordedAt())).setVerticalAlignment(VerticalAlignment.MIDDLE));
+                        table.addCell(new Cell().add(new Paragraph(status)).setTextAlignment(TextAlignment.CENTER).setFontColor(statusColor));
+                        table.addCell(new Cell().add(new Paragraph(tx.getPaymentId())).setFontSize(10).setVerticalAlignment(VerticalAlignment.MIDDLE));
+                        table.addCell(new Cell().add(new Paragraph(upi)).setVerticalAlignment(VerticalAlignment.MIDDLE));
+                        table.addCell(new Cell().add(new Paragraph(tx.getMethod())).setVerticalAlignment(VerticalAlignment.MIDDLE));
                     }
-
-                    Uri finalPdfUri1 = pdfUri;
-
-
-                    Tasks.whenAllSuccess(upiTasks).addOnSuccessListener(results -> {
-                        for (int i = 0; i < transactions.size(); i++) {
-                            Transaction tx = transactions.get(i);
-                            DocumentSnapshot friendDoc = (DocumentSnapshot) results.get(i);
-
-                            String upi = "N/A";
-                            if (friendDoc != null && friendDoc.exists()) {
-                                upi = friendDoc.getString("upi") != null ? friendDoc.getString("upi") : "N/A";
-                            }
-
-                            String status = tx.getPaymentStatus() != null ? tx.getPaymentStatus() : "Unknown";
-                            DeviceRgb statusColor;
-                            DeviceRgb rowColor;
-
-                            switch (status.toUpperCase(Locale.ROOT)) {
-                                case "SUCCESS":
-                                    statusColor = new DeviceRgb(0, 128, 0); // Green
-                                    rowColor = new DeviceRgb(220, 255, 220);
-                                    break;
-                                case "FAILED":
-                                    statusColor = new DeviceRgb(220, 20, 60); // Red
-                                    rowColor = new DeviceRgb(255, 220, 220); // Light red
-                                    break;
-                                case "PENDING":
-                                    statusColor = new DeviceRgb(255, 165, 0); // Orange
-                                    rowColor = new DeviceRgb(255, 245, 200); // Light yellow/orange
-                                    break;
-                                default:
-                                    statusColor = new DeviceRgb(0, 0, 0); // Default black
-                                    rowColor = new DeviceRgb(245, 245, 245); // Light gray
-                                    break;
-                            }
-
-                            Friend friend = findFriendByUid(tx.getRecipientId());
-                            String friendName = friend != null ? friend.getFullName() : (tx.getDescription() != null ? tx.getDescription().replace("Payment to ", "") : "Unknown");
-
-                            table.addCell(new Cell().add(new Paragraph(friendName)).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
-
-                            // Amount (with red color and bold)
-                            table.addCell(new Cell().add(new Paragraph(String.format(Locale.getDefault(), "₹%.2f", tx.getAmount())).setTextAlignment(TextAlignment.CENTER).setBold().setFontColor(new DeviceRgb(255, 0, 0)))// red font
-                                    .setBackgroundColor(rowColor).setVerticalAlignment(VerticalAlignment.MIDDLE));
-                            table.addCell(new Cell().add(new Paragraph(tx.getRecordedAt() != null ? tx.getRecordedAt() : "Unknown")).setVerticalAlignment(VerticalAlignment.MIDDLE).setBackgroundColor(rowColor));
-
-                            // For Payment Status
-                            table.addCell(new Cell().add(new Paragraph(status)).setTextAlignment(TextAlignment.CENTER).setVerticalAlignment(VerticalAlignment.MIDDLE).setFontColor(statusColor).setBackgroundColor(rowColor).setBold());
-
-                            table.addCell(new Cell().add(new Paragraph(tx.getPaymentId() != null ? tx.getPaymentId() : "N/A")).setFontSize(10).setWidth(80).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
-
-                            table.addCell(new Cell().add(new Paragraph(upi)).setWidth(80).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER).setBackgroundColor(rowColor));
-
-                            table.addCell(new Cell().add(new Paragraph(tx.getMethod() != null ? tx.getMethod() : "Unknown")).setBold().setBackgroundColor(rowColor).setVerticalAlignment(VerticalAlignment.MIDDLE).setTextAlignment(TextAlignment.CENTER));
-                        }
-
-                        document.add(table);
-                        document.close();
-
-                        Uri finalPdfUri = finalPdfUri1;
-                        requireActivity().runOnUiThread(() -> {
-                            showToast("PDF saved to Downloads: " + fileName);
-                            openPdf(finalPdfUri);
-                            loadingDialog.hide();
-                        });
-
-                    }).addOnFailureListener(e -> {
-                        Log.e(TAG, "UPI fetch failed", e);
-                        document.add(new Paragraph("Error fetching UPI data").setItalic());
-                        document.close();
-                        requireActivity().runOnUiThread(() -> {
-                            showToast("Failed to generate PDF: " + e.getMessage());
-                            loadingDialog.hide();
-                        });
-                    });
+                    document.add(table);
                 } else {
                     document.add(new Paragraph("No transactions found").setItalic());
-                    document.close();
-                    Uri finalUri = pdfUri;
-                    requireActivity().runOnUiThread(() -> {
-                        showToast("PDF saved to Downloads: " + fileName);
-                        openPdf(finalUri);
-                        loadingDialog.hide();
-                    });
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "PDF generation error", e);
+
+                document.close();
+                Uri finalPdfUri = pdfUri;
                 requireActivity().runOnUiThread(() -> {
-                    showToast("Error: " + e.getMessage());
+                    loadingDialog.hide();
+                    showToast("PDF exported successfully");
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(finalPdfUri, "application/pdf");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(intent, "Open PDF with"));
+                    Log.d(TAG, "PDF generated and intent started: " + finalPdfUri);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to generate PDF", e);
+                requireActivity().runOnUiThread(() -> {
+                    showToast("Error generating PDF: " + e.getMessage());
                     loadingDialog.hide();
                 });
             }
         });
     }
 
-    private void openPdf(Uri uri) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "application/pdf");
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NO_HISTORY);
+    private void showFriendSelectionDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_category, null);
+        RecyclerView rvFriends = dialogView.findViewById(R.id.recyclerViewCategories);
+        TextView tvTitle = dialogView.findViewById(R.id.category_dialog_title);
+        tvTitle.setText("Select Friend");
+        rvFriends.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-            Intent chooser = Intent.createChooser(intent, "Open PDF with");
-            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
-                startActivity(chooser);
+        List<Friend> tempSelected = new ArrayList<>();
+        contactsAdapter = new ContactsAdapter(viewModel.getFriends().getValue() != null ? viewModel.getFriends().getValue() : new ArrayList<>(), tempSelected, friend -> {
+            tempSelected.clear();
+            tempSelected.add(friend);
+            contactsAdapter.notifyDataSetChanged();
+        });
+        rvFriends.setAdapter(contactsAdapter);
+
+        Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+        Button okButton = dialogView.findViewById(R.id.ok_button);
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext(), R.style.FullScreenDialog)
+                .setView(dialogView)
+                .create();
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        okButton.setOnClickListener(v -> {
+            if (!tempSelected.isEmpty()) {
+                viewModel.setSelectedFriend(tempSelected.get(0));
+                dialog.dismiss();
             } else {
-                showToast("No PDF viewer found. File is saved.");
+                showToast("Please select a friend");
             }
-        } catch (Exception e) {
-            showToast("Failed to open PDF.");
+        });
+
+        dialog.show();
+    }
+
+
+    private boolean validateInput() {
+        String amountStr = binding.etAmount.getText().toString().trim();
+        Friend selectedFriend = viewModel.getSelectedFriend().getValue();
+
+        if (TextUtils.isEmpty(amountStr)) {
+            binding.amountInputLayout.setError("Enter an amount");
+            Log.w(TAG, "Validation failed: Amount is empty");
+            return false;
         }
+
+        try {
+            double amount = Double.parseDouble(amountStr);
+            if (amount <= 0) {
+                binding.amountInputLayout.setError("Amount must be greater than 0");
+                Log.w(TAG, "Validation failed: Amount <= 0");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            binding.amountInputLayout.setError("Invalid amount format");
+            Log.w(TAG, "Validation failed: Invalid amount format");
+            return false;
+        }
+
+        if (selectedFriend == null) {
+            showToast("Please select a friend");
+            Log.w(TAG, "Validation failed: No friend selected");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void showConfirmationDialog(String message, Runnable onConfirm, boolean isQr) {
+        if (confirmationTimer != null) {
+            confirmationTimer.cancel();
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext(), R.style.LightDialogTheme)
+                .setTitle("Confirm Action")
+                .setMessage(message)
+                .setPositiveButton("Confirm", null)
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        positiveButton.setEnabled(true);
+
+        confirmationTimer = new CountDownTimer(3000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                positiveButton.setText(String.format(Locale.getDefault(), "Confirm (%d)", millisUntilFinished / 1000));
+            }
+
+            @Override
+            public void onFinish() {
+                positiveButton.setText("Confirm");
+                positiveButton.setOnClickListener(v -> {
+                    onConfirm.run();
+                    dialog.dismiss();
+                });
+            }
+        }.start();
+
+        Log.d(TAG, "Confirmation dialog shown: " + message);
+    }
+
+    private void updateTransactionStatus(String userId, String transactionId, String status) {
+        db.collection("users").document(userId).collection("transactions").document(transactionId)
+                .update("paymentStatus", status)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Transaction status updated: " + transactionId + " to " + status))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update transaction status: " + transactionId, e));
     }
 
     private Friend findFriendByUid(String uid) {
-        List<Friend> friends = viewModel.getFriends().getValue();
-        if (friends != null) {
-            for (Friend friend : friends) {
-                if (friend.getUid().equals(uid)) {
-                    return friend;
-                }
+        List<Friend> friendsList = viewModel.getFriends().getValue();
+        if (friendsList != null) {
+            for (Friend friend : friendsList) {
+                if (friend.getUid().equals(uid)) return friend;
             }
         }
         return null;
     }
 
-    private boolean validateInput() {
-        String amountStr = binding.etAmount.getText().toString().trim();
-        if (TextUtils.isEmpty(amountStr)) {
-            binding.amountInputLayout.setError("Amount cannot be empty");
-            Log.w(TAG, "Validation failed: Amount empty");
-            return false;
-        }
-        try {
-            double amount = Double.parseDouble(amountStr);
-            if (amount <= 0) {
-                binding.amountInputLayout.setError("Amount must be positive");
-                Log.w(TAG, "Validation failed: Amount <= 0");
-                return false;
-            }
-            if (amount > 1000000) {
-                binding.amountInputLayout.setError("Amount too large");
-                Log.w(TAG, "Validation failed: Amount too large");
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            binding.amountInputLayout.setError("Invalid amount");
-            Log.w(TAG, "Validation failed: Invalid amount format");
-            return false;
-        }
-        if (viewModel.getSelectedFriend().getValue() == null) {
-            showToast("Please select a friend");
-            Log.w(TAG, "Validation failed: No friend selected");
-            return false;
-        }
-        binding.amountInputLayout.setError(null);
-        Log.d(TAG, "Input validated successfully");
-        return true;
-    }
-
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Toast shown: " + message);
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null;
+        if (confirmationTimer != null) {
+            confirmationTimer.cancel();
+        }
         if (loadingDialog != null && loadingDialog.isShowing()) {
             loadingDialog.hide();
         }
-        Log.d(TAG, "Fragment view destroyed");
+        binding = null;
+        Log.d(TAG, "View destroyed");
     }
 }

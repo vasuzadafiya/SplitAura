@@ -37,17 +37,15 @@ public class PaymentViewModel extends ViewModel {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final List<ExpenseManager> expenseManagers = new ArrayList<>();
-    private final List<Notification> senderNotifications = new ArrayList<>();
-    private final List<Notification> receiverNotifications = new ArrayList<>();
-    private ListenerRegistration senderListener;
     private ListenerRegistration receiverListener;
     private boolean isListeningToNotifications = false;
 
     public PaymentViewModel() {
         Log.d(TAG, "ViewModel initialized");
-        loadExpenseManagers(); // Load expense managers on initialization
+        loadExpenseManagers();
     }
 
+    // Getters
     public LiveData<Friend> getSelectedFriend() { return selectedFriend; }
     public LiveData<Double> getBalance() { return balance; }
     public LiveData<List<Notification>> getPendingNotifications() { return pendingNotifications; }
@@ -60,7 +58,7 @@ public class PaymentViewModel extends ViewModel {
     public void setSelectedFriend(Friend friend) {
         selectedFriend.setValue(friend);
         Log.d(TAG, "Selected friend set: " + (friend != null ? friend.getFullName() : "null"));
-        calculateBalance(); // Recalculate balance when friend changes
+        calculateBalance();
     }
 
     public String getCurrentUserId() {
@@ -98,6 +96,9 @@ public class PaymentViewModel extends ViewModel {
         loadTransactions();
         loadFriends();
         calculateBalance();
+        for (ExpenseManager manager : expenseManagers) {
+            manager.recalculateExpenses();
+        }
     }
 
     private void listenToNotifications() {
@@ -113,35 +114,14 @@ public class PaymentViewModel extends ViewModel {
             return;
         }
 
-        Log.d(TAG, "Listening to notifications for user: " + currentUserId);
+        Log.d(TAG, "Listening to receiver notifications for user: " + currentUserId);
         isListeningToNotifications = true;
 
-        // Remove existing listeners if they exist
-        if (senderListener != null) {
-            senderListener.remove();
-        }
-        if (receiverListener != null) {
-            receiverListener.remove();
-        }
+        if (receiverListener != null) receiverListener.remove();
 
-        // Listen for notifications where the user is the sender
-        senderListener = db.collection("notifications")
-                .whereIn("actionStatus", List.of("PENDING", "CONFIRMED"))
-                .whereEqualTo("senderId", currentUserId)
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.e(TAG, "Error listening to sender notifications", e);
-                        errorMessage.setValue("Notification error: " + e.getMessage());
-                        isLoading.setValue(false);
-                        return;
-                    }
-                    handleNotificationSnapshot(snapshots, "sender");
-                });
-
-        // Listen for notifications where the user is the receiver
         receiverListener = db.collection("notifications")
-                .whereIn("actionStatus", List.of("PENDING", "CONFIRMED"))
                 .whereEqualTo("receiverId", currentUserId)
+                .whereEqualTo("actionStatus", "PENDING")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
                         Log.e(TAG, "Error listening to receiver notifications", e);
@@ -149,29 +129,27 @@ public class PaymentViewModel extends ViewModel {
                         isLoading.setValue(false);
                         return;
                     }
-                    handleNotificationSnapshot(snapshots, "receiver");
+                    handleNotificationSnapshot(snapshots);
                 });
     }
 
-    private void handleNotificationSnapshot(QuerySnapshot snapshots, String type) {
+    private void handleNotificationSnapshot(QuerySnapshot snapshots) {
         List<Notification> notifications = new ArrayList<>();
 
         if (snapshots != null && !snapshots.isEmpty()) {
             for (QueryDocumentSnapshot doc : snapshots) {
                 Notification notification = doc.toObject(Notification.class);
                 notifications.add(notification);
-                Log.d(TAG, "Notification added (" + type + "): " + notification.getActionId());
+                Log.d(TAG, "Receiver notification added: " + notification.getActionId());
             }
         } else {
-            Log.d(TAG, "No notifications found for " + type);
+            Log.d(TAG, "No pending receiver notifications found");
         }
 
-        // Filter out duplicate notifications based on sender, receiver, and action type
         List<Notification> filteredNotifications = new ArrayList<>();
         Set<String> uniqueKeys = new HashSet<>();
         for (Notification notification : notifications) {
-            String key = notification.getSenderId() + "_" + notification.getReceiverId() + "_" +
-                    notification.getActionType();
+            String key = notification.getSenderId() + "_" + notification.getReceiverId() + "_" + notification.getActionType();
             if (uniqueKeys.add(key)) {
                 filteredNotifications.add(notification);
             } else {
@@ -179,27 +157,9 @@ public class PaymentViewModel extends ViewModel {
             }
         }
 
-        // Update the appropriate list based on type
-        if (type.equals("sender")) {
-            senderNotifications.clear();
-            senderNotifications.addAll(filteredNotifications);
-        } else if (type.equals("receiver")) {
-            receiverNotifications.clear();
-            receiverNotifications.addAll(filteredNotifications);
-        }
-
-        // Merge sender and receiver notifications and update LiveData
-        updatePendingNotifications();
+        pendingNotifications.setValue(filteredNotifications);
         isLoading.setValue(false);
-        Log.d(TAG, "Notifications updated (" + type + "), count: " + filteredNotifications.size());
-    }
-
-    private void updatePendingNotifications() {
-        List<Notification> allNotifications = new ArrayList<>();
-        allNotifications.addAll(senderNotifications);
-        allNotifications.addAll(receiverNotifications);
-        pendingNotifications.setValue(allNotifications);
-        Log.d(TAG, "Merged notifications, total count: " + allNotifications.size());
+        Log.d(TAG, "Pending receiver notifications updated, count: " + filteredNotifications.size());
     }
 
     private void loadTransactions() {
@@ -213,22 +173,24 @@ public class PaymentViewModel extends ViewModel {
         Log.d(TAG, "Loading transactions for user: " + currentUserId);
         db.collection("users").document(currentUserId).collection("transactions")
                 .orderBy("recordedAt", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(snapshots -> {
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error loading transactions", e);
+                        errorMessage.setValue("Error loading transactions: " + e.getMessage());
+                        isLoading.setValue(false);
+                        return;
+                    }
                     List<Transaction> txList = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        Transaction tx = doc.toObject(Transaction.class);
-                        txList.add(tx);
-                        Log.d(TAG, "Transaction loaded: " + tx.getPaymentId());
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Transaction tx = doc.toObject(Transaction.class);
+                            txList.add(tx);
+                            Log.d(TAG, "Transaction loaded: " + tx.getPaymentId());
+                        }
                     }
                     transactions.setValue(txList);
                     isLoading.setValue(false);
                     Log.d(TAG, "Transactions loaded, count: " + txList.size());
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading transactions", e);
-                    errorMessage.setValue("Error loading transactions: " + e.getMessage());
-                    isLoading.setValue(false);
                 });
     }
 
@@ -244,7 +206,7 @@ public class PaymentViewModel extends ViewModel {
                 .set(tx)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Transaction logged: " + tx.getPaymentId());
-                    loadTransactions(); // Refresh transactions after logging
+                    loadTransactions();
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to log transaction: " + tx.getPaymentId(), e));
     }
@@ -257,7 +219,7 @@ public class PaymentViewModel extends ViewModel {
         calculateBalance();
     }
 
-    private void calculateBalance() {
+    public void calculateBalance() {
         String currentUserId = getCurrentUserId();
         if (currentUserId == null) {
             Log.w(TAG, "Cannot calculate balance, user not authenticated");
@@ -275,7 +237,6 @@ public class PaymentViewModel extends ViewModel {
         balance.setValue(totalBalance);
         Log.d(TAG, "Total balance calculated: " + totalBalance);
     }
-
 
     public void loadFriends() {
         String currentUserId = getCurrentUserId();
@@ -323,35 +284,13 @@ public class PaymentViewModel extends ViewModel {
                         expenseManagers.add(manager);
                         Log.d(TAG, "ExpenseManager loaded for group: " + groupId);
 
-                        // Observe changes in user expense data to recalculate balance
                         manager.getUserExpenseData().observeForever(userExpenseData -> {
                             calculateBalance();
                             Log.d(TAG, "UserExpenseData updated for group: " + groupId);
                         });
                     }
-                    calculateBalance(); // Initial balance calculation after loading
+                    calculateBalance();
                 })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading groups for ExpenseManager", e);
-                    errorMessage.setValue("Error loading expense data: " + e.getMessage());
-                });
-    }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        for (ExpenseManager manager : expenseManagers) {
-            manager.removeListener();
-        }
-        if (senderListener != null) {
-            senderListener.remove();
-        }
-        if (receiverListener != null) {
-            receiverListener.remove();
-        }
-        senderNotifications.clear();
-        receiverNotifications.clear();
-        isListeningToNotifications = false;
-        Log.d(TAG, "ViewModel cleared, listeners removed, notification lists cleared");
+                .addOnFailureListener(e -> Log.e(TAG, "Error loading expense managers", e));
     }
 }

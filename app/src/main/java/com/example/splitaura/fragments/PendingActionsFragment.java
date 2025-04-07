@@ -13,19 +13,22 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.example.splitaura.adapters.PendingActionAdapter;
+import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.databinding.FragmentPendingActionsBinding;
 import com.example.splitaura.dialogues.LoadingDialog;
+import com.example.splitaura.adapters.PendingActionAdapter;
 import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Notification;
 import com.example.splitaura.models.Transaction;
 import com.example.splitaura.viewmodels.PaymentViewModel;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -66,7 +69,6 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
     }
 
     private void observeViewModel() {
-        // Observe loading state
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             if (isLoading != null && isLoading) {
                 loadingDialog.show();
@@ -77,7 +79,6 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
             }
         });
 
-        // Observe pending notifications
         viewModel.getPendingNotifications().observe(getViewLifecycleOwner(), pending -> {
             if (pending == null || pending.isEmpty()) {
                 binding.tvEmptyPending.setVisibility(View.VISIBLE);
@@ -97,118 +98,146 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
             Log.w(TAG, "Null notification in onAction");
             return;
         }
-        Log.d(TAG, "onAction called - Notification: " + notification.getActionId() + ", ActionType: " + notification.getActionType() +
-                ", SenderId: " + notification.getSenderId() + ", ReceiverId: " + notification.getReceiverId() +
-                ", TransactionId: " + notification.getTransactionId() + ", Accept: " + accept);
+        Log.d(TAG, "Processing action: " + notification.getActionId() + ", Type: " + notification.getActionType() + ", Accept: " + accept);
         loadingDialog.show();
 
         executor.execute(() -> {
             try {
-                String newStatus = accept ? "CONFIRMED" : "REJECTED";
-                String transactionStatus = accept ? "SUCCESS" : "FAILED";
-                Log.d(TAG, "New status: " + newStatus + ", Transaction status: " + transactionStatus);
-
-                // Update the transaction status (only for the sender)
-                if ("PAYMENT_SENT".equals(notification.getActionType()) || "SETTLEMENT".equals(notification.getActionType())) {
-                    Log.d(TAG, "Updating transaction status for sender: " + notification.getSenderId() + ", TransactionId: " + notification.getTransactionId());
-                    updateTransactionStatus(notification.getSenderId(), notification.getTransactionId(), transactionStatus);
-
-                    // If PAYMENT_SENT is accepted, log a transaction for the receiver
-                    if (accept && "PAYMENT_SENT".equals(notification.getActionType())) {
-                        Log.d(TAG, "PAYMENT_SENT accepted, fetching sender transaction: " + notification.getTransactionId());
-                        db.collection("users").document(notification.getSenderId())
-                                .collection("transactions").document(notification.getTransactionId())
-                                .get()
-                                .addOnSuccessListener(documentSnapshot -> {
-                                    if (!documentSnapshot.exists()) {
-                                        Log.w(TAG, "Sender transaction does not exist: " + notification.getTransactionId());
-                                        return;
-                                    }
-                                    Transaction senderTransaction = documentSnapshot.toObject(Transaction.class);
-                                    if (senderTransaction != null) {
-                                        Log.d(TAG, "Sender transaction fetched: Amount: " + senderTransaction.getAmount() +
-                                                ", Method: " + senderTransaction.getMethod());
-                                        String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                        Friend senderFriend = findFriendByUid(notification.getSenderId());
-                                        String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                                        Log.d(TAG, "Sender name: " + senderName);
-                                        Transaction receiverTransaction = new Transaction(
-                                                "Payment Accepted from " + senderName,
-                                                senderTransaction.getAmount(), date, "SUCCESS",
-                                                notification.getTransactionId() + "_ACCEPTED", senderTransaction.getMethod(),
-                                                notification.getSenderId()
-                                        );
-                                        Log.d(TAG, "Logging receiver transaction: " + receiverTransaction.getPaymentId());
-                                        db.collection("users").document(notification.getReceiverId())
-                                                .collection("transactions")
-                                                .document(receiverTransaction.getPaymentId())
-                                                .set(receiverTransaction)
-                                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId()))
-                                                .addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                                    } else {
-                                        Log.w(TAG, "Sender transaction is null after conversion");
-                                    }
-                                })
-                                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction: " + notification.getTransactionId(), e));
-                    }
-                } else if (accept && "PAYMENT_REQUEST".equals(notification.getActionType())) {
-                    Log.d(TAG, "PAYMENT_REQUEST accepted, fetching sender transaction: " + notification.getTransactionId());
-                    Friend senderFriend = findFriendByUid(notification.getSenderId());
-                    String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown User";
-                    Log.d(TAG, "Sender name: " + senderName);
-                    db.collection("users").document(notification.getSenderId())
-                            .collection("transactions").document(notification.getTransactionId())
-                            .get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                if (!documentSnapshot.exists()) {
-                                    Log.w(TAG, "Sender transaction does not exist: " + notification.getTransactionId());
-                                    return;
-                                }
-                                Transaction senderTransaction = documentSnapshot.toObject(Transaction.class);
-                                if (senderTransaction != null) {
-                                    Log.d(TAG, "Sender transaction fetched: Amount: " + senderTransaction.getAmount());
-                                    String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
-                                    Transaction receiverTransaction = new Transaction(
-                                            "Payment to " + senderName,
-                                            senderTransaction.getAmount(), date, "SUCCESS",
-                                            notification.getTransactionId() + "_TX", "CASH",
-                                            notification.getSenderId()
-                                    );
-                                    Log.d(TAG, "Logging receiver transaction: " + receiverTransaction.getPaymentId());
-                                    db.collection("users").document(notification.getReceiverId())
-                                            .collection("transactions")
-                                            .document(receiverTransaction.getPaymentId())
-                                            .set(receiverTransaction)
-                                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Receiver transaction logged: " + receiverTransaction.getPaymentId()))
-                                            .addOnFailureListener(e -> Log.e(TAG, "Failed to log receiver transaction", e));
-                                } else {
-                                    Log.w(TAG, "Sender transaction is null after conversion");
-                                }
-                            })
-                            .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch sender transaction: " + notification.getTransactionId(), e));
+                String currentUserId = viewModel.getCurrentUserId();
+                if (currentUserId == null) {
+                    requireActivity().runOnUiThread(() -> {
+                        showToast("User not authenticated");
+                        loadingDialog.hide();
+                    });
+                    return;
                 }
 
-                // Delete the notification
-                Log.d(TAG, "Deleting notification: " + notification.getActionId());
-                db.collection("notifications").document(notification.getActionId())
-                        .delete()
-                        .addOnSuccessListener(aVoid -> {
-                            Log.d(TAG, "Notification deleted: " + notification.getActionId());
-                            viewModel.refreshData();
-                            requireActivity().runOnUiThread(() -> {
-                                loadingDialog.hide();
-                                showToast(accept ? "Action confirmed" : "Action rejected");
-                            });
+                String senderId = notification.getSenderId();
+                String transactionStatus = accept ? "SUCCESS" : "FAILED";
+
+                db.collection("users").document(senderId)
+                        .collection("transactions").document(notification.getTransactionId())
+                        .get()
+                        .addOnSuccessListener(doc -> {
+                            if (!doc.exists()) {
+                                Log.e(TAG, "Sender transaction not found: " + notification.getTransactionId());
+                                requireActivity().runOnUiThread(() -> {
+                                    showToast("Error: Transaction not found");
+                                    loadingDialog.hide();
+                                });
+                                return;
+                            }
+
+                            Transaction senderTx = doc.toObject(Transaction.class);
+                            if (senderTx == null) {
+                                Log.e(TAG, "Failed to parse sender transaction");
+                                requireActivity().runOnUiThread(() -> {
+                                    showToast("Error: Invalid transaction data");
+                                    loadingDialog.hide();
+                                });
+                                return;
+                            }
+
+                            double amount = senderTx.getAmount();
+                            String date = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date());
+                            Friend senderFriend = findFriendByUid(senderId);
+                            String senderName = senderFriend != null ? senderFriend.getFullName() : "Unknown";
+
+                            WriteBatch batch = db.batch();
+
+                            // Update sender's transaction status
+                            batch.update(db.collection("users").document(senderId)
+                                            .collection("transactions").document(notification.getTransactionId()),
+                                    "paymentStatus", transactionStatus);
+
+                            // Variables for debt settlement
+                            String debtorId = null;
+                            String creditorId = null;
+                            Transaction receiverTx = null;
+
+                            if (accept) {
+                                String actionType = notification.getActionType();
+                                switch (actionType) {
+                                    case "PAYMENT_SENT":
+                                    case "QR":
+                                        receiverTx = new Transaction(
+                                                "Payment from " + senderName, amount, date, "SUCCESS",
+                                                notification.getTransactionId() + "_RX", "CASH", senderId);
+                                        debtorId = senderId;
+                                        creditorId = currentUserId;
+                                        break;
+                                    case "PAYMENT_REQUEST":
+                                        receiverTx = new Transaction(
+                                                "Payment to " + senderName, amount, date, "SUCCESS",
+                                                notification.getTransactionId() + "_RX", "CASH", senderId);
+                                        debtorId = currentUserId;
+                                        creditorId = senderId;
+                                        break;
+                                    case "SETTLEMENT":
+                                        receiverTx = new Transaction(
+                                                "Settlement with " + senderName, amount, date, "SUCCESS",
+                                                notification.getTransactionId() + "_RX", "SETTLEMENT", senderId);
+                                        double netOwed = senderFriend != null ? calculateNetAmountOwed(senderFriend) : 0.0;
+                                        if (netOwed < 0) {
+                                            debtorId = currentUserId;
+                                            creditorId = senderId;
+                                        } else if (netOwed > 0) {
+                                            debtorId = senderId;
+                                            creditorId = currentUserId;
+                                        } else {
+                                            debtorId = senderId;
+                                            creditorId = currentUserId;
+                                        }
+                                        break;
+                                    default:
+                                        Log.w(TAG, "Unknown action type: " + actionType);
+                                        debtorId = senderId;
+                                        creditorId = currentUserId;
+                                        break;
+                                }
+
+                                if (receiverTx != null) {
+                                    batch.set(db.collection("users").document(currentUserId)
+                                            .collection("transactions").document(receiverTx.getPaymentId()), receiverTx);
+                                }
+                            }
+
+                            // Delete notification
+                            batch.delete(db.collection("notifications").document(notification.getActionId()));
+
+                            String finalDebtorId = debtorId;
+                            String finalCreditorId = creditorId;
+                            batch.commit()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "Action processed: " + notification.getActionId());
+                                        requireActivity().runOnUiThread(() -> {
+                                            if (accept && finalDebtorId != null && finalCreditorId != null) {
+                                                viewModel.settleDebt(finalDebtorId, finalCreditorId, amount);
+                                                showToast("Action confirmed and debt settled");
+                                            } else if (!accept) {
+                                                showToast("Action rejected");
+                                            }
+                                            loadingDialog.hide();
+                                            viewModel.refreshData();
+                                        });
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e(TAG, "Failed to process action: " + notification.getActionId(), e);
+                                        requireActivity().runOnUiThread(() -> {
+                                            showToast("Error processing action: " + e.getMessage());
+                                            loadingDialog.hide();
+                                        });
+                                    });
                         })
                         .addOnFailureListener(e -> {
-                            Log.e(TAG, "Failed to delete notification: " + notification.getActionId(), e);
+                            Log.e(TAG, "Failed to fetch sender transaction", e);
                             requireActivity().runOnUiThread(() -> {
-                                showToast("Error updating action");
+                                showToast("Error fetching transaction: " + e.getMessage());
                                 loadingDialog.hide();
                             });
                         });
             } catch (Exception e) {
-                Log.e(TAG, "Error handling pending action", e);
+                Log.e(TAG, "Error handling action", e);
                 requireActivity().runOnUiThread(() -> {
                     showToast("Error: " + e.getMessage());
                     loadingDialog.hide();
@@ -216,26 +245,45 @@ public class PendingActionsFragment extends Fragment implements PendingActionAda
             }
         });
     }
-    private void updateTransactionStatus(String userId, String transactionId, String status) {
-        db.collection("users").document(userId).collection("transactions").document(transactionId)
-                .update("paymentStatus", status)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Transaction " + transactionId + " updated to " + status + " for user " + userId);
-                    viewModel.refreshData();
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Failed to update transaction status: " + transactionId + " for user " + userId, e));
-    }
 
     private Friend findFriendByUid(String uid) {
         List<Friend> friendsList = viewModel.getFriends().getValue();
         if (friendsList != null) {
             for (Friend friend : friendsList) {
-                if (friend.getUid().equals(uid)) {
-                    return friend;
-                }
+                if (friend.getUid().equals(uid)) return friend;
             }
         }
         return null;
+    }
+
+    private double calculateNetAmountOwed(Friend friend) {
+        if (friend == null) return 0.0;
+        String currentUserId = viewModel.getCurrentUserId();
+        double netAmountOwed = 0.0;
+
+        List<ExpenseManager> expenseManagers = viewModel.getExpenseManagers();
+        if (expenseManagers == null || expenseManagers.isEmpty()) {
+            Log.w(TAG, "No expense managers available for net owed calculation");
+            return 0.0;
+        }
+
+        for (ExpenseManager manager : expenseManagers) {
+            Map<String, ExpenseManager.UserExpenseData> userExpenseData = manager.getUserExpenseData().getValue();
+            if (userExpenseData == null) continue;
+
+            ExpenseManager.UserExpenseData currentUserData = userExpenseData.get(currentUserId);
+            ExpenseManager.UserExpenseData friendData = userExpenseData.get(friend.getUid());
+
+            if (currentUserData != null && friendData != null) {
+                Double debtToFriend = currentUserData.debts.get(friend.getUid());
+                if (debtToFriend != null) netAmountOwed -= debtToFriend;
+
+                Double creditFromFriend = currentUserData.credits.get(friend.getUid());
+                if (creditFromFriend != null) netAmountOwed += creditFromFriend;
+            }
+        }
+        Log.d(TAG, "Net amount owed by current user to " + friend.getFullName() + ": " + netAmountOwed);
+        return netAmountOwed;
     }
 
     private void showToast(String message) {

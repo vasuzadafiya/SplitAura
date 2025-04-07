@@ -12,10 +12,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Profile Image -->
-
-        <!-- Friend Name -->
-
         <ImageView
             android:id="@+id/iv_upi_profile"
             android:layout_width="90dp"

@@ -24,6 +24,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="34">
         <activity
+            android:name=".splashScreen"
+            android:exported="true"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".PaymentDetailsActivity"
             android:exported="false" />
 
@@ -36,7 +45,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
 
         <activity
             android:name=".PersonalExpenseActivity"
@@ -73,13 +81,7 @@
             android:exported="false" />
         <activity
             android:name=".Splash"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false" />
 
         <meta-data
             android:name="preloaded_fonts"

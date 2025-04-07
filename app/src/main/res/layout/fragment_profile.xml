@@ -363,7 +363,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     android:visibility="gone"
-                    app:backgroundTint="@color/primaryColor"
+                    app:backgroundTint="@color/blue_500"
                     app:cornerRadius="12dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

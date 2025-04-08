@@ -182,34 +182,36 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical">
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_export_pdf"
+                        style="@style/BorderedButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="Export Transactions"
-                        app:icon="@drawable/ic_pdf"
-                        style="@style/BorderedButton"
-                        android:layout_marginBottom="8dp"/>
+                        app:icon="@drawable/ic_pdf" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_pending_actions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Pending Actions"
+                        android:layout_marginBottom="8dp"
+                        android:textColor="@color/white"
                         app:icon="@drawable/ic_pending"
-                        style="@style/BorderedButton"
-                        android:layout_marginBottom="8dp"/>
+                        app:iconTint="@color/white"
+                        android:text="Pending Actions"
+                        app:strokeColor="@color/white" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_recent_transactions"
+                        style="@style/BorderedButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Recent Transactions"
-                        app:icon="@drawable/ic_history_24"
-                        style="@style/BorderedButton"/>
+                        app:icon="@drawable/ic_history_24" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

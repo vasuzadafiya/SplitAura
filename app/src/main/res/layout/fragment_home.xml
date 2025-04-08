@@ -116,7 +116,7 @@
                                 android:id="@+id/btn_refresh"
                             style="@style/IconTrayImageButton"
                             android:contentDescription="@string/refresh"
-                                android:src="@drawable/ic_refresh" />
+                                android:src="@drawable/ic_refresh1" />
                             <TextView
                                 style="@style/IconTrayText"
                                 android:text="@string/refresh" />

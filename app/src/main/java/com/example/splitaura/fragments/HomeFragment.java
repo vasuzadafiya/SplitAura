@@ -24,12 +24,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -108,7 +106,6 @@ public class HomeFragment extends Fragment {
     private ListenerRegistration groupsListener;
     private LinearLayout groupPlaceholder;
     private LinearLayout peoplePlaceholder;
-    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -142,7 +139,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupSwipeRefresh(view);  // Pass the rootView or use view directly
         fetchInitialData();
     }
 
@@ -172,13 +168,9 @@ public class HomeFragment extends Fragment {
             addIncomeButton = rootView.findViewById(R.id.btn_add_income);
             groupPlaceholder = rootView.findViewById(R.id.placeholder);
             peoplePlaceholder = rootView.findViewById(R.id.people_placeholder);
-            swipeRefreshLayout = rootView.findViewById(R.id.swipeRefreshLayout);  // Initialize here
 
         } catch (Exception e) {
             Log.e(TAG, "Error initializing views", e);
-            if (getContext() != null) {
-                Toast.makeText(getContext(), "Error initializing UI components", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 
@@ -261,27 +253,6 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void setupSwipeRefresh(View rootView) {
-        swipeRefreshLayout = rootView.findViewById(R.id.swipeRefreshLayout);
-        NestedScrollView nestedScrollView = rootView.findViewById(R.id.scrollView);
-
-        if (swipeRefreshLayout != null && nestedScrollView != null) {
-            swipeRefreshLayout.setOnRefreshListener(() -> {
-                fetchInitialData();
-                swipeRefreshLayout.setRefreshing(false);
-                Log.d(TAG, "Swipe refresh triggered");
-            });
-
-            // Monitor NestedScrollView scroll position
-            nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener)
-                    (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                        // Enable refresh only when at the top
-                        swipeRefreshLayout.setEnabled(scrollY == 0);
-                    });
-        } else {
-            Log.e(TAG, "SwipeRefreshLayout or NestedScrollView is null in setupSwipeRefresh");
-        }
-    }
 
     private void fetchInitialData() {
         loadCachedFriendsData();
@@ -899,7 +870,6 @@ public class HomeFragment extends Fragment {
         }
 
         handler.removeCallbacksAndMessages(null);
-        swipeRefreshLayout = null;  // Clear reference to avoid memory leaks
     }
 
     @Override

@@ -1,0 +1,31 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Shadow layer: creates a subtle drop shadow effect -->
+    <item
+        android:left="2dp"
+        android:top="2dp">
+        <shape android:shape="rectangle">
+            <!-- Semi-transparent black for shadow -->
+            <solid android:color="#33000000" />
+            <!-- No rounded corners for a square look -->
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+
+    <!-- Main card layer with a vertical gradient for depth and a stroke for definition -->
+    <item>
+        <shape android:shape="rectangle">
+            <!-- Gradient: dark orange at the top, lighter orange at the bottom -->
+            <gradient
+                android:angle="270"
+                android:endColor="#FFB74D"
+                android:startColor="#E67E22" />
+            <corners android:radius="12dp" />
+            <!-- Stroke for edge definition -->
+            <stroke
+                android:width="2dp"
+                android:color="#D35400" />
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SplitAura</string>
+    <string name="app_name" translatable="false">SplitAura</string>
     <string name="title1">Seamless Payements,\n Effortless Splits</string>
     <string name="title2">Share Bills,\n Share Moments</string>
     <string name="title3">Stay Connected,\n Split Confidently</string>
@@ -7,7 +7,7 @@
     <string name="desc2">track your expenses in real time, categorize them for better organization, and visualize your spending patterns. From calculating payment shares to monitoring overall spending, SplitMate simplifies managing your finances without the hassle of paper or complex calculations.</string>
     <string name="desc3">SplitAura gives you the flexibility to manage both personal and group expenses in one place. Create expense groups, add members, and SplitMate will automatically distribute and track payments—ensuring you never miss a detail when splitting costs with friends, family, or colleagues</string>
     <string name="or_divide">---------------Or---------------</string>
-    <string name="default_web_client_id">689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com</string>
+    <string name="default_web_client_id" translatable="false">689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com</string>
     <string name="no_ac">Don\'t have an Account?</string>
     <string name="log_in">Log In</string>
     <string name="email_id">EMAIL ID</string>
@@ -90,6 +90,7 @@
     <string name="friend_name">Friend Name</string>
     <string name="delete">Remove Friend</string>
     <string name="manage_friends">Manage Friends</string>
+    <string name="manage_friends1">Manage\nFriends</string>
     <string name="add_friends">Add Friends</string>
     <string name="requests">Requests</string>
     <string name="placeholder_image">PlaceHolder Image</string>
@@ -209,6 +210,38 @@
     <string name="generate_pdf_confirmation">Generate a PDF of your transactions?</string>
     <string name="transaction_details">Transaction Details</string>
     <string name="transaction_details_message">Friend: %s\nAmount: ₹%.2f\nDate: %s\nStatus: %s\nTransaction ID: %s\nMethod: %s</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी\nHindi</string>
+    <string name="lang_marathi" translatable="false">मराठी\nMarathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা\nBengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી\nGujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ\nPunjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം\nMalayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்\nTamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు\nTelugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ\nKannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ\nOdia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी\nBhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া\nAssamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी\nRajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी\nHaryanvi</string>
+    <string name="just_1_click_split_your_bills">Just 1 Click Split Your Bills</string>
+    <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">Easy way to share bill with your\nfriends, colleagues and anyone.</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="first_name">FIRST NAME</string>
+    <string name="last_name">LAST NAME</string>
+    <string name="confirm_password">CONFIRM PASSWORD</string>
+    <string name="create_account">Create Account</string>
+    <string name="create_a_group_to_start_tracking_expenses_together">Create a group to start tracking expenses together.</string>
+    <string name="all_groups">All Groups</string>
+    <string name="notifications">Notifications</string>
+    <string name="personal_expense">Personal Expense</string>
+    <string name="personal_expense1">Personal\nExpense</string>
+
 </resources>

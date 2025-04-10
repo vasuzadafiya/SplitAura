@@ -127,7 +127,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:gravity="center"
-                        android:text="All Groups"
+                        android:text="@string/all_groups"
                         android:textColor="@color/black"
                         android:textSize="@dimen/text_size_large"
                         android:textStyle="bold" />
@@ -171,7 +171,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="Create a group to start tracking expenses together."
+                            android:text="@string/create_a_group_to_start_tracking_expenses_together"
                             android:textColor="@color/gray"
                             android:textSize="15sp"
                             android:textStyle="italic" />

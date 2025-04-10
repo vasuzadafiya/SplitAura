@@ -1,0 +1,231 @@
+<resources>
+    <string name="app_name">SplitAura</string>
+    <string name="title1">ਬੇਹਤਰੀਨ ਭੁਗਤਾਨ,ਆਸਾਨ ਵੰਡ</string>
+    <string name="title2">ਬਿਲ ਸਾਂਝੇ ਕਰੋ,ਪਲ ਸਾਂਝੇ ਕਰੋ</string>
+    <string name="title3">ਜੁੜੇ ਰਹੋ,ਵਿਸ਼ਵਾਸ ਨਾਲ ਵੰਡੋ</string>
+    <string name="desc1">ਸਾਡਾ ਆਸਾਨ ਵਰਤੋਂਯੋਗ ਐਪ ਤੁਹਾਨੂੰ ਤੁਹਾਡੇ ਨਿੱਜੀ ਅਤੇ ਗਰੁੱਪ ਖਰਚਾਂ ਨੂੰ ਬਿਨਾਂ ਕਿਸੇ ਝੰਝਟ ਦੇ ਟਰੈਕ ਅਤੇ ਵੰਡਣ ਵਿੱਚ ਸਹਾਇਤਾ ਕਰਦਾ ਹੈ। ਚਾਹੇ ਤੁਸੀਂ ਦੋਸਤਾਂ ਨਾਲ ਭੋਜਨ ਸਾਂਝਾ ਕਰ ਰਹੇ ਹੋ ਜਾਂ ਘਰੇਲੂ ਬਿਲਾਂ ਨੂੰ ਪ੍ਰਬੰਧ ਕਰ ਰਹੇ ਹੋ, SplitMate ਇਹ ਸੁਨਿਸ਼ਚਿਤ ਕਰਦਾ ਹੈ ਕਿ ਸਾਰੇ ਭੁਗਤਾਨ ਸੁਚੱਜੇ ਅਤੇ ਹਰ ਇੱਕ ਲਈ ਨਿਆਂਸੰਗਤ ਹਨ।</string>
+    <string name="desc2">ਆਪਣੇ ਖਰਚੇ ਨੂੰ ਤੁਰੰਤ ਟਰੈਕ ਕਰੋ, ਉਨ੍ਹਾਂ ਨੂੰ ਵੱਧ ਸੁਚੱਜੇ ਲਈ ਕੈਟੇਗਰੀ ਵਿੱਚ ਵੰਡੋ ਅਤੇ ਆਪਣੇ ਖਰਚੇ ਦੇ ਰੁਝਾਨ ਵੇਖੋ। ਭੁਗਤਾਨ ਦੀ ਸਾਂਝ ਦੀ ਗਣਨਾ ਕਰਨ ਤੋਂ ਲੈ ਕੇ ਕੁੱਲ ਖਰਚ ਦੀ ਨਿਗਰਾਨੀ ਤੱਕ, SplitMate ਤੁਹਾਡੇ ਵਿੱਤੀ ਪ੍ਰਬੰਧਨ ਨੂੰ ਕਾਗਜ਼ੀ ਕਾਰਵਾਈ ਜਾਂ ਜਟਿਲ ਹਿਸਾਬ-ਕਿਤਾਬ ਤੋਂ ਬਿਨਾਂ ਸਧਾਰਨ ਬਣਾਉਂਦਾ ਹੈ।</string>
+    <string name="desc3">SplitAura ਤੁਹਾਨੂੰ ਇਕੋ ਥਾਂ ‘ਤੇ ਨਿੱਜੀ ਅਤੇ ਗਰੁੱਪ ਦੋਹਾਂ ਖਰਚਾਂ ਨੂੰ ਪ੍ਰਬੰਧ ਕਰਨ ਲਈ ਲਚਕੀਲਾਪਣ ਦਿੰਦਾ ਹੈ। ਗਰੁੱਪ ਬਣਾਓ, ਮੈਂਬਰ ਜੋੜੋ, ਅਤੇ SplitMate ਆਟੋਮੈਟਿਕ ਤੌਰ ‘ਤੇ ਭੁਗਤਾਨਾਂ ਨੂੰ ਵੰਡ ਅਤੇ ਟਰੈਕ ਕਰੇਗਾ — ਇਸ ਗੱਲ ਨੂੰ ਯਕੀਨੀ ਬਣਾਉਂਦਾ ਹੈ ਕਿ ਤੁਸੀਂ ਦੋਸਤਾਂ, ਪਰਿਵਾਰ ਜਾਂ ਸਹਿਯੋਗੀਆਂ ਨਾਲ ਖਰਚਾਂ ਵੰਡਣ ਵਿੱਚ ਕਿਸੇ ਵੀ ਵਿਸਥਾਰ ਨੂੰ ਨਾ ਭੁੱਲੋ।</string>
+    <string name="or_divide">---------------ਜਾਂ---------------</string>
+    <string name="default_web_client_id">689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com</string>
+    <string name="no_ac">ਖਾਤਾ ਨਹੀਂ ਹੈ?</string>
+    <string name="log_in">ਲਾਗਿਨ ਕਰੋ</string>
+    <string name="email_id">ਈਮੇਲ ID</string>
+    <string name="password">ਪਾਸਵਰਡ</string>
+    <string name="forgot_password">ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?</string>
+    <string name="login">ਲਾਗਿਨ</string>
+    <string name="no_internet">ਔਪਸ!</string>
+    <string name="no_internet_desc">ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਉਪਲਬਧ ਨਹੀਂਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਚੈੱਕ ਕਰੋ</string>
+    <string name="retry">ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <plurals name="pending_count">
+        <item quantity="one">%d ਬਕਾਇਆ</item>
+        <item quantity="other">%d ਬਕਾਇਆ</item>
+    </plurals>
+    <plurals name="pending_actions_count">
+        <item quantity="one">%d ਬਕਾਇਆ ਕਾਰਵਾਈ</item>
+        <item quantity="other">%d ਬਕਾਇਆ ਕਾਰਵਾਈਆਂ</item>
+    </plurals>
+    <string name="spotlight_fragment">ਸਪਾਟਲਾਈਟ ਫ੍ਰੈਗਮੈਂਟ</string>
+    <string name="amount_format">₹ %s</string>
+    <string name="date_format">%s</string>
+    <string name="paid_by_format">ਭੁਗਤਾਨ ਕਰਤਾ: %s</string>
+    <string name="home">ਘਰ</string>
+    <string name="groups">ਗਰੁੱਪ</string>
+    <string name="group_info">ਗਰੁੱਪ ਜਾਣਕਾਰੀ</string>
+    <string name="payment">ਭੁਗਤਾਨ</string>
+    <string name="profile">ਪ੍ਰੋਫਾਈਲ</string>
+    <string name="spotlight">ਸਪਾਟਲਾਈਟ</string>
+    <string name="welcome_message">ਹੈਲੋਆਪਣਾ ਵਿੱਤ ਆਸਾਨੀ ਨਾਲ ਪ੍ਰਬੰਧ ਕਰੋ</string>
+    <string name="balance_amount">₹9235.35</string>
+    <string name="available_bal">ਉਪਲਬਧ ਬਚਤ</string>
+    <string name="view_all"><![CDATA[ਸਭ ਵੇਖੋ ->]]></string>
+    <string name="amount">ਰਕਮ :</string>
+    <string name="added_by_format">%s</string>
+    <string name="delete_group_title">ਗਰੁੱਪ ਮਿਟਾਉਣਾ?</string>
+    <string name="delete_group_message">ਇਹ ਗਰੁੱਪ ਅਤੇ ਇਸਦਾ ਸਾਰਾ ਡਾਟਾ ਸਦਾ ਲਈ ਮਿਟਾ ਦੇਵੇਗਾ।</string>
+    <string name="permission_denied">ਕਾਰਵਾਈ ਸੀਮਿਤ</string>
+    <string name="only_creator_can_delete">ਕੇਵਲ ਗਰੁੱਪ ਬਣਾਉਣ ਵਾਲਾ ਹੀ ਇਸ ਗਰੁੱਪ ਨੂੰ ਮਿਟਾ ਸਕਦਾ ਹੈ।</string>
+    <string name="group_deleted">ਗਰੁੱਪ ਸਫਲਤਾਪੂਰਵਕ ਮਿਟਾਇਆ ਗਿਆ</string>
+    <string name="delete_failed">ਗਰੁੱਪ ਮਿਟਾਉਣ ਵਿੱਚ ਅਸਫਲ</string>
+    <string name="untitled_group">ਬਿਨਾਂ ਨਾਮ ਦਾ ਗਰੁੱਪ</string>
+    <string name="no_description">ਕੋਈ ਵੇਰਵਾ ਉਪਲਬਧ ਨਹੀਂ</string>
+    <string name="default_currency">INR</string>
+    <string name="general_category">ਸਧਾਰਣ</string>
+    <string name="paid_by">ਭੁਗਤਾਨ ਕਰਤਾ :</string>
+    <string name="split_by">ਵੰਡ ਕਰਕੇ :</string>
+    <string name="date">ਤਾਰੀਖ :</string>
+    <string name="ok">ਠੀਕ ਹੈ</string>
+    <string name="categories">ਸ਼੍ਰੇਣੀਆਂ</string>
+    <string name="notes">ਟਿੱਪਣੀਆਂ :</string>
+    <string name="update">ਅੱਪਡੇਟ</string>
+    <string name="cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="friends">ਦੋਸਤ</string>
+    <string name="pay">ਭੁਗਤਾਨ ਕਰੋ</string>
+    <string name="request">ਬੇਨਤੀ</string>
+    <string name="top_up">ਆਮਦਨੀ ਜੋੜੋ</string>
+    <string name="withdraw">ਬਚਤ ਵਾਪਸ ਲਓ</string>
+    <string name="history">ਇਤਿਹਾਸ</string>
+    <string name="trip_emoji">ਯਾਤਰਾ 🧳</string>
+    <string name="family_emoji">ਪਰਿਵਾਰ 👨‍👩‍👧‍👦</string>
+    <string name="project_emoji">ਪ੍ਰੋਜੈਕਟ 💼</string>
+    <string name="couple_emoji">ਜੋੜਾ 👩‍❤️‍👨</string>
+    <string name="event_emoji">ਇਵੈਂਟ 🎉</string>
+    <string name="other_emoji">ਹੋਰ 🔀</string>
+    <string name="tv_title">ਸਿਰਲੇਖ</string>
+    <string name="delete1">ਮਿਟਾਓ</string>
+    <string name="tv_description">ਵੇਰਵਾ</string>
+    <string name="tv_currency">ਮੁਦਰਾ</string>
+    <string name="tv_category">ਸ਼੍ਰੇਣੀ</string>
+    <string name="btn_back">ਵਾਪਸ</string>
+    <string name="btn_continue">ਜਾਰੀ ਰੱਖੋ</string>
+    <string name="btn_cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="upload_cover_image">ਕਵਰ ਚਿੱਤਰ ਅੱਪਲੋਡ ਕਰੋ</string>
+    <string name="new_group">ਨਵਾਂ ਗਰੁੱਪ</string>
+    <string name="tv_amount">ਰਕਮ ₹</string>
+    <string name="tv_notes">ਟਿੱਪਣੀਆਂ</string>
+    <string name="new_expense">ਨਵਾਂ ਖਰਚ ਜੋੜੋ</string>
+    <string name="tv_paidby">ਭੁਗਤਾਨ ਕਰਨ ਵਾਲਾ</string>
+    <string name="tv_split_by">ਵੰਡਣ ਵਾਲਾ</string>
+    <string name="friend_name">ਦੋਸਤ ਦਾ ਨਾਮ</string>
+    <string name="delete">ਦੋਸਤ ਹਟਾਓ</string>
+    <string name="manage_friends">ਦੋਸਤਾਂ ਦੀ ਦੇਖਭਾਲ ਕਰੋ</string>
+    <string name="manage_friends1">ਦੋਸਤਾਂ ਦੀਦੇਖਭਾਲ ਕਰੋ</string>
+    <string name="add_friends">ਦੋਸਤ ਜੋੜੋ</string>
+    <string name="requests">ਬੇਨਤੀਆਂ</string>
+    <string name="placeholder_image">ਪਲੇਸਹੋਲਡਰ ਚਿੱਤਰ</string>
+    <string name="placeholder_title">ਔਪਸ! ਲੱਗਦਾ ਹੈ ਤੁਸੀਂ ਇਕੱਲੇ ਉੱਡ ਰਹੇ ਹੋ,ਆਪਣੀ ਟੀਮ ਲੱਭਣ ਦਾ ਸਮਾਂ ਹੈ!</string>
+    <string name="icon_category">ਆਈਕਾਨ ਸ਼੍ਰੇਣੀ</string>
+    <string name="expenses">ਖਰਚ</string>
+    <string name="balances">ਬਕਾਇਆ</string>
+    <string name="Totals">ਕੁੱਲ</string>
+    <string name="group_name">ਗਰੁੱਪ ਦਾ ਨਾਮ</string>
+    <string name="add_expense">ਖਰਚ ਜੋੜੋ</string>
+    <string name="caution">*ਇਹ ਗੂਗਲ ਲਾਗਿਨ ਲਈ ਪਾਸਵਰਡ ਰੀਸੈਟ ਨਹੀਂ ਕਰੇਗਾ</string>
+    <string name="family">ਪਰਿਵਾਰ 👨‍👩‍👧‍👦</string>
+
+    <string name="split_by_prompt">ਖਰਚ ਵੰਡਣ ਦਾ ਤਰੀਕਾ ਚੁਣੋ</string>
+    <string name="payment_method">ਭੁਗਤਾਨ ਦਾ ਤਰੀਕਾ</string>
+    <string name="btn_add">ਜੋੜੋ</string>
+    <string name="category">ਸ਼੍ਰੇਣੀ</string>
+    <string name="profile_picture">ਪ੍ਰੋਫਾਈਲ ਚਿੱਤਰ</string>
+    <string name="add_group">ਗਰੁੱਪ ਬਣਾਓ</string>
+    <string name="add_upi">UPI ਜੋੜੋ</string>
+    <string name="split_by_format">%s</string>
+    <string name="select_friend">ਦੋਸਤ ਚੁਣੋ</string>
+    <string name="image">ਚਿੱਤਰ</string>
+    <string name="total_group_spending">ਕੁੱਲ ਗਰੁੱਪ ਖਰਚ</string>
+    <string name="peoples">ਲੋਕ</string>
+    <string-array name="split_by_options">
+        <item>ਬਰਾਬਰ</item>
+        <item>ਕਸਟਮ</item>
+    </string-array>
+
+    <string name="default_username">ਹੈਲੋ ਯੂਜ਼ਰਆਪਣਾ ਵਿੱਤ ਆਸਾਨੀ ਨਾਲ ਪ੍ਰਬੰਧ ਕਰੋ</string>
+    <string name="currency_format">₹%.2f</string>
+
+    <!-- Error Messages -->
+    <string name="error_fetching_groups">ਗਰੁੱਪ ਲੱਭਣ ਵਿੱਚ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="error_fetching_friends">ਦੋਸਤ ਲੱਭਣ ਵਿੱਚ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="error_calculating_balances">ਬਕਾਇਆ ਹਿਸਾਬ ਕਰਨ ਵਿੱਚ ਗਲਤੀ।</string>
+    <string name="error_processing_request">ਬੇਨਤੀ ਪ੍ਰਕਿਰਿਆ ਵਿੱਚ ਗਲਤੀ।</string>
+    <string name="error_navigation">ਨੈਵੀਗੇਸ਼ਨ ਵਿੱਚ ਗਲਤੀ। ਕਿਰਪਾ ਕਰਕੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="error_updating_savings">ਬਚਤ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="error_fetching_savings">ਬਚਤ ਡਾਟਾ ਲੱਭਣ ਵਿੱਚ ਅਸਫਲ।</string>
+    <string name="error_insufficient_savings">ਇਸ ਵਾਪਸੀ ਲਈ ਪਰਯਾਪਤ ਬਚਤ ਨਹੀਂ।</string>
+    <string name="error_empty_amount">ਕਿਰਪਾ ਕਰਕੇ ਰਕਮ ਦਰਜ ਕਰੋ</string>
+    <string name="error_invalid_amount">ਰਕਮ ਸਕਾਰਾਤਮਕ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ</string>
+    <string name="error_invalid_number">ਕਿਰਪਾ ਕਰਕੇ ਠੀਕ ਸੰਖਿਆ ਦਰਜ ਕਰੋ</string>
+
+    <!-- Savings Dialog -->
+    <string name="deposit_savings">ਬਚਤ ਵਿੱਚ ਜਮ੍ਹਾ ਕਰੋ</string>
+    <string name="withdraw_savings">ਬਚਤ ਤੋਂ ਵਾਪਸ ਲਓ</string>
+    <string name="deposit">ਜਮ੍ਹਾ</string>
+    <string name="withdraw1">ਵਾਪਸ ਲਓ</string>
+    <string name="deposit_success">ਬਚਤ ਵਿੱਚ ₹%.2f ਜਮ੍ਹਾ ਕੀਤੇ</string>
+    <string name="withdraw_success">ਬਚਤ ਵਿੱਚੋਂ ₹%.2f ਵਾਪਸ ਲਏ</string>
+
+    <!-- Other UI Strings -->
+    <string name="loading">ਲੋਡ ਹੋ ਰਿਹਾ…</string>
+    <string name="no_groups">ਕੋਈ ਗਰੁੱਪ ਨਹੀਂ ਮਿਲਿਆ</string>
+    <string name="no_friends">ਦਿਖਾਉਣ ਲਈ ਕੋਈ ਦੋਸਤ ਨਹੀਂ</string>
+    <string name="dialog_title">ਡਾਇਲਾਗ</string>
+
+    <string-array name="filter_options">
+        <item>7 ਦਿਨ</item>
+        <item>15 ਦਿਨ</item>
+        <item>30 ਦਿਨ</item>
+        <item>ਸਭ</item>
+        <item>ਕਸਟਮ</item>
+    </string-array>
+
+    <!-- Payment Fragment Strings -->
+    <string name="your_balance">ਤੁਹਾਡਾ ਬਕਾਇਆ</string>
+    <string name="settled_up">ਨਿਪਟਾਰਾ ਹੋ ਗਿਆ</string>
+    <string name="send_or_request">ਪੈਸੇ ਭੇਜੋ ਜਾਂ ਬੇਨਤੀ ਕਰੋ</string>
+    <string name="search_friends">ਦੋਸਤ ਖੋਜੋ...</string>
+    <string name="pay_via_qr">QR ਰਾਹੀਂ ਭੁਗਤਾਨ ਕਰੋ</string>
+    <string name="pending_actions">ਬਕਾਇਆ ਕਾਰਵਾਈਆਂ</string>
+    <string name="export_transactions">ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਐਕਸਪੋਰਟ ਕਰੋ</string>
+    <string name="recent_transactions">ਹਾਲੀਆ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ</string>
+    <string name="no_transactions_found">ਕੋਈ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਨਹੀਂ ਮਿਲੇ</string>
+    <string name="error">ਗਲਤੀ</string>
+    <string name="amount_exceeds_limit">ਰਕਮ UPI ਦੀ ਸੀਮਾ ₹100,000 ਤੋਂ ਵੱਧ ਹੈ</string>
+    <string name="scan_to_pay">ਭੁਗਤਾਨ ਕਰਨ ਲਈ ਸਕੈਨ ਕਰੋ ₹%1$.2f</string>
+    <string name="qr_payment_instructions">ਭੁਗਤਾਨ ਪੂਰਾ ਕਰਨ ਲਈ ਇਹ QR ਕੋਡ %1$s ਨੂੰ ਦਿਖਾਓ</string>
+    <string name="share">ਸਾਂਝਾ ਕਰੋ</string>
+    <string name="copy_upi">UPI ਕਾਪੀ ਕਰੋ</string>
+    <string name="close">ਬੰਦ ਕਰੋ</string>
+    <string name="confirm_payment">ਭੁਗਤਾਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ</string>
+    <string name="payment_confirmation_message">ਕੀ ਤੁਸੀਂ ₹%1$.2f %2$s ਨੂੰ ਭੇਜਣਾ ਚਾਹੁੰਦੇ ਹੋ?</string>
+    <string name="confirm">ਪੁਸ਼ਟੀ ਕਰੋ</string>
+    <string name="payment_initiated">ਭੁਗਤਾਨ ਸ਼ੁਰੂ ਕੀਤਾ ਗਿਆ ਸਫਲਤਾਪੂਰਵਕ</string>
+    <string name="invalid_amount">ਕਿਰਪਾ ਕਰਕੇ ਠੀਕ ਰਕਮ ਦਰਜ ਕਰੋ</string>
+    <string name="friend_required">ਕਿਰਪਾ ਕਰਕੇ ਦੋਸਤ ਚੁਣੋ</string>
+    <string name="setup_upi_title">UPI ID ਦੀ ਲੋੜ ਹੈ</string>
+    <string name="setup_upi_message">QR ਭੁਗਤਾਨ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਪ੍ਰੋਫਾਈਲ ਸੈਟਿੰਗਜ਼ ਵਿੱਚ ਆਪਣਾ UPI ID ਸੈੱਟ ਕਰੋ</string>
+    <string name="go_to_settings">ਸੈਟਿੰਗਜ਼ \'ਤੇ ਜਾਓ</string>
+    <string name="transaction_failed">ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਅਸਫਲ</string>
+    <string name="transaction_success">ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਸਫਲ</string>
+    <string name="request_sent">ਬੇਨਤੀ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜੀ ਗਈ</string>
+    <string name="refresh">ਰਿਫਰੈਸ਼ ਕਰੋ</string>
+    <string name="pdf_generated">PDF ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਇਆ ਗਿਆ</string>
+    <string name="pdf_failed">PDF ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ</string>
+    <string name="action_required">ਕਾਰਵਾਈ ਦੀ ਲੋੜ ਹੈ</string>
+    <string name="accept">ਸਵੀਕਾਰ ਕਰੋ</string>
+    <string name="reject">ਇਨਕਾਰ ਕਰੋ</string>
+    <string name="you_are_owed">ਤੁਹਾਨੂੰ ਮਿਲਣਾ ਹੈ</string>
+    <string name="unknown_error">ਅਣਜਾਣ ਗਲਤੀ</string>
+    <string name="you_owe">ਤੁਸੀਂ ਦੇਣ ਵਾਲੇ ਹੋ</string>
+    <string name="select_friend_error">ਕਿਰਪਾ ਕਰਕੇ ਦੋਸਤ ਚੁਣੋ</string>
+    <string name="amount_empty_error">ਰਕਮ ਖਾਲੀ ਨਹੀਂ ਹੋ ਸਕਦੀ</string>
+    <string name="amount_invalid_error">ਰਕਮ ਗਲਤ ਹੈ</string>
+    <string name="pdf_generation_failed">PDF ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ</string>
+    <string name="action_processed">ਕਾਰਵਾਈ ਪ੍ਰਕਿਰਿਆ ਕੀਤੀ ਗਈ</string>
+    <string name="action_accepted">ਬੇਨਤੀ ਸਵੀਕਾਰ ਕੀਤੀ ਗਈ</string>
+    <string name="action_rejected">ਬੇਨਤੀ ਇਨਕਾਰ ਕੀਤੀ ਗਈ</string>
+    <string name="done">ਹੋ ਗਿਆ</string>
+    <string name="generate_pdf_confirmation">ਕੀ ਤੁਸੀਂ ਆਪਣੇ ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਦੀ PDF ਬਣਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?</string>
+    <string name="transaction_details">ਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ਵੇਰਵੇ</string>
+    <string name="transaction_details_message">ਦੋਸਤ: %sਰਕਮ: ₹%.2fਤਾਰੀਖ: %sਸਥਿਤੀ: %sਟ੍ਰਾਂਜ਼ੈਕਸ਼ਨ ID: %sਤਰੀਕਾ: %s</string>
+
+    <string name="hello_blank_fragment">ਹੈਲੋ ਖਾਲੀ ਫ੍ਰੈਗਮੈਂਟ</string>
+
+    <string name="just_1_click_split_your_bills">ਸਿਰਫ 1 ਕਲਿੱਕ ਨਾਲ ਆਪਣੇ ਬਿਲਾਂ ਨੂੰ ਵੰਡੋ</string>
+    <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">ਆਪਣੇ ਦੋਸਤਾਂ, ਸਹਿਯੋਗੀਆਂ ਅਤੇ ਕਿਸੇ ਵੀ ਨਾਲ ਬਿਲ ਸਾਂਝਾ ਕਰਨ ਦਾ ਆਸਾਨ ਤਰੀਕਾ।</string>
+    <string name="title">ਸਿਰਲੇਖ</string>
+    <string name="description">ਵੇਰਵਾ</string>
+    <string name="skip">ਛੱਡੋ</string>
+    <string name="next">ਅਗਲਾ</string>
+    <string name="sign_up">ਸਾਈਨ ਅੱਪ</string>
+    <string name="first_name">ਪਹਿਲਾ ਨਾਮ</string>
+    <string name="last_name">ਆਖਰੀ ਨਾਮ</string>
+    <string name="confirm_password">ਪਾਸਵਰਡ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ</string>
+    <string name="create_account">ਖਾਤਾ ਬਣਾਓ</string>
+    <string name="create_a_group_to_start_tracking_expenses_together">ਇੱਕ ਗਰੁੱਪ ਬਣਾਓ ਤਾਂ ਜੋ ਇਕੱਠੇ ਖਰਚਾਂ ਦਾ ਟਰੈਕ ਰੱਖ ਸਕੋ।</string>
+    <string name="all_groups">ਸਭ ਗਰੁੱਪ</string>
+    <string name="notifications">ਸੂਚਨਾਵਾਂ</string>
+    <string name="personal_expense">ਨਿੱਜੀ ਖਰਚ</string>
+    <string name="personal_expense1">ਨਿੱਜੀਖਰਚ</string>
+</resources>

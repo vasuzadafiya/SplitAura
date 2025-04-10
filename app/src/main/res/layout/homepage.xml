@@ -59,15 +59,14 @@
                 <ImageView
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@drawable/icon_background"
                     android:src="@drawable/ic_notification"
-                    app:tint="@color/iconTint"
+                    android:contentDescription="@string/description"
                     android:scaleType="centerInside"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Notifications"
+                    android:text="@string/notifications"
                     android:textColor="@color/f_pass_color"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -90,17 +89,17 @@
                 <ImageView
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@drawable/icon_background"
                     android:src="@drawable/ic_personal_expense"
-                    app:tint="@color/iconTint"
-                    android:scaleType="centerInside"/>
+                    android:contentDescription="@string/description"
+                    android:scaleType="centerInside"
+                    app:tint="@color/f_pass_color" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Personal Expense"
+                    android:text="@string/personal_expense1"
                     android:textColor="@color/f_pass_color"
-                    android:textSize="16sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -121,17 +120,17 @@
                 <ImageView
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:background="@drawable/icon_background"
                     android:src="@drawable/ic_manage_friends"
-                    app:tint="@color/iconTint"
+                    android:contentDescription="@string/description"
+                    app:tint="@color/f_pass_color"
                     android:scaleType="centerInside"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Manage Friends"
+                    android:text="@string/manage_friends1"
                     android:textColor="@color/f_pass_color"
-                    android:textSize="16sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -24,9 +24,9 @@
                 android:layout_height="wrap_content"
                 android:paddingBottom="24dp">
 
-                <!-- Top Curve with Gradient -->
 
-                <!-- Profile Picture with Shadow and Border -->
+                <!-- User Name with Better Typography -->
+
                 <ImageView
                     android:id="@+id/topCurve"
                     android:layout_width="match_parent"
@@ -37,8 +37,6 @@
                     app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
-
-                <!-- User Name with Better Typography -->
 
                 <ImageView
                     android:id="@+id/profileImage"
@@ -57,14 +55,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="John Doe"
-                    android:textColor="@color/white"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
                     android:shadowColor="#80000000"
                     android:shadowDx="1"
                     android:shadowDy="1"
                     android:shadowRadius="2"
+                    android:text="John Doe"
+                    android:textColor="@color/white"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/profileImage" />
@@ -104,11 +102,11 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:letterSpacing="0.05"
                                 android:text="GROUPS"
                                 android:textAllCaps="true"
                                 android:textColor="#666666"
-                                android:textSize="14sp"
-                                android:letterSpacing="0.05" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/groupsCount"
@@ -142,11 +140,11 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:letterSpacing="0.05"
                                 android:text="FRIENDS"
                                 android:textAllCaps="true"
                                 android:textColor="#666666"
-                                android:textSize="14sp"
-                                android:letterSpacing="0.05" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/friendsCount"
@@ -302,7 +300,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="john.doe@upi"
                                 android:textColor="#1A2A44"
-                                android:textSize="16sp"/>
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -369,6 +367,24 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/buttonsContainer" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/change_language"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:layout_marginEnd="24dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/gray"
+                    android:icon="@drawable/ic_add_group"
+                    android:text="change\nlanguage"
+                    android:textColor="@color/black"
+
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:rippleColor="@color/black" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -48,7 +48,7 @@
             android:layout_height="60dp"
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"
-            android:text="Skip"
+            android:text="@string/skip"
             android:textColor="@color/white"
             android:fontFamily="@font/inter_bold"
             app:strokeColor="@android:color/white"
@@ -61,7 +61,7 @@
             android:fontFamily="@font/inter_bold"
             android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:text="Next"
+            android:text="@string/next"
             android:textColor="@color/background"
             android:backgroundTint="@color/light_blue"
             style="@style/Widget.MaterialComponents.Button" />

@@ -1,5 +1,6 @@
 package com.example.splitaura.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,8 +15,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
@@ -24,8 +28,12 @@ import com.example.splitaura.Homepage;
 import com.example.splitaura.LoginActivity;
 import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
+import com.example.splitaura.adapters.LanguageAdapter;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
+import com.example.splitaura.models.Language;
+import com.example.splitaura.splashScreen;
+import com.example.splitaura.utils.LanguageUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -35,6 +43,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +90,7 @@ public class ProfileFragment extends Fragment {
     private CardView friendCard;
     private LoadingDialog loadingDialog;
     private boolean isDataLoading = false;
+    private Button changeLang;
 
     private SharedPreferences cachePrefs;
     private final Gson gson = new Gson();
@@ -137,6 +147,7 @@ public class ProfileFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         groupCard = view.findViewById(R.id.group_cardview);
         friendCard = view.findViewById(R.id.friend_cardview);
+        changeLang = view.findViewById(R.id.change_language);
 
         setLoadingPlaceholders();
         loadCachedData();
@@ -144,8 +155,74 @@ public class ProfileFragment extends Fragment {
         setupButtons();
         setRefresh();
         cardListener();
+        changeLanguage();
 
         return view;
+    }
+
+    private void changeLanguage() {
+        changeLang.setOnClickListener(v -> showLanguageDialog(requireContext()));
+    }
+
+    public void showLanguageDialog(Context context) {
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_select_language, null);
+
+        RecyclerView recyclerView = dialogView.findViewById(R.id.languageRecyclerView);
+        Button btnNext = dialogView.findViewById(R.id.btnNext);
+        recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
+        recyclerView.setHasFixedSize(true);
+
+        List<Language> languages = Arrays.asList(
+                new Language(R.string.lang_hindi, R.drawable.ic_tajmahal, R.drawable.bg_lang_card_blue, "hi"),
+                new Language(R.string.lang_gujarati, R.drawable.ic_gujarati, R.drawable.bg_lang_card_orange, "gu"),
+                new Language(R.string.lang_marathi, R.drawable.ic_marathi, R.drawable.bg_lang_card_orange, "mr"),
+                new Language(R.string.lang_bengali, R.drawable.ic_bengali, R.drawable.bg_lang_card_blue, "bn"),
+                new Language(R.string.lang_punjabi, R.drawable.ic_punjabi, R.drawable.bg_lang_card_blue, "pa"),
+                new Language(R.string.lang_malayalam, R.drawable.ic_malayalam, R.drawable.bg_lang_card_orange, "ml"),
+                new Language(R.string.lang_tamil, R.drawable.ic_tamil, R.drawable.bg_lang_card_orange, "ta"),
+                new Language(R.string.lang_telugu, R.drawable.ic_telugu, R.drawable.bg_lang_card_blue, "te"),
+                new Language(R.string.lang_kannada, R.drawable.ic_kannada, R.drawable.bg_lang_card_blue, "kn"),
+                new Language(R.string.lang_odia, R.drawable.ic_odia, R.drawable.bg_lang_card_orange, "or"),
+                new Language(R.string.lang_assamese, R.drawable.ic_assamese, R.drawable.bg_lang_card_orange, "as"),
+                new Language(R.string.lang_rajasthani, R.drawable.ic_rajasthani, R.drawable.bg_lang_card_blue, "raj"),
+                new Language(R.string.lang_haryanvi, R.drawable.ic_haryanvi, R.drawable.bg_lang_card_blue, "har"),
+                new Language(R.string.lang_bhojpuri, R.drawable.ic_bhojpuri, R.drawable.bg_lang_card_orange, "bho")
+        );
+
+        final Language[] selectedLanguage = {null};
+
+        LanguageAdapter adapter = new LanguageAdapter(languages, language -> {
+            selectedLanguage[0] = language;
+            btnNext.setVisibility(View.VISIBLE);
+        });
+
+        recyclerView.setAdapter(adapter);
+
+        AlertDialog dialog = new AlertDialog.Builder(context).setView(dialogView).setCancelable(true).create();
+
+        btnNext.setOnClickListener(v -> {
+            if (selectedLanguage[0] != null) {
+                String langCode = selectedLanguage[0].getLangCode();
+
+                SharedPreferences prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+                prefs.edit().putString("selected_lang_code", langCode).apply();
+
+                LanguageUtils.setLocale(context, langCode);
+
+                // Restart the app or activity
+                Intent intent = new Intent(context, splashScreen.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+                if (context instanceof Activity) {
+                    ((Activity) context).finish();
+                }
+
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
     }
 
     private void fetchUserData() {

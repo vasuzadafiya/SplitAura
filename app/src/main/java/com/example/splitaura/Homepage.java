@@ -26,7 +26,6 @@ import com.example.splitaura.fragments.GroupFragment;
 import com.example.splitaura.fragments.HomeFragment;
 import com.example.splitaura.fragments.PaymentFragment;
 import com.example.splitaura.fragments.ProfileFragment;
-import com.example.splitaura.utils.Utill;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -94,23 +93,9 @@ public class Homepage extends BaseActivity {
             }
 
             if (selectedFragment != null) {
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-                if (getNavigationIndex(itemId) != getNavigationIndex(previousItemId)) {
-                    if (getNavigationIndex(itemId) > getNavigationIndex(previousItemId)) {
-                        transaction.setCustomAnimations(
-                                R.anim.slide_in_right,
-                                R.anim.slide_out_left
-                        );
-                    } else {
-                        transaction.setCustomAnimations(
-                                R.anim.slide_in_left,
-                                R.anim.slide_out_right
-                        );
-                    }
-                }
-
-                transaction.replace(R.id.frame_layout, selectedFragment)
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.frame_layout, selectedFragment)
                         .commit();
                 previousItemId = itemId;
             }

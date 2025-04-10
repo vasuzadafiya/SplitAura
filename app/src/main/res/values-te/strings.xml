@@ -1,0 +1,229 @@
+<resources>
+    <string name="app_name">SplitAura</string>
+    <string name="title1">అవిరామ చెల్లింపులు,\n సులభ విభజనలు</string>
+    <string name="title2">బిల్లులను పంచుకోండి,\n క్షణాలను పంచుకోండి</string>
+    <string name="title3">సంపర్కంలో ఉండండి,\n నమ్మకంతో విభజించండి</string>
+    <string name="desc1">మా సులభంగా ఉపయోగించగల అప్లికేషన్, మీ వ్యక్తిగత మరియు గ్రూప్ ఖర్చులను సులభంగా ట్రాక్ చేసి, విభజించడంలో సహాయపడుతుంది. మీరు స్నేహితులతో భోజనం పంచుకుంటున్నా లేదా ఇల్లు బిల్లులను నిర్వహిస్తున్నా, SplitMate అందరికి సరైన మరియు సమన్వయచితంగా చెల్లింపులను నిర్వహిస్తుంది.</string>
+    <string name="desc2">నేరుగా మీ ఖర్చులను ట్రాక్ చేయండి, మెరుగైన ఏర్పాటుకై వాటిని వర్గీకరించండి, మరియు మీ ఖర్చు నమూనాలను చూడండి. చెల్లింపుల వాటాలను లెక్కించడం నుంచి, మొత్తం ఖర్చును పర్యవేక్షించడానికి, SplitMate మీ ఆర్థిక నిర్వహణను కాగితాల లేదా సంక్లిష్ట గణనల తేకయ్యే కష్టాలు లేకుండా సులభతరం చేస్తుంది.</string>
+    <string name="desc3">SplitAura మీకు ఒకే చోట వ్యక్తిగత మరియు గ్రూప్ ఖర్చులను నిర్వహించడానికి అనువైన స్వేచ్ఛను అందిస్తుంది. ఖర్చు గ్రూపులను సృష్టించి, సభ్యులను జోడించండి, మరియు SplitMate ఆటోమేటిక్‌గా చెల్లింపులను విభజించి, ట్రాక్ చేస్తుంది—స్నేహితులు, కుటుంబం లేదా సహచరులతో ఖర్చులను పంచుకునేటప్పుడు ఏ చిన్న వివరాన్ని కూడా మిస్ కాకుండా చూసుకుంటుంది.</string>
+    <string name="or_divide">---------------లేదా---------------</string>
+    <string name="default_web_client_id">689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com</string>
+    <string name="no_ac">ఖాతా లేవా?</string>
+    <string name="log_in">లాగిన్</string>
+    <string name="email_id">ఇమెయిల్ ఐడి</string>
+    <string name="password">పాస్వర్డ్</string>
+    <string name="forgot_password">పాస్వర్డ్ మర్చిపోయారా?</string>
+    <string name="login">లాగిన్</string>
+    <string name="no_internet">అయ్యో!</string>
+    <string name="no_internet_desc">ఇంటర్నెట్ కనెక్షన్ లేదు\nదయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేయండి</string>
+    <string name="retry">మళ్ళీ ప్రయత్నించండి</string>
+    <plurals name="pending_count">
+        <item quantity="one">%d పెండింగ్</item>
+        <item quantity="other">%d పెండింగ్</item>
+    </plurals>
+    <plurals name="pending_actions_count">
+        <item quantity="one">%d పెండింగ్ చర్య</item>
+        <item quantity="other">%d పెండింగ్ చర్యలు</item>
+    </plurals>
+    <string name="spotlight_fragment">స్పాట్లైట్ ఫ్రాగ్మెంట్</string>
+    <string name="amount_format">₹ %s</string>
+    <string name="date_format">%s</string>
+    <string name="paid_by_format">చెల్లించిన వారు: %s</string>
+    <string name="home">హోమ్</string>
+    <string name="groups">గ్రూపులు</string>
+    <string name="group_info">గ్రూప్ సమాచారం</string>
+    <string name="payment">చెల్లింపు</string>
+    <string name="profile">ప్రొఫైల్</string>
+    <string name="spotlight">స్పాట్లైట్</string>
+    <string name="welcome_message">హలో \nమీ ఆర్థిక నిర్వహణను సులభంగా నిర్వహించుకోండి</string>
+    <string name="balance_amount">₹9235.35</string>
+    <string name="available_bal">ఉపలభ్య సేవింగ్స్</string>
+    <string name="view_all"><![CDATA[అన్ని చూడండి ->]]></string>
+    <string name="amount">రాశి :</string>
+    <string name="added_by_format">%s</string>
+    <string name="delete_group_title">గ్రూప్ తొలగించాలా?</string>
+    <string name="delete_group_message">ఇది గ్రూప్ మరియు దాని డేటాను అన్నీ శాశ్వతంగా తొలగిస్తుంది.</string>
+    <string name="permission_denied">చర్యకు అనుమతి లేదు</string>
+    <string name="only_creator_can_delete">కేవలం గ్రూప్ సృష్టికర్తే ఈ గ్రూప్ ను తొలగించగలరు.</string>
+    <string name="group_deleted">గ్రూప్ విజయవంతంగా తొలగించబడింది</string>
+    <string name="delete_failed">గ్రూప్ తొలగించడంలో విఫలమైంది</string>
+    <string name="untitled_group">నామంలేని గ్రూప్</string>
+    <string name="no_description">వివరణ లేదు</string>
+    <string name="default_currency">INR</string>
+    <string name="general_category">సాధారణ</string>
+    <string name="paid_by">చెల్లించిన వారు :</string>
+    <string name="split_by">విభజన ద్వారా :</string>
+    <string name="date">తేదీ :</string>
+    <string name="ok">సరే</string>
+    <string name="categories">కేటగోరీలు</string>
+    <string name="notes">గమనికలు :</string>
+    <string name="update">నవీకరించండి</string>
+    <string name="cancel">రద్దు చేయండి</string>
+    <string name="friends">స్నేహితులు</string>
+    <string name="pay">చెల్లించండి</string>
+    <string name="request">వినతి</string>
+    <string name="top_up">ఆదాయం జోడించండి</string>
+    <string name="withdraw">సేవింగ్స్ ఉపసంహరించండి</string>
+    <string name="history">చరిత్ర</string>
+    <string name="trip_emoji">ప్రయాణం 🧳</string>
+    <string name="family_emoji">కుటుంబం👨‍👩‍👧‍👦</string>
+    <string name="project_emoji">ప్రాజెక్టు💼</string>
+    <string name="couple_emoji">జంట👩‍❤️‍👨</string>
+    <string name="event_emoji">ఈవెంట్🎉</string>
+    <string name="other_emoji">ఇతర🔀</string>
+    <string name="tv_title">శీర్షిక</string>
+    <string name="delete1">తొలగించు</string>
+    <string name="tv_description">వివరణ</string>
+    <string name="tv_currency">కరెన్సీ</string>
+    <string name="tv_category">కేటగోరీ</string>
+    <string name="btn_back">బ్యాక్</string>
+    <string name="btn_continue">కొనసాగించు</string>
+    <string name="btn_cancel">రద్దు</string>
+    <string name="upload_cover_image">కవర్ చిత్రం అప్లోడ్ చేయండి</string>
+    <string name="new_group">కొత్త గ్రూప్</string>
+    <string name="tv_amount">రాశి ₹</string>
+    <string name="tv_notes">గమనికలు</string>
+    <string name="new_expense">కొత్త ఖర్చు జోడించండి</string>
+    <string name="tv_paidby">చెల్లించిన వారు</string>
+    <string name="tv_split_by">విభజన ద్వారా</string>
+    <string name="friend_name">స్నేహితుని పేరు</string>
+    <string name="delete">స్నేహితుడిని తొలగించు</string>
+    <string name="manage_friends">స్నేహితులను నిర్వహించండి</string>
+    <string name="manage_friends1">స్నేహితులను\nనిర్వహించండి</string>
+    <string name="add_friends">స్నేహితులను జోడించండి</string>
+    <string name="requests">వినతులు</string>
+    <string name="placeholder_image">ప్లేస్ హోల్డర్ చిత్రం</string>
+    <string name="placeholder_title">అయ్యో! మీరు ఒంటరిగా కనిపిస్తున్నారు, \nఇప్పుడు మీ బృందాన్ని కనుగొనండి!</string>
+    <string name="icon_category">ఐకాన్ కేటగోరీ</string>
+    <string name="expenses">ఖర్చులు</string>
+    <string name="balances">బాలెన్సులు</string>
+    <string name="Totals">మొత్తాలు</string>
+    <string name="group_name">గ్రూప్ పేరు</string>
+    <string name="add_expense">ఖర్చు చేర్చండి</string>
+    <string name="caution">* ఇది గూగుల్ లాగిన్ పాస్వర్డ్‌ను రీసెట్ చేయదు\n</string>
+    <string name="family">కుటుంబం 👨‍👩‍👧‍👦</string>
+
+    <string name="split_by_prompt">ఖర్చును ఎలా విభజించాలో ఎంచుకోండి</string>
+    <string name="payment_method">చెల్లింపు విధానం</string>
+    <string name="btn_add">జోడించు</string>
+    <string name="category">కేటగోరీ</string>
+    <string name="profile_picture">ప్రొఫైల్ చిత్రం</string>
+    <string name="add_group">గ్రూప్ సృష్టించండి</string>
+    <string name="add_upi">UPI జోడించండి</string>
+    <string name="split_by_format">%s</string>
+    <string name="select_friend">స్నేహితుడిని ఎంచుకోండి</string>
+    <string name="image">చిత్రం</string>
+    <string name="total_group_spending">గ్రూప్ మొత్తం ఖర్చు</string>
+    <string name="peoples">వ్యక్తులు</string>
+    <string-array name="split_by_options">
+        <item>సమానంగా</item>
+        <item>కస్టమ్</item>
+    </string-array>
+
+    <string name="default_username">హలో యూజర్\nమీ ఆర్థిక వ్యవస్థను సులభంగా నిర్వహించండి</string>
+    <string name="currency_format">₹%.2f</string>
+
+    <!-- Error Messages -->
+    <string name="error_fetching_groups">గ్రూప్‌లను పొందడంలో తప్పు. దయచేసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="error_fetching_friends">స్నేహితులను పొందడంలో తప్పు. దయచేసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="error_calculating_balances">బాలెన్సులను లెక్కించడంలో తప్పు.</string>
+    <string name="error_processing_request">వినతిని ప్రాసెస్ చేయడంలో తప్పు.</string>
+    <string name="error_navigation">నావిగేట్ చేయడంలో తప్పు. దయచేసి మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="error_updating_savings">సేవింగ్స్ నవీకరించడంలో విఫలమయ్యింది. మళ్ళీ ప్రయత్నించండి.</string>
+    <string name="error_fetching_savings">సేవింగ్స్ డేటాను పొందడంలో విఫలమయ్యింది.</string>
+    <string name="error_insufficient_savings">ఈ ఉపసంహరణకు తగినంత సేవింగ్స్ లేవు.</string>
+    <string name="error_empty_amount">దయచేసి ఒక రాశిని నమోదు చేయండి</string>
+    <string name="error_invalid_amount">రాశి సానుకూలంగా ఉండాలి</string>
+    <string name="error_invalid_number">దయచేసి సరైన సంఖ్యను నమోదు చేయండి</string>
+
+    <!-- Savings Dialog -->
+    <string name="deposit_savings">సేవింగ్స్‌లో డిపాజిట్ చేయండి</string>
+    <string name="withdraw_savings">సేవింగ్స్ నుండి ఉపసంహరించండి</string>
+    <string name="deposit">డిపాజిట్</string>
+    <string name="withdraw1">ఉపసంహరించండి</string>
+    <string name="deposit_success">సేవింగ్స్‌కు ₹%.2f డిపాజిట్ చేయబడింది</string>
+    <string name="withdraw_success">సేవింగ్స్ నుండి ₹%.2f ఉపసంహరించబడింది</string>
+
+    <!-- Other UI Strings -->
+    <string name="loading">లోడ్ అవుతోంది…</string>
+    <string name="no_groups">గ్రూప్‌లు కనుగొనబడలేదు</string>
+    <string name="no_friends">చూపించడానికి స్నేహితులు లేవు</string>
+    <string name="dialog_title">డయాలాగ్</string>
+
+    <string-array name="filter_options">
+        <item>7 రోజులు</item>
+        <item>15 రోజులు</item>
+        <item>30 రోజులు</item>
+        <item>అన్నీ</item>
+        <item>కస్టమ్</item>
+    </string-array>
+
+    <!-- Payment Fragment Strings -->
+    <string name="your_balance">మీ బాలెన్స్</string>
+    <string name="settled_up">తీర్చబడింది</string>
+    <string name="send_or_request">డబ్బు పంపండి లేదా అభ్యర్థించండి</string>
+    <string name="search_friends">స్నేహితులను శోధించండి...</string>
+    <string name="pay_via_qr">QR ద్వారా చెల్లించండి</string>
+    <string name="pending_actions">పెండింగ్ చర్యలు</string>
+    <string name="export_transactions">ట్రాన్సాక్షన్‌లను ఎగుమతి చేయండి</string>
+    <string name="recent_transactions">ఇటీవలి ట్రాన్సాక్షన్‌లు</string>
+    <string name="no_transactions_found">ట్రాన్సాక్షన్‌లు కనుగొనబడలేదు</string>
+    <string name="error">పొరపాటు</string>
+    <string name="amount_exceeds_limit">రాశి ₹100,000 యొక్క UPI పరిమితిని మించిపోయింది</string>
+    <string name="scan_to_pay">₹%1$.2f చెల్లించడానికి స్కాన్ చేయండి</string>
+    <string name="qr_payment_instructions">చెల్లింపును పూర్తి చేయడానికి ఈ QR కోడ్‌ను %1$s కు చూపించండి</string>
+    <string name="share">పంచుకోండి</string>
+    <string name="copy_upi">UPI కాపీ చేయండి</string>
+    <string name="close">మూసివేయండి</string>
+    <string name="confirm_payment">చెల్లింపును ధృవీకరించండి</string>
+    <string name="payment_confirmation_message">₹%1$.2f ను %2$s కు పంపాలా?</string>
+    <string name="confirm">ధృవీకరించండి</string>
+    <string name="payment_initiated">చెల్లింపు విజయవంతంగా ప్రారంభించబడింది</string>
+    <string name="invalid_amount">దయచేసి సరైన రాశిని నమోదు చేయండి</string>
+    <string name="friend_required">దయచేసి ఒక స్నేహితుడిని ఎంచుకోండి</string>
+    <string name="setup_upi_title">UPI ID అవసరం</string>
+    <string name="setup_upi_message">QR చెల్లింపులను ఉపయోగించడానికి, దయచేసి మీ ప్రొఫైల్ సెట్టింగ్స్‌లో మీ UPI ID ని సెటప్ చేయండి</string>
+    <string name="go_to_settings">సెట్టింగ్స్‌కు వెళ్ళండి</string>
+    <string name="transaction_failed">ట్రాన్సాక్షన్ విఫలమైంది</string>
+    <string name="transaction_success">ట్రాన్సాక్షన్ విజయవంతంగా పూర్తయ్యింది</string>
+    <string name="request_sent">అనురోధం విజయవంతంగా పంపబడింది</string>
+    <string name="refresh">తాజావికరించు</string>
+    <string name="pdf_generated">PDF విజయవంతంగా రూపొందించబడింది</string>
+    <string name="pdf_failed">PDF రూపొందించడంలో విఫలమైంది</string>
+    <string name="action_required">చర్య అవసరం</string>
+    <string name="accept">అంగీకరించు</string>
+    <string name="reject">తిరస్కరించు</string>
+    <string name="you_are_owed">మీకు చెల్లించబడాలి</string>
+    <string name="unknown_error">అజ్ఞాత పొరపాటు</string>
+    <string name="you_owe">మీరు చెల్లించవలసి ఉంది</string>
+    <string name="select_friend_error">దయచేసి ఒక స్నేహితుడిని ఎంచుకోండి</string>
+    <string name="amount_empty_error">రాశి ఖాళీగా ఉండకూడదు</string>
+    <string name="amount_invalid_error">చెల్లని రాశి</string>
+    <string name="pdf_generation_failed">PDF రూపొందించడంలో విఫలమైంది</string>
+    <string name="action_processed">చర్యను ప్రాసెస్ చేశారు</string>
+    <string name="action_accepted">అనురోధం అంగీకరించబడింది</string>
+    <string name="action_rejected">అనురోధం తిరస్కరించబడింది</string>
+    <string name="done">పూర్తయింది</string>
+    <string name="generate_pdf_confirmation">మీ ట్రాన్సాక్షన్‌ల PDF రూపొందించబడాలా?</string>
+    <string name="transaction_details">ట్రాన్సాక్షన్ వివరాలు</string>
+    <string name="transaction_details_message">స్నేహితుడు: %s\nరాశి: ₹%.2f\nతేదీ: %s\nస్థితి: %s\nట్రాన్సాక్షన్ ID: %s\nవిధానం: %s</string>
+
+    <string name="hello_blank_fragment">హలో, ఖాళీ ఫ్రాగ్మెంట్</string>
+
+    <string name="just_1_click_split_your_bills">కేవలం 1 క్లిక్‌లో మీ బిల్లులను విభజించండి</string>
+    <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">మీ స్నేహితులు, సహచరులు మరియు ఎవరికైనా బిల్ పంచుకోవడానికి సులభమైన మార్గం.</string>
+    <string name="title">శీర్షిక</string>
+    <string name="description">వివరణ</string>
+    <string name="skip">దాటివేయండి</string>
+    <string name="next">తరువాత</string>
+    <string name="sign_up">సైన్ అప్</string>
+    <string name="first_name">ఫస్ట్ పేరు</string>
+    <string name="last_name">చివరి పేరు</string>
+    <string name="confirm_password">పాస్వర్డ్ ధృవీకరించండి</string>
+    <string name="create_account">ఖాతా సృష్టించండి</string>
+    <string name="create_a_group_to_start_tracking_expenses_together">ఖర్చులను సంయుక్తంగా ట్రాక్ చేయడానికి ఒక గ్రూప్ సృష్టించండి.</string>
+    <string name="all_groups">అన్ని గ్రూప్‌లు</string>
+    <string name="notifications">నోటిఫికేషన్లు</string>
+    <string name="personal_expense">వ్యక్తిగత ఖర్చు</string>
+    <string name="personal_expense1">వ్యక్తిగత\nఖర్చు</string>
+</resources>

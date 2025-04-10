@@ -1,6 +1,8 @@
 package com.example.splitaura;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.animation.Animation;
@@ -11,6 +13,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.example.splitaura.utils.LanguageUtils;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class splashScreen extends AppCompatActivity {
@@ -18,9 +21,17 @@ public class splashScreen extends AppCompatActivity {
     private static final int SPLASH_TIME_OUT = 2200;
 
     @Override
+    protected void attachBaseContext(Context base) {
+        SharedPreferences prefs = base.getSharedPreferences("app_prefs", MODE_PRIVATE);
+        String langCode = prefs.getString("selected_lang_code", "en");
+        LanguageUtils.setLocale(base, langCode);
+        super.attachBaseContext(base);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen.installSplashScreen(this); // Android 12+ smooth launch
-        setTheme(R.style.AppTheme); // Fall back to main theme
+        SplashScreen.installSplashScreen(this); // For Android 12+
+        setTheme(R.style.AppTheme); // Fallback to main theme
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_splash_screen);

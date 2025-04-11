@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center"
     android:padding="8dp"
     app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp">
+    app:cardCornerRadius="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             android:id="@+id/editProfileImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:contentDescription="Profile Picture"
+            android:contentDescription="@string/profile_picture"
             android:src="@drawable/obsmallmen2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Change Photo"
+            android:text="@string/change_photo"
             android:textColor="@color/f_pass_color"
             android:textSize="14sp"
             app:icon="@drawable/ic_camera"
@@ -50,7 +50,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:hint="First Name"
+            android:hint="@string/first_name"
             app:boxStrokeColor="@color/primaryColor"
             app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
@@ -76,7 +76,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Last Name"
+            android:hint="@string/last_name"
             app:boxStrokeColor="@color/primaryColor"
             app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
@@ -102,7 +102,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="UPI ID"
+            android:hint="@string/upi_id"
             app:boxStrokeColor="@color/primaryColor"
             app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
@@ -128,7 +128,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Mobile Number"
+            android:hint="@string/mobile_number"
             app:boxStrokeColor="@color/primaryColor"
             app:boxStrokeWidthFocused="2dp"
             app:endIconMode="clear_text"
@@ -153,7 +153,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Gender"
+            android:text="@string/gender"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -177,7 +177,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_weight="1"
-                android:text="Male"
+                android:text="@string/male"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 app:buttonTint="@color/f_pass_color" />
@@ -188,7 +188,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_weight="1"
-                android:text="Female"
+                android:text="@string/female"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 app:buttonTint="@color/f_pass_color" />
@@ -198,7 +198,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Other"
+                android:text="@string/other"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 app:buttonTint="@color/f_pass_color" />
@@ -232,12 +232,12 @@
                 android:layout_height="56dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Cancel"
+                android:text="@string/cancel"
                 android:textColor="@color/f_pass_color"
                 android:textSize="16sp"
                 app:cornerRadius="12dp"
-                app:strokeColor="@color/f_pass_color"
                 app:rippleColor="@color/secondary_ripple"
+                app:strokeColor="@color/f_pass_color"
                 app:strokeWidth="1dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -247,12 +247,12 @@
                 android:layout_height="56dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Update"
+                android:text="@string/update"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 app:backgroundTint="@color/f_pass_color"
-                app:rippleColor="@color/secondary_ripple"
-                app:cornerRadius="12dp" />
+                app:cornerRadius="12dp"
+                app:rippleColor="@color/secondary_ripple" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

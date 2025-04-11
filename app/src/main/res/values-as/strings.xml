@@ -143,11 +143,11 @@
     <string name="no_friends">দেখুৱাবলৈ কোনো বন্ধু নাই</string>
     <string name="dialog_title">ডায়লগ</string>
     <string-array name="filter_options">
-        <item>৭ দিন</item>
-        <item>১৫ দিন</item>
-        <item>৩০ দিন</item>
-        <item>সকলো</item>
-        <item>স্বনির্ধাৰিত</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <string name="your_balance">আপোনাৰ শেষ</string>
     <string name="settled_up">নিষ্পত্তি কৰা হ\'ল</string>

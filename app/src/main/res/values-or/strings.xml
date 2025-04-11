@@ -152,11 +152,11 @@
     <string name="dialog_title">ସଂବାଦ</string>
 
     <string-array name="filter_options">
-        <item>7 ଦିନ</item>
-        <item>15 ଦିନ</item>
-        <item>30 ଦିନ</item>
-        <item>ସମସ୍ତ</item>
-        <item>କାଷ୍ଟମ୍</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
 
     <!-- Payment Fragment Strings -->

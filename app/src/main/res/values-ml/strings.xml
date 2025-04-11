@@ -152,11 +152,11 @@
     <string name="dialog_title">സംവാദം</string>
 
     <string-array name="filter_options">
-        <item>7 ദിവസം</item>
-        <item>15 ദിവസം</item>
-        <item>30 ദിവസം</item>
-        <item>എല്ലാം</item>
-        <item>കസ്റ്റം</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
 
     <!-- Payment Fragment Strings -->

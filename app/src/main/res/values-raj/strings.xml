@@ -145,11 +145,11 @@
     <string name="no_friends">देखण खातिर कोई दोस्त नां।</string>
     <string name="dialog_title">संवाद</string>
     <string-array name="filter_options">
-        <item>7 दिन</item>
-        <item>15 दिन</item>
-        <item>30 दिन</item>
-        <item>सब</item>
-        <item>कस्टम</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <!-- Payment Fragment Strings -->
     <string name="your_balance">थारो बैलेंस</string>

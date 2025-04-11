@@ -142,11 +142,11 @@
     <string name="no_friends">दिखाने के लिए कोई दोस्त नहीं</string>
     <string name="dialog_title">संवाद</string>
     <string-array name="filter_options">
-        <item>7 दिन</item>
-        <item>15 दिन</item>
-        <item>30 दिन</item>
-        <item>सभी</item>
-        <item>कस्टम</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <string name="your_balance">आपका बैलेंस</string>
     <string name="settled_up">निपटा हुआ</string>

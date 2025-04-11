@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="10dp"
     tools:context=".fragments.FriendsFragment">
@@ -11,10 +11,12 @@
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:autofillHints="name"
         android:background="@drawable/border_greyish"
         android:drawableStart="@android:drawable/ic_menu_search"
         android:drawablePadding="10dp"
-        android:hint="Search users"
+        android:hint="@string/search_users"
+        android:inputType="text"
         android:padding="10dp" />
 
     <androidx.recyclerview.widget.RecyclerView

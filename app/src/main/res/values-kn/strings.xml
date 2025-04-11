@@ -145,11 +145,11 @@
     <string name="no_friends">ಸ್ನೇಹಿತರು ಲಭ್ಯವಿಲ್ಲ</string>
     <string name="dialog_title">ಡೈಲಾಗ್</string>
     <string-array name="filter_options">
-        <item>7 ದಿನಗಳು</item>
-        <item>15 ದಿನಗಳು</item>
-        <item>30 ದಿನಗಳು</item>
-        <item>ಎಲ್ಲಾ</item>
-        <item>ಕಸ್ಟಮ್</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <!-- Payment Fragment Strings -->
     <string name="your_balance">ನಿಮ್ಮ ಶೇಷ</string>

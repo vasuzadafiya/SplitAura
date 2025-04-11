@@ -142,11 +142,11 @@
     <string name="no_friends">காண தர வேண்டிய நண்பர்கள் இல்லை</string>
     <string name="dialog_title">உரையாடல்</string>
     <string-array name="filter_options">
-        <item>7 நாட்கள்</item>
-        <item>15 நாட்கள்</item>
-        <item>30 நாட்கள்</item>
-        <item>எல்லாம்</item>
-        <item>தனிப்பயன்</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <string name="your_balance">உங்கள் இருப்பு</string>
     <string name="settled_up">தீர்வு செய்யப்பட்டு விட்டது</string>

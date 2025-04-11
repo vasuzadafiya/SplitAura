@@ -28,11 +28,11 @@
                 android:id="@+id/tv_pending_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No pending actions"
+                android:text="@string/no_pending_actions"
                 android:textSize="14sp"
                 android:background="@color/green"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
+                android:textColor="@android:color/black"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"/>
         </com.google.android.material.card.MaterialCardView>
@@ -63,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/inter_medium"
                     android:gravity="center"
-                    android:text="Select a friend"
+                    android:text="@string/select_a_friend"
                     android:textColor="@color/accentSecondary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -72,7 +72,7 @@
                     android:id="@+id/tv_balance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="₹0.00"
+                    android:text="@string/zero"
                     android:textSize="36sp"
                     android:textStyle="bold"
                     android:layout_marginTop="12dp"
@@ -82,7 +82,7 @@
                     android:id="@+id/tv_balance_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Settled up"
+                    android:text="@string/settled_up"
                     android:textSize="16sp"
                     android:textStyle="italic"
                     android:layout_marginTop="8dp"
@@ -93,7 +93,7 @@
                     android:id="@+id/btn_select_friend"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Select Friend"
+                    android:text="@string/select_friend"
                     android:layout_marginTop="16dp"
                     app:icon="@drawable/ic_person_outline"
                     style="@style/BorderedButton"/>
@@ -124,7 +124,7 @@
                     android:id="@+id/amount_input_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Amount will be displayed here"
+                    android:hint="@string/amount_will_be_displayed_here"
                     style="@style/CurrencyInputStyle"
                     app:startIconDrawable="@drawable/ic_currency_rupee"
                     app:boxStrokeColor="@color/accentPrimary"
@@ -139,7 +139,7 @@
                         android:focusable="false"
                         android:inputType="numberDecimal"
                         android:maxLength="10"
-                        android:textColor="@color/textPrimary"/>
+                        android:textColor="@color/f_pass_color" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Action Buttons -->
@@ -156,7 +156,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        android:text="Send"
+                        android:text="@string/send"
                         app:icon="@drawable/ic_payment"/>
 
                     <com.google.android.material.button.MaterialButton
@@ -164,7 +164,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Request"
+                        android:text="@string/request"
                         app:icon="@drawable/ic_request1"
                         style="@style/BorderedButton"/>
                 </LinearLayout>
@@ -173,7 +173,7 @@
                     android:id="@+id/btn_qr_payment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="QR Pay"
+                    android:text="@string/qr_pay"
                     app:icon="@drawable/ic_qr_code"
                     style="@style/BorderedButton"
                     android:layout_marginTop="8dp"/>
@@ -191,7 +191,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="Export Transactions"
+                        android:text="@string/export_transactions"
                         app:icon="@drawable/ic_pdf" />
 
                     <com.google.android.material.button.MaterialButton
@@ -202,7 +202,7 @@
                         android:textColor="@color/white"
                         app:icon="@drawable/ic_pending"
                         app:iconTint="@color/white"
-                        android:text="Pending Actions"
+                        android:text="@string/pending_actions"
                         app:strokeColor="@color/white" />
 
                     <com.google.android.material.button.MaterialButton
@@ -210,7 +210,7 @@
                         style="@style/BorderedButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Recent Transactions"
+                        android:text="@string/recent_transactions"
                         app:icon="@drawable/ic_history_24" />
                 </LinearLayout>
             </LinearLayout>

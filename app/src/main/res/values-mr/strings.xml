@@ -155,13 +155,12 @@
     <string name="no_friends">दर्शवण्यासाठी कोणतेही मित्र नाहीत</string>
     <string name="dialog_title">डायलॉग</string>
     <string-array name="filter_options">
-        <item>7 दिवस</item>
-        <item>15 दिवस</item>
-        <item>30 दिवस</item>
-        <item>सर्व</item>
-        <item>सानुकूल</item>
-    </string-array>
-    <!-- Payment Fragment Strings -->
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
+    </string-array>    <!-- Payment Fragment Strings -->
     <string name="your_balance">आपला शिल्लक</string>
     <string name="settled_up">बिल पूर्ण</string>
     <string name="send_or_request">रक्कम पाठवा किंवा मागा</string>

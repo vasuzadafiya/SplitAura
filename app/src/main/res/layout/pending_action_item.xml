@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Pending Action Details"
+                android:text="@string/pending_action_details"
                 android:textSize="16sp"
                 android:textColor="@color/textPrimary"
                 android:textStyle="bold" />
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Type: Unknown"
+            android:text="@string/type"
             android:textSize="14sp"
             android:textColor="@color/textSecondary" />
 
@@ -76,7 +76,7 @@
                 android:id="@+id/btn_reject"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reject"
+                android:text="@string/reject"
                 style="@style/PendingActionButton.Negative"
                 android:layout_marginEnd="8dp" />
 
@@ -84,7 +84,7 @@
                 android:id="@+id/btn_accept"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Accept"
+                android:text="@string/accept"
                 style="@style/PendingActionButton.Positive" />
         </LinearLayout>
     </LinearLayout>

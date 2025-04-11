@@ -54,7 +54,7 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_retry"
         style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/add_button_width"
         android:layout_height="80dp"
         android:layout_margin="40dp"
         android:layout_marginTop="84dp"

@@ -88,7 +88,7 @@
                         android:textColor="@color/primary"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        tools:text="$120.00" />
+                        tools:text="@string/zero" />
 
                     <!-- Details grid -->
                     <GridLayout
@@ -196,6 +196,7 @@
 
             <!-- Notes section -->
             <TextView
+                android:id="@+id/head_notes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"

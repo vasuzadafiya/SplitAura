@@ -673,7 +673,7 @@ public class PersonalExpenseActivity extends BaseActivity {
     }
 
     private void setupPaymentMethodSpinner() {
-        String[] paymentMethods = {"Cash", "Credit Card", "Debit Card", "UPI", "Net Banking"};
+        String[] paymentMethods = {getString(R.string.cash), getString(R.string.credit_card), getString(R.string.debit_card), getString(R.string.upi), getString(R.string.net_banking)};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, paymentMethods);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         paymentMethod.setAdapter(adapter);

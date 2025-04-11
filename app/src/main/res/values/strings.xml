@@ -244,11 +244,66 @@
     <string name="notifications">Notifications</string>
     <string name="personal_expense">Personal Expense</string>
     <string name="personal_expense1">Personal\nExpense</string>
-    <string name="guidance_text" translatable="false">Please enter your valid UPI ID carefully. An incorrect UPI ID may result in financial issues.\n\n How to find your UPI ID:\n
-                • Google Pay: Open the app, tap your profile picture (top-left), and find your UPI ID under your name (e.g., yourname@okaxis).\n
-                • PhonePe: Open the app, go to \'My Profile' (top-right), and check your UPI ID under 'UPI Settings' (e.g., yourname@ybl).\n
-                • Paytm: Open the app, tap the profile icon (top-left), go to 'UPI &amp; Payment Settings,' and copy your UPI ID (e.g., yourname@paytm).\n\n
-                Example UPI ID: exampleuser@okhdfcbank</string>
+    <string name="username">Username</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">Finance Summary</string>
+    <string name="settlements">Settlements</string>
+    <string name="owes">Owes</string>
+    <string name="total_you_paid_for">Total You Paid For</string>
+    <string name="your_total_share">Your Total Share</string>
+    <string name="group_title">Group Title</string>
+    <string name="currency">Currency</string>
+    <string name="group_members">Group Members</string>
+    <string name="you_are_in">"You are in "</string>
+    <string name="select_a_friend">Select a friend</string>
+    <string name="no_pending_actions">No pending actions</string>
+    <string name="send">Send</string>
+    <string name="qr_pay">QR Pay</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">Amount will be displayed here</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="logout">Logout</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="mobile_number">Mobile Number</string>
+    <string name="gender">Gender</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+    <string name="other">Other</string>
+    <string name="method">Method</string>
+    <string name="status">Status</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="send_mail">Send Mail</string>
+    <string name="search_expenses">Search expenses</string>
+    <string name="pending_action_details">Pending Action Details</string>
+    <string name="type">Type</string>
+    <string name="update_saving">Update Saving</string>
+    <string name="current_saving">Current Saving</string>
+    <string name="note">Note: this is your current personal saving tracking, it’s not updated or added automatically. User has to manually update the data.</string>
+    <string name="view_details">View Details</string>
+    <string name="no_recent_transactions">No recent transactions</string>
+    <string name="hello">"Hello "</string>
+    <string name="manage_your_finance_easily">\nManage your finance easily</string>
+    <string name="where_s_everyone">Where’s everyone?</string>
+    <string name="nothing_to_split">Nothing to Split!</string>
+    <string name="start_adding_expenses">Start adding expenses and split them effortlessly</string>
+    <string name="noting_has_landed_yet">Noting has Landed Yet!</string>
+    <string name="select_your_language">Select your language</string>
+    <string name="set_language">set Language</string>
+    <string name="are_you_sure">Are you sure you want to remove this friend?</string>
+    <string name="remove">Remove</string>
+    <string name="search_users">Search users</string>
+    <string name="chart_overview">Chart Overview</string>
+    <string name="date_wise_spending">Date-wise Spending</string>
+    <string name="cash">Cash</string>
+    <string name="credit_card">Credit Card</string>
+    <string name="debit_card">Debit Card</string>
+    <string name="upi">UPI</string>
+    <string name="net_banking">Net Banking</string>
+    <string name="select_participants">Select Participants</string>
+    <string name="search_members">Search Members</string>
+    <string name="save">Save</string>
+    <string name="payment_details">Payment Details</string>
+    <string name="add_your_image">Add Your Image</string>
 
 
 </resources>

@@ -20,6 +20,7 @@
             android:layout_width="90dp"
             android:layout_height="90dp"
             android:layout_gravity="center"
+            android:contentDescription="@string/description"
             android:scaleType="centerCrop"
             android:src="@drawable/obsmallmen2" />
 
@@ -30,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="8dp"
-            android:text="Friend Name"
+            android:text="@string/friend_name"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@color/black"
             android:textStyle="bold" />
@@ -42,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="8dp"
-            android:text="Are you sure you want to remove this friend?"
+            android:text="@string/are_you_sure"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <!-- Buttons Row -->
@@ -56,12 +57,12 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="60dp"
                 android:layout_weight="1"
                 android:backgroundTint="@android:color/transparent"
                 android:fontFamily="@font/inter_bold"
-                android:text="Cancle"
+                android:text="@string/cancel"
                 android:textColor="@color/f_pass_color"
                 app:strokeColor="@color/f_pass_color"
                 app:strokeWidth="2dp" />
@@ -69,13 +70,13 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRemove"
                 style="@style/Widget.MaterialComponents.Button"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="60dp"
                 android:layout_marginStart="16dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/red"
                 android:fontFamily="@font/inter_bold"
-                android:text="Remove"
+                android:text="@string/remove"
                 android:textColor="@color/white" />
         </LinearLayout>
     </LinearLayout>

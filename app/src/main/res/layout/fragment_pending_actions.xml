@@ -11,7 +11,7 @@
         android:id="@+id/tv_empty_pending"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No pending actions"
+        android:text="@string/no_pending_actions"
         android:textSize="16sp"
         android:textColor="@color/textSecondary"
         android:gravity="center"

@@ -151,11 +151,11 @@
     <string name="dialog_title">డయాలాగ్</string>
 
     <string-array name="filter_options">
-        <item>7 రోజులు</item>
-        <item>15 రోజులు</item>
-        <item>30 రోజులు</item>
-        <item>అన్నీ</item>
-        <item>కస్టమ్</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
 
     <!-- Payment Fragment Strings -->

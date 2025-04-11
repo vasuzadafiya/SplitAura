@@ -31,7 +31,7 @@
             android:background="@drawable/border_greyish"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="10dp"
-            android:hint="Search expenses"
+            android:hint="@string/search_expenses"
             android:padding="10dp" />
 
         <!-- Filter Spinner -->
@@ -95,6 +95,7 @@
         android:layout_height="0dp"
         android:padding="8dp"
         android:visibility="visible"
+        tools:listitem="@layout/item_expense"
         app:layout_constraintBottom_toTopOf="@+id/bannerAdView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"

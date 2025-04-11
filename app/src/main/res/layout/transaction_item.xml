@@ -38,7 +38,7 @@
                 android:id="@+id/tv_friend_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Friend Name"
+                android:text="@string/friend_name"
                 android:textColor="@color/textPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -49,7 +49,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Date"
+                android:text="@string/date"
                 android:textColor="@color/textSecondary"
                 android:textSize="14sp" />
 
@@ -59,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Method: Unknown"
+                android:text="@string/method"
                 android:textColor="@color/textSecondary"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -76,7 +76,7 @@
                 android:id="@+id/tv_amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="₹0.00"
+                android:text="@string/zero"
                 android:textColor="@color/accentPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -89,7 +89,7 @@
                 android:layout_marginTop="4dp"
                 android:paddingHorizontal="6dp"
                 android:paddingVertical="2dp"
-                android:text="Status"
+                android:text="@string/status"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:background="@drawable/status_background" />

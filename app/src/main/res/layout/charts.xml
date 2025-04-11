@@ -21,7 +21,7 @@
             android:layout_margin="16dp"
             android:fontFamily="@font/inter_medium"
             android:gravity="center"
-            android:text="Chart Overview"
+            android:text="@string/chart_overview"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold" />
@@ -30,6 +30,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:baselineAligned="false"
             android:orientation="horizontal"
             android:weightSum="2">
 
@@ -57,10 +58,10 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:layout_marginTop="10dp"
+                            android:layout_marginBottom="8dp"
                             android:gravity="center"
-                            android:text="Payment Method"
+                            android:text="@string/payment_method"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -97,10 +98,10 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:layout_marginTop="10dp"
+                            android:layout_marginBottom="8dp"
                             android:gravity="center"
-                            android:text="Category"
+                            android:text="@string/category"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -127,7 +128,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:gravity="center"
-                android:text="Datewise Spending"
+                android:text="@string/date_wise_spending"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />

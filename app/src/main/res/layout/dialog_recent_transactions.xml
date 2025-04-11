@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/cardBackground"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/cardBackground">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/tv_empty_transactions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No recent transactions"
-        android:textSize="16sp"
-        android:textColor="@color/textSecondary"
         android:gravity="center"
         android:padding="16dp"
-        android:visibility="gone"/>
+        android:text="@string/no_recent_transactions"
+        android:textColor="#DB6C64"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:visibility="visible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_transactions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxHeight="400dp"
-        android:overScrollMode="never"/>
+        android:overScrollMode="never" />
 </LinearLayout>

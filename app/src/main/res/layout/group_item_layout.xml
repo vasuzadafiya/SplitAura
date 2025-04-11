@@ -13,7 +13,7 @@
         android:id="@+id/placeholder_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No groups created yet"
+        android:text="@string/group_deleted"
         android:textSize="24sp"
         android:textColor="@color/gray"
         android:gravity="center"
@@ -38,6 +38,7 @@
                 android:layout_height="48dp"
                 android:background="@drawable/circle_shape"
                 android:scaleType="centerCrop"
+                android:contentDescription="@string/description"
                 android:src="@drawable/ic_group" />
 
             <!-- Group Name + Date -->
@@ -52,7 +53,7 @@
                     android:id="@+id/group_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Office Trip"
+                    android:text="@string/title"
                     android:textColor="#1B1C1E"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -61,7 +62,7 @@
                     android:id="@+id/group_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="May 23, 2024"
+                    android:text="@string/date"
                     android:textColor="#606C74"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -71,7 +72,7 @@
                 android:id="@+id/group_amount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Loading..."
+                android:text="@string/zero"
                 android:textColor="#007AFF"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -102,6 +103,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:visibility="gone"
+                    android:contentDescription="@string/description"
                     android:background="@drawable/circle_shape"
                     android:scaleType="centerCrop"
                     android:src="@drawable/obsmallmen2" />
@@ -109,6 +111,7 @@
                 <ImageView
                     android:id="@+id/member2"
                     android:layout_width="32dp"
+                    android:contentDescription="@string/description"
                     android:layout_height="32dp"
                     android:visibility="gone"
                     android:layout_marginStart="-8dp"
@@ -119,6 +122,7 @@
                 <ImageView
                     android:id="@+id/member3"
                     android:layout_width="32dp"
+                    android:contentDescription="@string/description"
                     android:layout_height="32dp"
                     android:visibility="gone"
                     android:layout_marginStart="-8dp"
@@ -132,7 +136,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:layout_marginStart="8dp"
-                    android:text="+12 more"
+                    android:text="@string/title"
                     android:textColor="#606C74"
                     android:visibility="gone"
                     android:textSize="14sp" />
@@ -143,10 +147,10 @@
                 android:id="@+id/view_details_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#007AFF"
+                android:backgroundTint="@color/f_pass_color"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="6dp"
-                android:text="View Details"
+                android:text="@string/view_details"
                 android:textColor="#FFFFFF" />
         </LinearLayout>
 

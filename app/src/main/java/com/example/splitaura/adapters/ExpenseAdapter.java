@@ -122,6 +122,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         TextView splitBy = dialogView.findViewById(R.id.dialog_expense_split_by);
         TextView date = dialogView.findViewById(R.id.dialog_expense_date);
         TextView notes = dialogView.findViewById(R.id.dialog_expense_notes);
+        TextView headNotes = dialogView.findViewById(R.id.head_notes);
         FlexboxLayout categoriesContainer = dialogView.findViewById(R.id.categories_container);
         MaterialButton btnUpdate = dialogView.findViewById(R.id.btn_update);
         MaterialButton btnDelete = dialogView.findViewById(R.id.btn_delete);
@@ -139,8 +140,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         if (expense.getNotes() != null && !expense.getNotes().isEmpty()) {
             notes.setText(expense.getNotes());
             notes.setVisibility(View.VISIBLE);
+            headNotes.setVisibility(View.VISIBLE);
         } else {
             notes.setVisibility(View.GONE);
+            headNotes.setVisibility(View.GONE);
             dialogView.findViewById(R.id.dialog_expense_notes).setVisibility(View.GONE);
         }
 

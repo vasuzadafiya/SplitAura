@@ -68,7 +68,7 @@ public class GroupFragment extends Fragment {
         GroupViewModel groupViewModel = new ViewModelProvider(requireActivity()).get(GroupViewModel.class);
         groupViewModel.getGroupList().observe(getViewLifecycleOwner(), groups -> {
             groupAdapter.setGroupList(groups);
-            sizeofGroup.setText("You are in " + groups.size() + " groups");
+            sizeofGroup.setText(getString(R.string.you_are_in) + groups.size() + " " + getString(R.string.groups));
 
             // Show/hide placeholder based on group count
             if (groups.isEmpty()) {

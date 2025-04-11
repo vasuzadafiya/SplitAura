@@ -153,11 +153,11 @@
     <string name="dialog_title">ਡਾਇਲਾਗ</string>
 
     <string-array name="filter_options">
-        <item>7 ਦਿਨ</item>
-        <item>15 ਦਿਨ</item>
-        <item>30 ਦਿਨ</item>
-        <item>ਸਭ</item>
-        <item>ਕਸਟਮ</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
 
     <!-- Payment Fragment Strings -->

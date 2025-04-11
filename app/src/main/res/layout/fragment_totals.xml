@@ -63,7 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingBottom="8dp"
-                android:text="Total You Paid For"
+                android:text="@string/total_you_paid_for"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
@@ -99,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingBottom="8dp"
-                android:text="Your Total Share"
+                android:text="@string/your_total_share"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 

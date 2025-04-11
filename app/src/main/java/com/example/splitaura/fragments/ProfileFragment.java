@@ -29,6 +29,7 @@ import com.example.splitaura.LoginActivity;
 import com.example.splitaura.ManageFriends;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.LanguageAdapter;
+import com.example.splitaura.admin.AdManager;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Language;
@@ -161,7 +162,14 @@ public class ProfileFragment extends Fragment {
     }
 
     private void changeLanguage() {
-        changeLang.setOnClickListener(v -> showLanguageDialog(requireContext()));
+        changeLang.setOnClickListener(v -> {
+            try {
+                AdManager.showInterstitial(requireActivity(), null);
+            } catch (Exception e) {
+                AdManager.loadInterstitial(requireContext());
+            }
+            showLanguageDialog(requireContext());
+        });
     }
 
     public void showLanguageDialog(Context context) {
@@ -443,6 +451,11 @@ public class ProfileFragment extends Fragment {
             }
 
             editProfileButton.setOnClickListener(v -> {
+                try {
+                    AdManager.showInterstitial(requireActivity(), null);
+                } catch (Exception e) {
+                    AdManager.loadInterstitial(requireContext());
+                }
                 EditProfileDialogFragment editProfileDialog = new EditProfileDialogFragment();
                 editProfileDialog.show(getChildFragmentManager(), "EditProfileDialog");
             });

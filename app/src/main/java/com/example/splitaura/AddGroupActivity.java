@@ -10,7 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -19,6 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.splitaura.admin.AdManager;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.services.ImgurApiService;
 import com.example.splitaura.services.ImgurResponse;
@@ -66,7 +66,6 @@ public class AddGroupActivity extends AppCompatActivity {
     private Button categoryOtherButton;
     private Button cancelButton;
     private Button selectedCategoryButton = null;
-    private ProgressBar progressBar;
     private Button continueButton;
 
     private String selectedCurrency = "";
@@ -83,6 +82,12 @@ public class AddGroupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_group);
+
+        try {
+            AdManager.showInterstitial(this, null);
+        } catch (Exception e) {
+            AdManager.loadInterstitial(this);
+        }
 
         // Initialize LoadingDialog
         loadingDialog = new LoadingDialog(this);
@@ -109,7 +114,6 @@ public class AddGroupActivity extends AppCompatActivity {
         categoryOtherButton = findViewById(R.id.btn_category_other);
         cancelButton = findViewById(R.id.skip_btn);
         continueButton = findViewById(R.id.next_button);
-        progressBar = findViewById(R.id.progressBar);
     }
 
     private void setupListeners() {

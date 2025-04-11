@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -87,7 +88,6 @@
             app:layout_constraintVertical_bias="0.615" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- FloatingActionButton to add new expense -->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
@@ -95,13 +95,12 @@
         android:layout_height="0dp"
         android:padding="8dp"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bannerAdView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linear"
         app:layout_constraintVertical_bias="0.0" />
-
 
     <LinearLayout
         android:id="@+id/personal_placeholder"
@@ -150,8 +149,8 @@
         style="@style/ToggleButtonStyle"
         android:layout_width="180dp"
         android:layout_height="55dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="72dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="44dp"
         android:backgroundTint="@color/f_pass_color"
         android:gravity="center"
         android:padding="4dp"
@@ -159,8 +158,20 @@
         android:textColor="@color/white"
         android:textSize="16sp"
         app:cornerRadius="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/recycler_view"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/bannerAdView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="visible"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_id"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

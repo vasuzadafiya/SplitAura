@@ -1,6 +1,7 @@
 [versions]
 agp = "8.6.1"
 cloudinaryAndroidVersion = "3.0.2"
+core = "3.5.2"
 credentialsPlayServicesAuth = "1.3.0"
 dotsindicator = "4.3"
 firebaseBom = "33.9.0"
@@ -14,7 +15,9 @@ appcompat = "1.7.0"
 activity = "1.10.0"
 constraintlayout = "2.2.0"
 lottie = "6.6.2"
+playServicesAds = "24.2.0"
 playServicesAuth = "21.3.0"
+playServicesAuthVersion = "20.7.0"
 playServicesMaps = "19.1.0"
 viewpager2 = "1.1.0"
 googleGmsGoogleServices = "4.4.2"
@@ -28,9 +31,11 @@ googleFirebaseCrashlytics = "3.0.3"
 gridlayout = "1.0.0"
 firebaseMessaging = "24.1.0"
 navigationRuntime = "2.8.9"
+zxingAndroidEmbedded = "4.3.0"
 
 [libraries]
 cloudinary-android-v302 = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroidVersion" }
+core = { module = "com.google.zxing:core", version.ref = "core" }
 credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsPlayServicesAuth" }
 credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
 dotsindicator = { module = "com.tbuonomo:dotsindicator", version.ref = "dotsindicator" }
@@ -45,7 +50,9 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+play-services-auth-v2070 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
@@ -58,6 +65,7 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime", version.ref = "navigationRuntime" }
+zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 
 [plugins]

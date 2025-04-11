@@ -32,10 +32,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.airbnb.lottie.LottieAnimationView;
 import com.example.splitaura.adapters.CategoryAdapter;
 import com.example.splitaura.adapters.PersonalExpenseAdapter;
+import com.example.splitaura.admin.AdManager;
+import com.example.splitaura.admin.BannerAdHelper;
 import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.models.PersonalExpense;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
+import com.google.android.gms.ads.AdView;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -85,6 +88,11 @@ public class PersonalExpenseActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.personal_expense);
+
+//        for banner ads
+        AdView adView = findViewById(R.id.bannerAdView);
+        BannerAdHelper.loadBanner(this, adView);
+
         placeholder = findViewById(R.id.personal_placeholder);
         recyclerView = findViewById(R.id.recycler_view);
 
@@ -458,6 +466,11 @@ public class PersonalExpenseActivity extends BaseActivity {
     }
 
     private void showChart() {
+        try {
+            AdManager.showInterstitial(this, null);
+        } catch (Exception e) {
+            AdManager.loadInterstitial(this);
+        }
         LayoutInflater inflater = LayoutInflater.from(this);
         View dialogView = inflater.inflate(R.layout.charts, null);
 

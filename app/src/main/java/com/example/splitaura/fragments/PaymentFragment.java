@@ -2,6 +2,7 @@ package com.example.splitaura.fragments;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -37,13 +38,13 @@ import com.example.splitaura.ExpenseManager;
 import com.example.splitaura.PaymentDetailsActivity;
 import com.example.splitaura.R;
 import com.example.splitaura.adapters.ContactsAdapter;
+import com.example.splitaura.admin.AdManager;
 import com.example.splitaura.databinding.FragmentPaymentBinding;
 import com.example.splitaura.dialogues.LoadingDialog;
 import com.example.splitaura.models.Friend;
 import com.example.splitaura.models.Notification;
 import com.example.splitaura.models.Transaction;
 import com.example.splitaura.viewmodels.PaymentViewModel;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
@@ -84,7 +85,7 @@ public class PaymentFragment extends Fragment {
     private PaymentViewModel viewModel;
     private LoadingDialog loadingDialog;
     private final Executor executor = Executors.newSingleThreadExecutor();
-    private ContactsAdapter contactsAdapter;
+    ContactsAdapter contactsAdapter;
     private CountDownTimer confirmationTimer;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -129,7 +130,7 @@ public class PaymentFragment extends Fragment {
             Friend selectedFriend = viewModel.getSelectedFriend().getValue();
             double amount = Double.parseDouble(binding.etAmount.getText().toString());
             String message = String.format(Locale.getDefault(), "Are you sure you want to send ₹%.2f to %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, () -> initiateSendPayment(amount, selectedFriend), false);
+            showConfirmationDialog(message, () -> initiateSendPayment(amount, selectedFriend));
         });
 
         binding.btnRequest.setOnClickListener(v -> {
@@ -137,14 +138,19 @@ public class PaymentFragment extends Fragment {
             Friend selectedFriend = viewModel.getSelectedFriend().getValue();
             double amount = Double.parseDouble(binding.etAmount.getText().toString());
             String message = String.format(Locale.getDefault(), "Are you sure you want to request ₹%.2f from %s?", amount, selectedFriend.getFullName());
-            showConfirmationDialog(message, () -> initiateRequestPayment(amount, selectedFriend), false);
+            showConfirmationDialog(message, () -> initiateRequestPayment(amount, selectedFriend));
         });
 
         binding.btnQrPayment.setOnClickListener(v -> initiateQrPayment());
 
         binding.btnExportPdf.setOnClickListener(v -> {
+            try {
+                AdManager.showInterstitial(requireActivity(), null);
+            } catch (Exception e) {
+                AdManager.loadInterstitial(requireContext());
+            }
             String msg = "Are you sure you want to export the PDF?";
-            showConfirmationDialog(msg, this::generatePdf, false);
+            showConfirmationDialog(msg, this::generatePdf);
         });
 
         binding.btnPendingActions.setOnClickListener(v -> {
@@ -164,11 +170,14 @@ public class PaymentFragment extends Fragment {
     private void setupAmountInput() {
         binding.etAmount.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 binding.amountInputLayout.setError(null);
             }
+
             @Override
             public void afterTextChanged(Editable s) {
                 Log.d(TAG, "Amount input changed: " + s.toString());
@@ -417,6 +426,11 @@ public class PaymentFragment extends Fragment {
     }
 
     private void initiateQrPayment() {
+        try {
+            AdManager.showInterstitial(requireActivity(), null);
+        } catch (Exception e) {
+            AdManager.loadInterstitial(requireContext());
+        }
         if (!validateInput()) return;
         loadingDialog.show();
         String currentUserId = viewModel.getCurrentUserId();
@@ -431,9 +445,11 @@ public class PaymentFragment extends Fragment {
                 db.collection("users").document(selectedFriend.getUid()).get()
                         .addOnSuccessListener(friendDoc -> {
                             try {
-                                if (!friendDoc.exists()) throw new IllegalStateException("Friend's data not found");
+                                if (!friendDoc.exists())
+                                    throw new IllegalStateException("Friend's data not found");
                                 String upiId = friendDoc.getString("upi");
-                                if (TextUtils.isEmpty(upiId)) throw new IllegalStateException("Friend's UPI ID not available");
+                                if (TextUtils.isEmpty(upiId))
+                                    throw new IllegalStateException("Friend's UPI ID not available");
 
                                 String upiString = String.format(Locale.US, "upi://pay?pa=%s&am=%.2f&cu=INR&tn=SplitAuraPayment_%s", upiId, amount, transactionId);
                                 Bitmap qrBitmap = generateQrCode(upiString);
@@ -545,7 +561,8 @@ public class PaymentFragment extends Fragment {
 
                     ContentResolver resolver = requireContext().getContentResolver();
                     pdfUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (pdfUri == null) throw new IOException("Failed to create new MediaStore record.");
+                    if (pdfUri == null)
+                        throw new IOException("Failed to create new MediaStore record.");
                     outputStream = resolver.openOutputStream(pdfUri);
                 } else {
                     File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -691,7 +708,7 @@ public class PaymentFragment extends Fragment {
         return true;
     }
 
-    private void showConfirmationDialog(String message, Runnable onConfirm, boolean isQr) {
+    private void showConfirmationDialog(String message, Runnable onConfirm) {
         if (confirmationTimer != null) {
             confirmationTimer.cancel();
         }
@@ -705,7 +722,7 @@ public class PaymentFragment extends Fragment {
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         positiveButton.setEnabled(true);
 
         confirmationTimer = new CountDownTimer(3000, 1000) {

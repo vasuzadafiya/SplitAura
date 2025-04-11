@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">SplitAura</string>
+    <string name="banner_id" translatable="false">ca-app-pub-1993940483015486/6154164599</string>
     <string name="title1">Seamless Payements,\n Effortless Splits</string>
     <string name="title2">Share Bills,\n Share Moments</string>
     <string name="title3">Stay Connected,\n Split Confidently</string>
@@ -243,5 +244,11 @@
     <string name="notifications">Notifications</string>
     <string name="personal_expense">Personal Expense</string>
     <string name="personal_expense1">Personal\nExpense</string>
+    <string name="guidance_text" translatable="false">Please enter your valid UPI ID carefully. An incorrect UPI ID may result in financial issues.\n\n How to find your UPI ID:\n
+                • Google Pay: Open the app, tap your profile picture (top-left), and find your UPI ID under your name (e.g., yourname@okaxis).\n
+                • PhonePe: Open the app, go to \'My Profile' (top-right), and check your UPI ID under 'UPI Settings' (e.g., yourname@ybl).\n
+                • Paytm: Open the app, tap the profile icon (top-left), go to 'UPI &amp; Payment Settings,' and copy your UPI ID (e.g., yourname@paytm).\n\n
+                Example UPI ID: exampleuser@okhdfcbank</string>
+
 
 </resources>

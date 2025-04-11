@@ -29,11 +29,11 @@ import java.util.List;
 
 public class GroupFragment extends Fragment {
 
-    private GroupAdapter groupAdapter;
-    private ImageView profilePic;
-    private TextView sizeofGroup;
-    private LinearLayout placeholder;
-    private RecyclerView groupRecyclerView;
+    GroupAdapter groupAdapter;
+    ImageView profilePic;
+    TextView sizeofGroup;
+    LinearLayout placeholder;
+    RecyclerView groupRecyclerView;
 
     public GroupFragment() {
         // Required empty public constructor
@@ -100,6 +100,7 @@ public class GroupFragment extends Fragment {
         MaterialButton addGroup;
         addGroup = view.findViewById(R.id.activity_add_group);
         addGroup.setOnClickListener(v -> {
+
             Intent intent = new Intent(getActivity(), AddGroupActivity.class);
             startActivity(intent);
         });

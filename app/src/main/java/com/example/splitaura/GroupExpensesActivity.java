@@ -19,12 +19,14 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.splitaura.admin.BannerAdHelper;
 import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.fragments.BalancesFragment;
 import com.example.splitaura.fragments.ExpensesFragment;
 import com.example.splitaura.fragments.GroupInfoFragment;
 import com.example.splitaura.fragments.TotalsFragment;
 import com.example.splitaura.utils.Utill;
+import com.google.android.gms.ads.AdView;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -41,7 +43,7 @@ public class GroupExpensesActivity extends BaseActivity {
     private MaterialButton btnTotals;
     private ImageView backButton;
     private ViewPager2 viewPager;
-    private View fragmentContainer;
+    View fragmentContainer;
     private MaterialButton btnGroups;
 
     @Override
@@ -50,6 +52,9 @@ public class GroupExpensesActivity extends BaseActivity {
         setContentView(R.layout.activity_group_expenses);
         initViews();
         setTransparentStatusBar();
+
+        AdView bannerAd = findViewById(R.id.bannerAdView);
+        BannerAdHelper.loadBanner(this, bannerAd);
 
         // Retrieve and validate group ID.
         groupId = getIntent().getStringExtra(GROUP_ID);

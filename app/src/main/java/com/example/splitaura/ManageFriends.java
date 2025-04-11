@@ -13,10 +13,12 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.splitaura.admin.BannerAdHelper;
 import com.example.splitaura.admin.BaseActivity;
 import com.example.splitaura.fragments.AddFriendFragment;
 import com.example.splitaura.fragments.FriendRequestFragment;
 import com.example.splitaura.fragments.FriendsFragment;
+import com.google.android.gms.ads.AdView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,6 +35,8 @@ public class ManageFriends extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manage_friends);
+        AdView adView = findViewById(R.id.bannerAdView);
+        BannerAdHelper.loadBanner(this, adView);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View decorView = getWindow().getDecorView();

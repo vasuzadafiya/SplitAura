@@ -1,9 +1,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/group_back"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/group_back"
     tools:context=".ManageFriends">
 
     <!-- Back Button -->
@@ -22,9 +23,9 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="16dp"
+            android:background="@android:color/transparent"
             android:contentDescription="@string/btn_back"
             android:src="@drawable/ic_arrow_back"
-            android:background="@android:color/transparent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -64,27 +65,27 @@
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            app:rippleColor="#80FFFFFF"
             android:text="@string/friends"
-            app:cornerRadius="12dp" />
+            app:cornerRadius="12dp"
+            app:rippleColor="#80FFFFFF" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_add_friends"
             style="@style/ToggleButtonStyle"
-            app:rippleColor="#80FFFFFF"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:text="@string/add_friends"
-            app:cornerRadius="12dp" />
+            app:cornerRadius="12dp"
+            app:rippleColor="#80FFFFFF" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_requests"
             style="@style/ToggleButtonStyle"
             android:layout_width="wrap_content"
-            app:rippleColor="#80FFFFFF"
             android:layout_height="48dp"
             android:text="@string/requests"
-            app:cornerRadius="12dp" />
+            app:cornerRadius="12dp"
+            app:rippleColor="#80FFFFFF" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- CardView taking up the rest of the screen -->
@@ -94,10 +95,10 @@
         android:layout_height="0dp"
         android:layout_margin="16dp"
         android:radius="16dp"
+        ads:layout_constraintBottom_toTopOf="@+id/bannerAdView"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toggleGroup">
@@ -107,5 +108,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </androidx.cardview.widget.CardView>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/bannerAdView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="visible"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_id"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

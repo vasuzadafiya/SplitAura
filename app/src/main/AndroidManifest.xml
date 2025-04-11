@@ -23,6 +23,12 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="34">
+        <!-- ADD THIS LINE BELOW -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1993940483015486~5850912267" /> <!-- Replace with your actual AdMob App ID -->
+
+
         <activity
             android:name=".splashScreen"
             android:exported="true"

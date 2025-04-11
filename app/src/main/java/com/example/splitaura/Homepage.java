@@ -41,7 +41,7 @@ public class Homepage extends BaseActivity {
     private boolean isCurvedBarVisible = false;
     private BottomNavigationView bottomNavigationView;
     private boolean hasShownUPIDialog = false;
-    private int previousItemId = R.id.nav_home;
+    int previousItemId = R.id.nav_home;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,15 +120,6 @@ public class Homepage extends BaseActivity {
 
         handleNavigationIntent(getIntent());
         checkUPIStatus();
-    }
-
-    private int getNavigationIndex(int itemId) {
-        if (itemId == R.id.nav_home) return 0;
-        if (itemId == R.id.nav_groups) return 1;
-        if (itemId == R.id.nav_spotlight) return 2;
-        if (itemId == R.id.nav_payments) return 3;
-        if (itemId == R.id.nav_profile) return 4;
-        return -1;
     }
 
     private void toggleCurvedBracket() {
@@ -271,16 +262,8 @@ public class Homepage extends BaseActivity {
         MaterialButton addUPIButton = dialogView.findViewById(R.id.addUPI);
         TextView tvDialogName = dialogView.findViewById(R.id.tvUserName);
         ImageView ivDialogProfile = dialogView.findViewById(R.id.iv_upi_profile);
-        TextView tvDialogAlertText = dialogView.findViewById(R.id.tvAlertText);
 
         tvDialogName.setText(fullName);
-        String guidanceText = "Please enter your valid UPI ID carefully. An incorrect UPI ID may result in financial issues.\n\n" +
-                "How to find your UPI ID:\n" +
-                "• Google Pay: Open the app, tap your profile picture (top-left), and find your UPI ID under your name (e.g., yourname@okaxis).\n" +
-                "• PhonePe: Open the app, go to 'My Profile' (top-right), and check your UPI ID under 'UPI Settings' (e.g., yourname@ybl).\n" +
-                "• Paytm: Open the app, tap the profile icon (top-left), go to 'UPI & Payment Settings,' and copy your UPI ID (e.g., yourname@paytm).\n\n" +
-                "Example UPI ID: exampleuser@okhdfcbank";
-        tvDialogAlertText.setText(guidanceText);
 
         Glide.with(this)
                 .load(profileImage)

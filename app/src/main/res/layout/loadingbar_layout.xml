@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#8000000"
+    android:background="@android:drawable/screen_background_dark_transparent"
     android:fitsSystemWindows="true"
     android:layout_gravity="center"
     tools:context=".dialogues.LoadingDialog">

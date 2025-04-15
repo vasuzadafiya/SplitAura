@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">SplitAura</string>
-    <string name="title1">സുതാര്യമായ പെയ്മെന്റുകൾ,&#10;സൗകര്യപ്രദമായ വിഭജനം</string>
-    <string name="title2">ബില്ലുകൾ പങ്കിടുക,&#10;ഓർമ്മകൾ പങ്കിടുക</string>
-    <string name="title3">ബന്ധം നിലനിർത്തുക,&#10;ആത്മവിശ്വാസത്തോടെ വിഭജിക്കുക</string>
+    <string name="title1">സുതാര്യമായ പെയ്മെന്റുകൾ, സൗകര്യപ്രദമായ വിഭജനം</string>
+    <string name="title2">ബില്ലുകൾ പങ്കിടുക, ഓർമ്മകൾ പങ്കിടുക</string>
+    <string name="title3">ബന്ധം നിലനിർത്തുക, ആത്മവിശ്വാസത്തോടെ വിഭജിക്കുക</string>
     <string name="desc1">ഞങ്ങളുടെ എളുപ്പത്തിൽ ഉപയോഗിക്കാവുന്ന ആപ്പ് നിങ്ങളുടെ വ്യക്തിഗതവും ഗ്രൂപ്പ് ചെലവുകളും എളുപ്പത്തിൽ ട്രാക്ക് ചെയ്യാനും വിഭജിക്കാനും സഹായിക്കുന്നു. സുഹൃത്തുക്കളോടൊപ്പം ഭക്ഷണവും വീട്ടുവൈദ്യുത ബില്ലുകളും പങ്കുവെയ്ക്കുമ്പോഴും SplitMate എല്ലാ പേയ്മെന്റുകളും സുഗമവും നീതിയുള്ളതുമാക്കുന്നു</string>
     <string name="desc2">നിങ്ങളുടെ ചെലവുകൾ യഥാർത്ഥ സമയത്ത് ട്രാക്ക് ചെയ്യുക, മികച്ച ക്രമീകരണത്തിനായി വിഭാഗീകരിക്കുക, ചെലവിന്റെ മാതൃക ദൃശ്യമാക്കുക. പേയ്മെന്റ് പങ്കുകൾ കണക്കാക്കുന്നതിൽ നിന്ന് മൊത്തം ചെലവ് നിരീക്ഷിക്കുന്നത് വരെ, പേപ്പർ അല്ലെങ്കിൽ സങ്കീർണ്ണ കണക്കുകൂട്ടലിന്റെ ബുദ്ധിമുട്ടുകൾ ഇല്ലാതെ SplitMate നിങ്ങളുടെ സാമ്പത്തിക കാര്യങ്ങൾ ലളിതമാക്കുന്നു</string>
     <string name="desc3">SplitAura ഒരു ഇടത്തായി വ്യക്തിഗതവും ഗ്രൂപ്പ് ചെലവുകളും കൈകാര്യം ചെയ്യാനുള്ള സൗകര്യം നൽകുന്നു. ചെലവുകളുടെ ഗ്രൂപ്പ് സൃഷ്ടിച്ച് അംഗങ്ങളെ ചേർക്കുക, SplitMate പേയ്മെന്റ് സ്വയം വിതരണം ചെയ്ത് ട്രാക്ക് ചെയ്യും—സുഹൃത്തുക്കൾ, കുടുംബം അല്ലെങ്കിൽ സഹപ്രവർത്തകരോടൊപ്പം ചെലവുകൾ വിഭജിക്കുന്നതിൽ ഏതൊരു വിവരവും മിസ്സ് ചെയ്യാതിരിക്കാൻ</string>
@@ -15,7 +15,7 @@
     <string name="forgot_password">പാസ്‌വേഡ് മറന്നേ?</string>
     <string name="login">ലോഗിൻ</string>
     <string name="no_internet">ഓപ്സ്!</string>
-    <string name="no_internet_desc">ഇന്റർനെറ്റ് ബന്ധമില്ല&#10;ദയവായി നിങ്ങളുടെ ഇന്റർനെറ്റ് ബന്ധം പരിശോധിക്കുക</string>
+    <string name="no_internet_desc">ഇന്റർനെറ്റ് ബന്ധമില്ല &amp; ദയവായി നിങ്ങളുടെ ഇന്റർനെറ്റ് ബന്ധം പരിശോധിക്കുക</string>
     <string name="retry">മറശ്രമിക്കുക</string>
     <!-- TODO: Remove or change this placeholder text -->
     <plurals name="pending_count">
@@ -117,8 +117,8 @@
     <string name="total_group_spending">ആകെ ഗ്രൂപ്പ് ചെലവ്</string>
     <string name="peoples">ആൾ</string>
     <string-array name="split_by_options">
-        <item>സമമായി</item>
-        <item>കസ്റ്റം</item>
+        <item>Equally</item>
+        <item>Custom</item>
     </string-array>
 
     <string name="default_username">ഹലോ ഉപയോക്താവ്&#10;നിങ്ങളുടെ സാമ്പത്തിക കാര്യങ്ങൾ എളുപ്പത്തിൽ കൈകാര്യം ചെയ്യൂ</string>
@@ -163,7 +163,7 @@
     <string name="your_balance">നിങ്ങളുടെ ബാലൻസ്</string>
     <string name="settled_up">സമീകൃതമായി</string>
     <string name="send_or_request">പണം അയയ്ക്കുകയോ അഭ്യർത്ഥിക്കുകയോ ചെയ്യുക</string>
-    <string name="search_friends">സുഹൃത്തുക്കളെ തിരയുക...</string>
+    <string name="search_friends">സുഹൃത്തുക്കളെ തിരയുക…</string>
     <string name="pay_via_qr">QR വഴി പണമടയ്ക്കുക</string>
     <string name="pending_actions">കാത്തിരിക്കുന്ന പ്രവർത്തികൾ</string>
     <string name="export_transactions">ട്രാൻസാക്ഷനുകൾ എക്‌സ്‌പോർട്ട് ചെയ്യുക</string>
@@ -208,10 +208,7 @@
     <string name="generate_pdf_confirmation">നിങ്ങളുടെ ട്രാൻസാക്ഷനുകളുടെ PDF സൃഷ്ടിക്കാമോ?</string>
     <string name="transaction_details">ട്രാൻസാക്ഷൻ വിശദാംശങ്ങൾ</string>
     <string name="transaction_details_message">സുഹൃത്ത്: %s&#10;തുക: ₹%.2f&#10;തീയതി: %s&#10;സ്ഥിതിവിവരം: %s&#10;ട്രാൻസാക്ഷൻ ഐഡി: %s&#10;രീതി: %s</string>
-
     <string name="hello_blank_fragment">ഹലോ ബ്ലാങ്ക് ഫ്രാഗ്മെന്റ്</string>
-
-
     <string name="just_1_click_split_your_bills">ഒരു ക്ലിക്കിൽ നിങ്ങളുടെ ബില്ലുകൾ വിഭജിക്കുക</string>
     <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">നിങ്ങളുടെ സുഹൃത്തുക്കളും, സഹപ്രവർത്തകരും, മറ്റ് എല്ലാവരുമായി&#10;ബിൽ പങ്കിടാനുള്ള എളുപ്പ മാർഗം.</string>
     <string name="title">തലക്കെട്ട്</string>
@@ -227,5 +224,83 @@
     <string name="all_groups">എല്ലാ ഗ്രൂപ്പുകളും</string>
     <string name="notifications">അറിയിപ്പുകൾ</string>
     <string name="personal_expense">വ്യക്തിഗത ചെലവ്</string>
-    <string name="personal_expense1">വ്യക്തിഗത&#10;ചെലവ്</string>
+    <string name="personal_expense1">വ്യക്തിഗത\nചെലവ്</string>
+    <string name="username">ഉപയോക്തൃനാമം</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">ഫിനാൻസ് സംഗ്രഹം</string>
+    <string name="settlements">സമ്മതങ്ങൾ</string>
+    <string name="owes">കടം</string>
+    <string name="total_you_paid_for">നിങ്ങൾ നൽകിയ മൊത്തം</string>
+    <string name="your_total_share">നിങ്ങളുടെ വിഹിതം</string>
+    <string name="group_title">ഗ്രൂപ്പ് പേര്</string>
+    <string name="currency">കറൻസി</string>
+    <string name="group_members">ഗ്രൂപ്പ് അംഗങ്ങൾ</string>
+    <string name="you_are_in">നിങ്ങൾ അംഗമാണ് </string>
+    <string name="select_a_friend">സുഹൃത്തിനെ തിരയുക</string>
+    <string name="no_pending_actions">പെൻഡിംഗ് ഒന്നുമില്ല</string>
+    <string name="send">അയക്കുക</string>
+    <string name="qr_pay">QR പേ</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">തുക ഇവിടെ കാണിക്കും</string>
+    <string name="edit_profile">പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുക</string>
+    <string name="logout">ലോഗ്ഔട്ട്</string>
+    <string name="change_photo">ഫോട്ടോ മാറ്റുക</string>
+    <string name="mobile_number">മൊബൈൽ നമ്പർ</string>
+    <string name="gender">ലിംഗം</string>
+    <string name="male">ആൺ</string>
+    <string name="female">പെൺ</string>
+    <string name="other">മറ്റുള്ളവ</string>
+    <string name="method">രീതി</string>
+    <string name="status">സ്ഥിതി</string>
+    <string name="reset_password">പാസ്‌വേഡ് പുനഃസജ്ജമാക്കുക</string>
+    <string name="send_mail">മെയിൽ അയക്കുക</string>
+    <string name="search_expenses">ചെലവുകൾ തിരയുക</string>
+    <string name="pending_action_details">പെൻഡിംഗ് വിശദാംശങ്ങൾ</string>
+    <string name="type">തരം</string>
+    <string name="update_saving">ശേഖരണം പുതുക്കുക</string>
+    <string name="current_saving">നിലവിലെ ശേഖരണം</string>
+    <string name="note">ശ്രദ്ധിക്കുക: ഇത് നിങ്ങളുടെ വ്യക്തിഗത ശേഖരണം മാത്രമാണ്. സ്വമേധയാ പുതുക്കില്ല. ഉപയോക്താവ് തന്നെ മാറ്റണം.</string>
+    <string name="view_details">വിവരങ്ങൾ കാണുക</string>
+    <string name="no_recent_transactions">ഇത് വരെ ഇടപാടുകൾ ഇല്ല</string>
+    <string name="hello">ഹലോ </string>
+    <string name="manage_your_finance_easily">
+നിങ്ങളുടെ ഫിനാൻസ് എളുപ്പത്തിൽ നിയന്ത്രിക്കൂ
+</string>
+    <string name="where_s_everyone">എവിടെ כולם?</string>
+    <string name="nothing_to_split">വെക്കാനുള്ളത് ഒന്നുമില്ല!</string>
+    <string name="start_adding_expenses">ചെലവുകൾ ചേർക്കാൻ തുടങ്ങുക</string>
+    <string name="noting_has_landed_yet">ഇതുവരെ ഒന്നും ലഭിച്ചിട്ടില്ല!</string>
+    <string name="are_you_sure">ഈ സുഹൃത്ത് നീക്കംചെയ്യണോ?</string>
+    <string name="remove">നീക്കം ചെയ്യുക</string>
+    <string name="search_users">ഉപയോക്താക്കളെ തിരയുക</string>
+    <string name="chart_overview">ചാർട്ട് അവലോകനം</string>
+    <string name="date_wise_spending">തീയതി അനുസരിച്ച ചെലവ്</string>
+    <string name="cash">പണം</string>
+    <string name="credit_card">ക്രെഡിറ്റ് കാർഡ്</string>
+    <string name="debit_card">ഡെബിറ്റ് കാർഡ്</string>
+    <string name="upi">UPI</string>
+    <string name="net_banking">നെറ്റ് ബാങ്കിംഗ്</string>
+    <string name="select_participants">പങ്കെടുക്കുന്നവരെ തിരഞ്ഞെടുക്കുക</string>
+    <string name="search_members">അംഗങ്ങളെ തിരയുക</string>
+    <string name="save">സംരക്ഷിക്കുക</string>
+    <string name="payment_details">പേയ്മെന്റ് വിശദാംശങ്ങൾ</string>
+    <string name="add_your_image">നിങ്ങളുടെ ചിത്രം ചേർക്കുക</string>
+    <string name="select_your_language">Select Your Language</string>
+    <string name="set_language">Set Language</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी&#10;Hindi</string>
+    <string name="lang_marathi" translatable="false">मराठी&#10;Marathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা&#10;Bengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી&#10;Gujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ&#10;Punjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം&#10;Malayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்&#10;Tamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు&#10;Telugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ&#10;Kannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ&#10;Odia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी&#10;Bhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া&#10;Assamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी&#10;Rajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी&#10;Haryanvi</string>
+
 </resources>

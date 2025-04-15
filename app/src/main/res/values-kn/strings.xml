@@ -115,8 +115,8 @@
     <string name="total_group_spending">ಒಟ್ಟು ಗುಂಪಿನ ವೆಚ್ಚ</string>
     <string name="peoples">ಜನರು</string>
     <string-array name="split_by_options">
-        <item>ಸಮ ಸಮವಾಗಿ</item>
-        <item>ಕಸ್ಟಮ್</item>
+        <item>Equally</item>
+        <item>Custom</item>
     </string-array>
     <string name="default_username">ಹಲೋ ಬಳಕೆದಾರನಿಮ್ಮ ಹಣಕಾಸುಗಳನ್ನು ಸುಲಭವಾಗಿ ನಿರ್ವಹಿಸಿ</string>
     <string name="currency_format">₹%.2f</string>
@@ -155,7 +155,7 @@
     <string name="your_balance">ನಿಮ್ಮ ಶೇಷ</string>
     <string name="settled_up">ಪಾವತಿಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲಾಗಿದೆ</string>
     <string name="send_or_request">ಹಣ ಕಳುಹಿಸಿ ಅಥವಾ ವಿನಂತಿಸಿ</string>
-    <string name="search_friends">ಸ್ನೇಹಿತರನ್ನು ಹುಡುಕಿ...</string>
+    <string name="search_friends">ಸ್ನೇಹಿತರನ್ನು ಹುಡುಕಿ…</string>
     <string name="pay_via_qr">QR ಮೂಲಕ ಪಾವತಿ ಮಾಡಿ</string>
     <string name="pending_actions">ಬಾಕಿ ಕಾರ್ಯಗಳು</string>
     <string name="export_transactions">ವಹಿವಾಟುಗಳನ್ನು ರಫ್ತು ಮಾಡಿ</string>
@@ -218,4 +218,81 @@
     <string name="notifications">ಅಧಿಸೂಚನೆಗಳು</string>
     <string name="personal_expense">ವೈಯಕ್ತಿಕ ಖರ್ಚು</string>
     <string name="personal_expense1">ವೈಯಕ್ತಿಕಖರ್ಚು</string>
+    <string name="username">ಬಳಕೆದಾರ</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">ಹಣಕಾಸು ಸಾರಾಂಶ</string>
+    <string name="settlements">ನಿಪಟಾನ</string>
+    <string name="owes">ಬಾಕಿ</string>
+    <string name="total_you_paid_for">ಒಟ್ಟು ಪಾವತಿ</string>
+    <string name="your_total_share">ನಿಮ್ಮ ಪಾಲು</string>
+    <string name="group_title">ಗುಂಪಿನ ಶೀರ್ಷಿಕೆ</string>
+    <string name="currency">ಕರೆನ್ಸಿ</string>
+    <string name="group_members">ಗುಂಪಿನ ಸದಸ್ಯರು</string>
+    <string name="you_are_in">"ನೀವು ಇದ್ದೀರಿ "</string>
+    <string name="select_a_friend">ಸ್ನೇಹಿತ ಆಯ್ಕೆ</string>
+    <string name="no_pending_actions">ಬಾಕಿ ಕೆಲಸ ಇಲ್ಲ</string>
+    <string name="send">ಕಳುಹಿಸಿ</string>
+    <string name="qr_pay">QR ಪೇ</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">ರಕು ಇಲ್ಲಿ</string>
+    <string name="edit_profile">ಪ್ರೊಫೈಲ್ ತಿದ್ದುಮಾಡಿ</string>
+    <string name="logout">ಲಾಗ್ ಔಟ್</string>
+    <string name="change_photo">ಚಿತ್ರ ಬದಲಿಸಿ</string>
+    <string name="mobile_number">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</string>
+    <string name="gender">ಲಿಂಗ</string>
+    <string name="male">ಪುರುಷ</string>
+    <string name="female">ಸ್ತ್ರೀ</string>
+    <string name="other">ಇತರೆ</string>
+    <string name="method">ವಿಧಿ</string>
+    <string name="status">ಸ್ಥಿತಿ</string>
+    <string name="reset_password">ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ</string>
+    <string name="send_mail">ಇಮೇಲ್ ಕಳುಹಿಸಿ</string>
+    <string name="search_expenses">ಖರ್ಚು ಹುಡುಕಿ</string>
+    <string name="pending_action_details">ಬಾಕಿ ಕೆಲಸ ವಿವರ</string>
+    <string name="type">ಪ್ರಕಾರ</string>
+    <string name="update_saving">ಬಚತ್ ನವೀಕರಿಸಿ</string>
+    <string name="current_saving">ಪ್ರಸ್ತುತ ಬಚತ್</string>
+    <string name="note">ನೋಟ: ಇದು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಬಚತ್, ಸ್ವಯಂ-ನವೀಕರಣವಲ್ಲ; ನಿಮ್ಮಿಂದ ನವೀಕರಿಸಬೇಕು.</string>
+    <string name="view_details">ವಿವರ ನೋಡಿ</string>
+    <string name="no_recent_transactions">ಇತ್ತೀಚಿನ ವ್ಯವಹಾರಗಳಿಲ್ಲ</string>
+    <string name="hello">"ಹಲೋ "</string>
+    <string name="manage_your_finance_easily">ಹಣಕಾಸು ಸುಲಭ ನಿರ್ವಹಣೆ</string>
+    <string name="where_s_everyone">ಎಲ್ಲಿದ್ದಾರೆ?</string>
+    <string name="nothing_to_split">ಹಂಚಲು ಏನೂ ಇಲ್ಲ</string>
+    <string name="start_adding_expenses">ಖರ್ಚು ಸೇರಿಸಿ ಹಂಚಿ</string>
+    <string name="noting_has_landed_yet">ಏನೂ ಬಂದಿಲ್ಲ!</string>
+    <string name="are_you_sure">ಈ ಸ್ನೇಹಿತ ತೆಗೆದುಹಾಕಲು ಖಚಿತವೇ?</string>
+    <string name="remove">ತೆಗೆದುಹಾಕಿ</string>
+    <string name="search_users">ಬಳಕೆದಾರ ಹುಡುಕಿ</string>
+    <string name="chart_overview">ಚಾರ್ಟ್ ನೋಟ</string>
+    <string name="date_wise_spending">ದಿನಾಂಕ ಖರ್ಚು</string>
+    <string name="cash">ನಗದು</string>
+    <string name="credit_card">ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್</string>
+    <string name="debit_card">ಡೆಬಿಟ್ ಕಾರ್ಡ್</string>
+    <string name="upi">UPI</string>
+    <string name="net_banking">ನೆಟ್ ಬ್ಯಾಂಕಿಂಗ್</string>
+    <string name="select_participants">ಭಾಗವರ ಆಯ್ಕೆ</string>
+    <string name="search_members">ಸದಸ್ಯರು ಹುಡುಕಿ</string>
+    <string name="save">ಸೇವ್</string>
+    <string name="payment_details">ಪಾವತಿ ವಿವರ</string>
+    <string name="add_your_image">ಚಿತ್ರ ಸೇರಿಸಿ</string>
+    <string name="select_your_language">Select Your Language</string>
+    <string name="set_language">Set Language</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी&#10;Hindi</string>
+    <string name="lang_marathi" translatable="false">मराठी&#10;Marathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা&#10;Bengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી&#10;Gujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ&#10;Punjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം&#10;Malayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்&#10;Tamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు&#10;Telugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ&#10;Kannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ&#10;Odia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी&#10;Bhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া&#10;Assamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी&#10;Rajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी&#10;Haryanvi</string>
+
+
 </resources>

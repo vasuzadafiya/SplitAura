@@ -7,7 +7,6 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.splitaura.R;
 import com.example.splitaura.utils.UserSessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -61,9 +60,8 @@ public class HomeViewModel extends AndroidViewModel {
                     // Retrieve and format user's name
                     String fname = documentSnapshot.getString("fname");
                     String greetingName = (fname != null && !fname.isEmpty()) ? fname.toLowerCase() : "User";
-                    String formattedName = (R.string.hello) + greetingName + (R.string.manage_your_finance_easily);
-                    username.setValue(formattedName);
-                    sessionManager.saveUsername(formattedName);
+                    username.setValue(greetingName);
+                    sessionManager.saveUsername(greetingName);
 
                     // Retrieve and update profile picture URL if available
                     String picUrl = documentSnapshot.getString("profile_picture");

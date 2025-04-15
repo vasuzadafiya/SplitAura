@@ -195,7 +195,7 @@ public class HomeFragment extends Fragment {
         try {
             homeViewModel.getUsername().observe(getViewLifecycleOwner(), name -> {
                 if (name != null && !name.isEmpty()) {
-                    username.setText(name);
+                    username.setText(getString(R.string.hello) + name + "," + getString(R.string.manage_your_finance_easily));
                 } else {
                     username.setText(getString(R.string.default_username));
                 }
@@ -377,7 +377,8 @@ public class HomeFragment extends Fragment {
             String friendsJson = sharedPreferences.getString(KEY_FRIENDS_DATA, null);
             if (friendsJson != null) {
                 Gson gson = new Gson();
-                Type type = new TypeToken<List<FriendBalance>>() {}.getType();
+                Type type = new TypeToken<List<FriendBalance>>() {
+                }.getType();
                 List<FriendBalance> cachedFriends = gson.fromJson(friendsJson, type);
 
                 if (cachedFriends != null && !cachedFriends.isEmpty()) {

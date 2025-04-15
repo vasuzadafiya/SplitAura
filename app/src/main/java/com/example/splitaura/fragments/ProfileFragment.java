@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -174,9 +176,9 @@ public class ProfileFragment extends Fragment {
 
     public void showLanguageDialog(Context context) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_select_language, null);
-
         RecyclerView recyclerView = dialogView.findViewById(R.id.languageRecyclerView);
         Button btnNext = dialogView.findViewById(R.id.btnNext);
+
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
         recyclerView.setHasFixedSize(true);
 
@@ -198,7 +200,6 @@ public class ProfileFragment extends Fragment {
         );
 
         final Language[] selectedLanguage = {null};
-
         LanguageAdapter adapter = new LanguageAdapter(languages, language -> {
             selectedLanguage[0] = language;
             btnNext.setVisibility(View.VISIBLE);
@@ -211,27 +212,28 @@ public class ProfileFragment extends Fragment {
         btnNext.setOnClickListener(v -> {
             if (selectedLanguage[0] != null) {
                 String langCode = selectedLanguage[0].getLangCode();
-
                 SharedPreferences prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
                 prefs.edit().putString("selected_lang_code", langCode).apply();
-
                 LanguageUtils.setLocale(context, langCode);
-
-                // Restart the app or activity
                 Intent intent = new Intent(context, splashScreen.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-                if (context instanceof Activity) {
-                    ((Activity) context).finish();
-                }
-
+                if (context instanceof Activity) ((Activity) context).finish();
                 dialog.dismiss();
             }
         });
 
-
         dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+            params.copyFrom(window.getAttributes());
+            params.width = WindowManager.LayoutParams.MATCH_PARENT;
+            params.height = (int) (context.getResources().getDisplayMetrics().heightPixels * 0.8); // 80% screen
+            window.setAttributes(params);
+        }
     }
+
 
     private void fetchUserData() {
         if (targetUid == null) {

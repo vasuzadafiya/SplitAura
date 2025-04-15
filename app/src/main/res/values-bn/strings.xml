@@ -118,8 +118,8 @@
     <string name="total_group_spending">মোট গ্রুপ খরচ</string>
     <string name="peoples">ব্যক্তিরা</string>
     <string-array name="split_by_options">
-        <item>সমানভাবে</item>
-        <item>কাস্টম</item>
+        <item>Equally</item>
+        <item>Custom</item>
     </string-array>
 
     <string name="default_username">হ্যালো ব্যবহারকারী&#10;আপনার আর্থিক ব্যবস্থাপনা সহজ করুন</string>
@@ -164,7 +164,7 @@
     <string name="your_balance">আপনার ব্যালান্স</string>
     <string name="settled_up">বিতরণ সম্পন্ন</string>
     <string name="send_or_request">টাকা পাঠান বা অনুরোধ করুন</string>
-    <string name="search_friends">বন্ধু খুঁজুন...</string>
+    <string name="search_friends">বন্ধু খুঁজুন…</string>
     <string name="pay_via_qr">QR দ্বারা পরিশোধ করুন</string>
     <string name="pending_actions">অপেক্ষমান ক্রিয়াগুলি</string>
     <string name="export_transactions">লেনদেন রপ্তানি করুন</string>
@@ -229,4 +229,80 @@
     <string name="notifications">বিজ্ঞপ্তি</string>
     <string name="personal_expense">ব্যক্তিগত খরচ</string>
     <string name="personal_expense1">ব্যক্তিগত&#10;খরচ</string>
+    <string name="username">ইউজারনেম</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">অর্থ সারাংশ</string>
+    <string name="settlements">মীমাংসা</string>
+    <string name="owes">বকেয়া</string>
+    <string name="total_you_paid_for">মোট প্রদান</string>
+    <string name="your_total_share">তোমার অংশ</string>
+    <string name="group_title">গ্রুপ শিরোনাম</string>
+    <string name="currency">মুদ্রা</string>
+    <string name="group_members">গ্রুপ সদস্য</string>
+    <string name="you_are_in">"তুমি আছো "</string>
+    <string name="select_a_friend">এক বন্ধু বেছে নাও</string>
+    <string name="no_pending_actions">কোনো বাকী কাজ নেই</string>
+    <string name="send">পাঠাও</string>
+    <string name="qr_pay">QR পে</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">পরিমাণ এখানে দেখাবে</string>
+    <string name="edit_profile">প্রোফাইল সম্পাদনা</string>
+    <string name="logout">লগআউট</string>
+    <string name="change_photo">ছবি বদলাও</string>
+    <string name="mobile_number">মোবাইল নম্বর</string>
+    <string name="gender">লিঙ্গ</string>
+    <string name="male">পুরুষ</string>
+    <string name="female">মহিলা</string>
+    <string name="other">অন্যান্য</string>
+    <string name="method">পদ্ধতি</string>
+    <string name="status">অবস্থা</string>
+    <string name="reset_password">পাসওয়ার্ড রিসেট</string>
+    <string name="send_mail">ইমেল পাঠাও</string>
+    <string name="search_expenses">ব্যয় খুঁজো</string>
+    <string name="pending_action_details">বাকী কাজের বিস্তারিত</string>
+    <string name="type">ধরন</string>
+    <string name="update_saving">সঞ্চয় আপডেট</string>
+    <string name="current_saving">বর্তমান সঞ্চয়</string>
+    <string name="note">নোট: এটি আপনার ব্যক্তিগত সঞ্চয়, স্বয়ংক্রিয় নয়; নিজে আপডেট করুন</string>
+    <string name="view_details">বিস্তারিত দেখুন</string>
+    <string name="no_recent_transactions">সাম্প্রতিক লেনদেন নেই</string>
+    <string name="hello">"হ্যালো "</string>
+    <string name="manage_your_finance_easily">\nসহজে আর্থিক ব্যবস্থাপনা</string>
+    <string name="where_s_everyone">সবাই কোথায়?</string>
+    <string name="nothing_to_split">ভাগ করার কিছু নেই</string>
+    <string name="start_adding_expenses">ব্যয় যোগ কর ও ভাগ কর</string>
+    <string name="noting_has_landed_yet">এখনো কিছু নেই!</string>
+    <string name="are_you_sure">এই বন্ধুকে সরাতে নিশ্চিত?</string>
+    <string name="remove">সরাও</string>
+    <string name="search_users">ইউজার খুঁজো</string>
+    <string name="chart_overview">চার্ট সারাংশ</string>
+    <string name="date_wise_spending">তারিখ অনুসারে খরচ</string>
+    <string name="cash">ক্যাশ</string>
+    <string name="credit_card">ক্রেডিট কার্ড</string>
+    <string name="debit_card">ডেবিট কার্ড</string>
+    <string name="upi">UPI</string>
+    <string name="net_banking">নেট ব্যাংকিং</string>
+    <string name="select_participants">অংশগ্রহণকারী বেছে নাও</string>
+    <string name="search_members">সদস্য খুঁজো</string>
+    <string name="save">সংরক্ষণ</string>
+    <string name="payment_details">পেমেন্ট বিস্তারিত</string>
+    <string name="add_your_image">ছবি যোগ কর</string>
+    <string name="select_your_language">Select Your Language</string>
+    <string name="set_language">Set Language</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी&#10;Hindi</string>
+    <string name="lang_marathi" translatable="false">मराठी&#10;Marathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা&#10;Bengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી&#10;Gujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ&#10;Punjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം&#10;Malayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்&#10;Tamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు&#10;Telugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ&#10;Kannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ&#10;Odia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी&#10;Bhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া&#10;Assamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी&#10;Rajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी&#10;Haryanvi</string>
+
 </resources>

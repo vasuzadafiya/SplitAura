@@ -1,10 +1,10 @@
 package com.example.splitaura.models;
 
 public class Language {
-    private final int nameResId;         // For UI label like "हिंदी\nHindi"
-    private final int iconResId;         // Icon shown in UI
-    private final int backgroundResId;   // Card background
-    private final String langCode;       // "hi", "gu", etc.
+    private final int nameResId;
+    private final int iconResId;
+    private final int backgroundResId;
+    private final String langCode;
 
     public Language(int nameResId, int iconResId, int backgroundResId, String langCode) {
         this.nameResId = nameResId;

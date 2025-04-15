@@ -116,8 +116,8 @@
     <string name="total_group_spending">মুঠ গোট ব্যয়</string>
     <string name="peoples">মানুহ</string>
     <string-array name="split_by_options">
-        <item>সমভাৱে</item>
-        <item>স্বনির্ধাৰিত</item>
+        <item>Equally</item>
+        <item>Custom</item>
     </string-array>
     <string name="default_username">নমস্কাৰ ইউজাৰ&#10;আপোনাৰ বিত্ত সহজে পৰিচালনা কৰক</string>
     <string name="currency_format">₹%.2f</string>
@@ -198,20 +198,24 @@
     <string name="transaction_details">লেনদেন বিৱৰণ</string>
     <string name="transaction_details_message">বন্ধু: %s&#10;ৰাশি: ₹%.2f&#10;তাৰিখ: %s&#10;স্থিতি: %s&#10;লেনদেন ID: %s&#10;পদ্ধতি: %s</string>
     <string name="hello_blank_fragment">নমস্কাৰ, শূন্য ফ্রেগমেণ্ট</string>
-    <string name="lang_hindi">हिंदी\\nHindi</string>
-    <string name="lang_marathi">मराठी\\nMarathi</string>
-    <string name="lang_bengali">বাংলা\\nBengali</string>
-    <string name="lang_gujarati">ગુજરાતી\\nGujarat</string>
-    <string name="lang_punjabi">ਪੰਜਾਬੀ\\nPunjabi</string>
-    <string name="lang_malayalam">മലയാളം\\nMalayalam</string>
-    <string name="lang_tamil">தமிழ்\\nTamil</string>
-    <string name="lang_telugu">తెలుగు\\nTelugu</string>
-    <string name="lang_kannada">ಕನ್ನಡ\\nKannada</string>
-    <string name="lang_odia">ଓଡ଼ିଆ&#10;Odia</string>
-    <string name="lang_bhojpuri">ভোজপুরী&#10;Bhojpuri</string>
-    <string name="lang_assamese">অসমীয়া&#10;Assamese</string>
-    <string name="lang_rajasthani">ৰাজস্থানী&#10;Rajasthani</string>
-    <string name="lang_haryanvi">হৰিযানভী&#10;Haryanvi</string>
+    <string name="select_your_language">Select Your Language</string>
+    <string name="set_language">Set Language</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी&#10;Hindi</string>
+    <string name="lang_marathi" translatable="false">मराठी&#10;Marathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা&#10;Bengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી&#10;Gujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ&#10;Punjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം&#10;Malayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்&#10;Tamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు&#10;Telugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ&#10;Kannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ&#10;Odia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी&#10;Bhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া&#10;Assamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी&#10;Rajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी&#10;Haryanvi</string>
+
     <string name="just_1_click_split_your_bills">মাত্ৰ ১ টা ক্লিকতে আপোনাৰ বিলসমূহ ভাগ কৰক</string>
     <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">আপোনাৰ বন্ধু, সহকৰ্মী আৰু যিকোনো লোকৰ সৈতে বিল ভাগ কৰাৰ সহজ উপায়</string>
     <string name="title">শিৰোনাম</string>
@@ -228,4 +232,63 @@
     <string name="notifications">বিজ্ঞপ্তিসমূহ</string>
     <string name="personal_expense">ব্যক্তিগত খৰচ</string>
     <string name="personal_expense1">ব্যক্তিগত&#10;খৰচ</string>
+    <string name="username">ব্যৱহাৰকাৰী</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">আৰ্থিক সংক্ষেপ</string>
+    <string name="settlements">মীমাংসা</string>
+    <string name="owes">ঋণ</string>
+    <string name="total_you_paid_for">মুঠ পৰিশোধ</string>
+    <string name="your_total_share">আপোনাৰ অংশ</string>
+    <string name="group_title">দল শিৰোনাম</string>
+    <string name="currency">মুদ্ৰা</string>
+    <string name="group_members">দল সদস্য</string>
+    <string name="you_are_in">"আপুনি আছে "</string>
+    <string name="select_a_friend">বন্ধু বাছনি কৰক</string>
+    <string name="no_pending_actions">কোনো বাকী কাৰ্য নাই</string>
+    <string name="send">পঠিয়াওক</string>
+    <string name="qr_pay">QR পে</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">ৰাশি ইয়াত দেখুওৱা হ\'ব</string>
+    <string name="edit_profile">প্ৰফাইল সম্পাদনা</string>
+    <string name="logout">লগআউট</string>
+    <string name="change_photo">ফটো সলনি কৰক</string>
+    <string name="mobile_number">ম\'বাইল নম্বৰ</string>
+    <string name="gender">লিংগ</string>
+    <string name="male">পুৰুষ</string>
+    <string name="female">স্ত্ৰী</string>
+    <string name="other">অন্যান্য</string>
+    <string name="method">পদ্ধতি</string>
+    <string name="status">অৱস্থা</string>
+    <string name="reset_password">পাছৱৰ্ড ৰিছেট</string>
+    <string name="send_mail">মেইল পঠিয়াওক</string>
+    <string name="search_expenses">ব্যয় বিচাৰক</string>
+    <string name="pending_action_details">বকোৱা বিৱৰণ</string>
+    <string name="type">ধৰণ</string>
+    <string name="update_saving">সঞ্চয় নবীকৰণ</string>
+    <string name="current_saving">বৰ্তমান সঞ্চয়</string>
+    <string name="note">দ্রষ্টব্য: এইটো আপোনাৰ ব্যক্তিগত সঞ্চয়; নিজে হস্তে নবীকৰণ কৰিব লাগিব</string>
+    <string name="view_details">বিৱৰণ চাওক</string>
+    <string name="no_recent_transactions">সাম্প্ৰতিক লেনদেন নাই</string>
+    <string name="hello">"হেলো "</string>
+    <string name="manage_your_finance_easily">সহজে আৰ্থিক ব্যৱস্থা কৰক</string>
+    <string name="where_s_everyone">সকলো ক\'লৈ?</string>
+    <string name="nothing_to_split">ভাগ কৰাৰ নোজান</string>
+    <string name="start_adding_expenses">ব্যয় যোগ কৰক</string>
+    <string name="noting_has_landed_yet">কিছু অহা নাই!</string>
+    <string name="are_you_sure">আপুনি নিশ্চিত নেকি?</string>
+    <string name="remove">অপসাৰণ</string>
+    <string name="search_users">ব্যৱহাৰকাৰী বিচাৰক</string>
+    <string name="chart_overview">চাৰ্ট দৃষ্টিপাত</string>
+    <string name="date_wise_spending">তাৰিখ অনুৰুপ খৰচ</string>
+    <string name="cash">নগদ</string>
+    <string name="credit_card">ক্ৰেডিট কাৰ্ড</string>
+    <string name="debit_card">ডেবিট কাৰ্ড</string>
+    <string name="upi">ইউপিআই</string>
+    <string name="net_banking">নেট বেংকিং</string>
+    <string name="select_participants">অংশগ্ৰহণকাৰী বাছনি</string>
+    <string name="search_members">সদস্য বিচাৰক</string>
+    <string name="save">সংৰক্ষণ</string>
+    <string name="payment_details">পেমেণ্ট বিৱৰণ</string>
+    <string name="add_your_image">ফটো যোগ কৰক</string>
+
 </resources>

@@ -66,6 +66,7 @@ public class LoginActivity extends BaseActivity {
     private static final String TAG = "LoginActivity";
     private static final int RC_SIGN_IN = 9001;
     LottieAnimationView glogin;
+    private static final String WEB_KEY = "689551742039-49778le7mei8h3rte6n7neotsstf9hvm.apps.googleusercontent.com";
 
     // For Login Credential
     EditText lemail;
@@ -111,7 +112,7 @@ public class LoginActivity extends BaseActivity {
 
         // Configure Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestIdToken(WEB_KEY)
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);

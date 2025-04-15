@@ -16,13 +16,30 @@ import java.util.List;
 
 public class LanguageAdapter extends RecyclerView.Adapter<LanguageAdapter.LanguageViewHolder> {
 
-    private final List<Language> languageList;
+    private final List<Language> languages;
     private final OnLanguageClickListener listener;
     private int selectedPosition = -1;
-    public LanguageAdapter(List<Language> languageList, OnLanguageClickListener listener) {
-        this.languageList = languageList;
+
+    public LanguageAdapter(List<Language> languages, OnLanguageClickListener listener) {
+        this.languages = languages;
         this.listener = listener;
-        setHasStableIds(true); // Enables stable IDs for smoother recycling.
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull LanguageViewHolder holder, int position) {
+        Language language = languages.get(position);
+        holder.languageName.setText(holder.itemView.getContext().getString(language.getNameResId()));
+        holder.languageIcon.setImageResource(language.getIconResId());
+        holder.layout.setBackgroundResource(language.getBackgroundResId());
+        holder.selectedBorder.setVisibility(selectedPosition == position ? View.VISIBLE : View.GONE);
+
+        holder.layout.setOnClickListener(v -> {
+            int prevSelected = selectedPosition;
+            selectedPosition = position;
+            notifyItemChanged(prevSelected);
+            notifyItemChanged(selectedPosition);
+            listener.onLanguageClick(language);
+        });
     }
 
     @NonNull
@@ -33,38 +50,8 @@ public class LanguageAdapter extends RecyclerView.Adapter<LanguageAdapter.Langua
     }
 
     @Override
-    public void onBindViewHolder(@NonNull LanguageViewHolder holder, int position) {
-        Language language = languageList.get(position);
-        // Set language name from string resource.
-        holder.languageName.setText(holder.itemView.getContext().getString(language.getNameResId()));
-        // Set icon and background from the model.
-        holder.languageIcon.setImageResource(language.getIconResId());
-        holder.layout.setBackgroundResource(language.getBackgroundResId());
-
-        // Toggle the selection border visibility.
-        holder.selectedBorder.setVisibility(selectedPosition == position ? View.VISIBLE : View.GONE);
-
-        // Set click listener for the card.
-        holder.layout.setOnClickListener(v -> {
-            if (selectedPosition != position) {
-                int prevSelected = selectedPosition;
-                selectedPosition = position;
-                notifyItemChanged(prevSelected);
-                notifyItemChanged(selectedPosition);
-                listener.onLanguageClick(language);
-            }
-        });
-    }
-
-    @Override
     public int getItemCount() {
-        return languageList.size();
-    }
-
-    @Override
-    public long getItemId(int position) {
-        // Use the language name resource as a unique stable ID.
-        return languageList.get(position).getNameResId();
+        return languages.size();
     }
 
     public interface OnLanguageClickListener {
@@ -74,10 +61,9 @@ public class LanguageAdapter extends RecyclerView.Adapter<LanguageAdapter.Langua
     static class LanguageViewHolder extends RecyclerView.ViewHolder {
         TextView languageName;
         ImageView languageIcon;
-        View layout;
-        View selectedBorder;
+        View layout, selectedBorder;
 
-        LanguageViewHolder(@NonNull View itemView) {
+        public LanguageViewHolder(@NonNull View itemView) {
             super(itemView);
             languageName = itemView.findViewById(R.id.languageName);
             languageIcon = itemView.findViewById(R.id.languageIcon);

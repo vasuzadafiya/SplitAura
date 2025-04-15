@@ -18,10 +18,8 @@
     <string name="forgot_password">પાસવર્ડ ભૂલી ગયા?</string>
     <string name="login">લોગિન</string>
     <string name="no_internet">ઊપ્સ!</string>
-    <string name="no_internet_desc">ઈન્ટરનેટ કનેક્શન ઉપલબ્ધ નથી
-કૃપા કરીને તમારું ઈન્ટરનેટ કનેક્શન તપાસો</string>
+    <string name="no_internet_desc">ઈન્ટરનેટ કનેક્શન ઉપલબ્ધ નથી\nકૃપા કરીને તમારું ઈન્ટરનેટ કનેક્શન તપાસો</string>
     <string name="retry">પુનઃપ્રયાસ કરો</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <plurals name="pending_count">
         <item quantity="one">%d બાકી</item>
         <item quantity="other">%d બાકી</item>
@@ -124,8 +122,8 @@
     <string name="total_group_spending">કુલ સમૂહ ખર્ચ</string>
     <string name="peoples">લોકો</string>
     <string-array name="split_by_options">
-        <item>સમાન રીતે</item>
-        <item>કસ્ટમ</item>
+        <item>Equally</item>
+        <item>Custom</item>
     </string-array>
     <string name="default_username">હેલો યુઝર
 તમારા નાણાંને સરળતાથી સંચાલિત કરો</string>
@@ -155,17 +153,17 @@
     <string name="no_friends">વહેચવા માટે કોઈ મિત્ર નથી</string>
     <string name="dialog_title">ડાયલોગ</string>
     <string-array name="filter_options">
-        <item>7 દિવસ</item>
-        <item>15 દિવસ</item>
-        <item>30 દિવસ</item>
-        <item>બધાં</item>
-        <item>કસ્ટમ</item>
+        <item>7 days</item>
+        <item>15 days</item>
+        <item>30 days</item>
+        <item>All</item>
+        <item>Custom</item>
     </string-array>
     <!-- Payment Fragment Strings -->
     <string name="your_balance">તમારો બેલેન્સ</string>
     <string name="settled_up">સેટલ થયેલ</string>
     <string name="send_or_request">પઇસા મોકલો અથવા વિનંતી કરો</string>
-    <string name="search_friends">મિત્રોની શોધ કરો...</string>
+    <string name="search_friends">મિત્રોની શોધ કરો…</string>
     <string name="pay_via_qr">QR મારફતે ચૂકવણી કરો</string>
     <string name="pending_actions">બાકી કામગીરીઓ</string>
     <string name="export_transactions">ટ્રાન્ઝેક્શન્સ એક્સપોર્ટ કરો</string>
@@ -216,29 +214,26 @@
 ટ્રાન્ઝેક્શન ID: %s
 પદ્ધતિ: %s</string>
     <string name="hello_blank_fragment">હેલો બ્લેન્ક ફ્રેગમેન્ટ</string>
-    <string name="lang_hindi">हिंदी\\nHindi</string>
-    <string name="lang_marathi">मराठी\\nMarathi</string>
-    <string name="lang_bengali">বাংলা\\nBengali</string>
-    <string name="lang_gujarati">ગુજરાતી\\nGujarat</string>
-    <string name="lang_punjabi">ਪੰਜਾਬੀ\\nPunjabi</string>
-    <string name="lang_malayalam">മലയാളം\\nMalayalam</string>
-    <string name="lang_tamil">தமிழ்\\nTamil</string>
-    <string name="lang_telugu">తెలుగు\\nTelugu</string>
-    <string name="lang_kannada">કન્નડ
-Kannada</string>
-    <string name="lang_odia">ઓડિયા
-Odia</string>
-    <string name="lang_bhojpuri">ભોજપુરી
-Bhojpuri</string>
-    <string name="lang_assamese">અસમિયા
-Assamese</string>
-    <string name="lang_rajasthani">રાજસ્થાની
-Rajasthani</string>
-    <string name="lang_haryanvi">હરિયાણવી
-Haryanvi</string>
+    <string name="select_your_language">Select Your Language</string>
+    <string name="set_language">Set Language</string>
+
+    <string name="lang_hindi" translatable="false">हिंदी&#10;Hindi</string>
+    <string name="lang_marathi" translatable="false">मराठी&#10;Marathi</string>
+    <string name="lang_bengali" translatable="false">বাংলা&#10;Bengali</string>
+    <string name="lang_gujarati" translatable="false">ગુજરાતી&#10;Gujarati</string>
+    <string name="lang_punjabi" translatable="false">ਪੰਜਾਬੀ&#10;Punjabi</string>
+    <string name="lang_malayalam" translatable="false">മലയാളം&#10;Malayalam</string>
+    <string name="lang_tamil" translatable="false">தமிழ்&#10;Tamil</string>
+    <string name="lang_telugu" translatable="false">తెలుగు&#10;Telugu</string>
+    <string name="lang_kannada" translatable="false">ಕನ್ನಡ&#10;Kannada</string>
+    <string name="lang_odia" translatable="false">ଓଡ଼ିଆ&#10;Odia</string>
+    <string name="lang_bhojpuri" translatable="false">भोजपुरी&#10;Bhojpuri</string>
+    <string name="lang_assamese" translatable="false">অসমীয়া&#10;Assamese</string>
+    <string name="lang_rajasthani" translatable="false">राजस्थानी&#10;Rajasthani</string>
+    <string name="lang_haryanvi" translatable="false">हरियाणवी&#10;Haryanvi</string>
+
     <string name="just_1_click_split_your_bills">માત્ર 1 ક્લિકમાં તમારા બિલ્સ વિભાજિત કરો</string>
-    <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">તમારા
-મિત્રો, સહકર્મીઓ અને અન્ય સાથે બિલ વહેંચવાનો સરળ રીત.</string>
+    <string name="easy_way_to_share_bill_with_your_nfriends_colleagues_and_anyone">તમારા મિત્રો, સહકર્મીઓ અને અન્ય સાથે બિલ વહેંચવાનો સરળ રીત.</string>
     <string name="title">શીર્ષક</string>
     <string name="description">વર્ણન</string>
     <string name="skip">સ્કિપ</string>
@@ -252,6 +247,64 @@ Haryanvi</string>
     <string name="all_groups">બધા સમૂહો</string>
     <string name="notifications">સુચનાઓ</string>
     <string name="personal_expense">વ્યક્તિગત ખર્ચ</string>
-    <string name="personal_expense1">વ્યક્તિગત
-ખર્ચ</string>
+    <string name="personal_expense1">વ્યક્તિગત\nખર્ચ</string>
+    <string name="username">યુઝરનામ</string>
+    <string name="upi_id" translatable="false">UPI ID</string>
+    <string name="finance_summary">નાણાકીય સારાંશ</string>
+    <string name="settlements">સેટલમેન્ટ</string>
+    <string name="owes">બાકી</string>
+    <string name="total_you_paid_for">કુલ ચૂકવણી</string>
+    <string name="your_total_share">તમારો ભાગ</string>
+    <string name="group_title">ગ્રુપ શીર્ષક</string>
+    <string name="currency">ચલણ</string>
+    <string name="group_members">સભ્યો</string>
+    <string name="you_are_in">"તમે છો "</string>
+    <string name="select_a_friend">મિત્ર પસંદ કરો</string>
+    <string name="no_pending_actions">કોઈ બાકી કામ નથી</string>
+    <string name="send">પઠાવો</string>
+    <string name="qr_pay">QR પે</string>
+    <string name="zero">₹0.00</string>
+    <string name="amount_will_be_displayed_here">રકમ અહીં બતાશે</string>
+    <string name="edit_profile">પ્રોફાઇલ સંપાદન</string>
+    <string name="logout">લોગ આઉટ</string>
+    <string name="change_photo">ફોટો બદલો</string>
+    <string name="mobile_number">મોબાઈલ નંબર</string>
+    <string name="gender">લિંગ</string>
+    <string name="male">પુરુષ</string>
+    <string name="female">સ્ત્રી</string>
+    <string name="other">અન્ય</string>
+    <string name="method">પદ્ધતિ</string>
+    <string name="status">સ્થિતિ</string>
+    <string name="reset_password">પાસવર્ડ રીસેટ</string>
+    <string name="send_mail">મેઇલ મોકલો</string>
+    <string name="search_expenses">ખર્ચ શોધો</string>
+    <string name="pending_action_details">બાકી ક્રિયા વિગત</string>
+    <string name="type">પ્રકાર</string>
+    <string name="update_saving">બચત અપડેટ</string>
+    <string name="current_saving">હાલની બચત</string>
+    <string name="note">નોંધ: આ તમારી વ્યક્તિગત બચત છે, આપમેળે અપડેટ નહીં થાય; તમે પોતે અપડેટ કરો.</string>
+    <string name="view_details">વિગત જુઓ</string>
+    <string name="no_recent_transactions">કોઈ તાજી લેવડદેવડ નથી</string>
+    <string name="hello">"હેલો "</string>
+    <string name="manage_your_finance_easily">\nતમારી નાણાકીય વ્યવસ્થા સરળ બનાવો</string>
+    <string name="where_s_everyone">બધા ક્યાં છે?</string>
+    <string name="nothing_to_split">વભાજન માટે કશું નથી</string>
+    <string name="start_adding_expenses">ખર્ચ ઉમેરો અને વહંચો</string>
+    <string name="noting_has_landed_yet">હજુ સુધી કશું નથી</string>
+    <string name="are_you_sure">આ મિત્ર કાઢી નાખવામાં નિશ્ચિત?</string>
+    <string name="remove">કાઢી નાખો</string>
+    <string name="search_users">વપરાશકર્તાઓ શોધો</string>
+    <string name="chart_overview">ચાર્ટ ઝાંખી</string>
+    <string name="date_wise_spending">તારીખ મુજબ ખર્ચ</string>
+    <string name="cash">રકમ</string>
+    <string name="credit_card">ક્રેડિટ કાર્ડ</string>
+    <string name="debit_card">ડેબિટ કાર્ડ</string>
+    <string name="upi">UPI</string>
+    <string name="net_banking">નેટ બેંકિંગ</string>
+    <string name="select_participants">ભાગ લેનારા પસંદ કરો</string>
+    <string name="search_members">સભ્યો શોધો</string>
+    <string name="save">સેવ કરો</string>
+    <string name="payment_details">ચુકવણી વિગત</string>
+    <string name="add_your_image">તમારી છબી ઉમેરો</string>
+
 </resources>
